@@ -1,0 +1,47 @@
+---
+title: "Presentation of Penda"
+author: "Clémentine Decamps"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+# source("./R/simu.R")
+# source("./R/ranking.R")
+# source("./R/testing.R")
+
+```
+
+
+
+##Data processing
+
+We import the control data, and we 150 gene for the 98 patients.
+The two last patients are used to simulate deregulation data.
+The function "detect_zero_value" allows to eliminate the gene with more than 80% of expression equal to 0.
+The processed data has 104 genes.
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+ctrl_data = readRDS('~/projects/perso_DA/data_ctrl.rds')[1:150,]
+simu_data = ctrl_data[,97:98]
+ctrl_data = ctrl_data[,-(97:98)]
+
+null_values = detect_zero_value(ctrl_data, simu_data, 0.8)
+ctrl_data = ctrl_data[!null_values,]
+simu_data = simu_data[!null_values,]
+
+```
+
+
+##Ranking in control
+
+The function "find_D_U_ctrl" returns two matrix. For each gene in columns, the row gene is 
+"TRUE" if is **D**own-expresed or **U**p-expressed.
+
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+
+D_U_ctrl = find_D_U_ctrl(ctrl_data, 0.01, 30, 0.8)
+table(D_U_ctrl$D)
+table(D_U_ctrl$U)
+
+```
