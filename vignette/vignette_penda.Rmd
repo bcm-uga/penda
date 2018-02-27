@@ -45,3 +45,35 @@ table(D_U_ctrl$D)
 table(D_U_ctrl$U)
 
 ```
+
+##Simulation of dysregulation of gene expression
+
+"simu_data" is the gene expression of two control genes. The function "dysreg_simulation" randomnly dysregul about 30% of these expressions.
+
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+
+dysreg_data = dysreg_simulation(simu_data, 0.3, 60)
+table(simu_data != dysreg_data)
+
+```
+
+
+##Test of the deregulation
+
+
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+
+D_matrix = dysreg_data
+U_matrix = dysreg_data
+for (p in 1:2){
+  D_U = test_individu(ctrl_data, dysreg_data[,p], 0.05, 3, D_U_ctrl, 0.1)
+  D_matrix[,p] = unlist(D_U[1])
+  U_matrix[,p] = unlist(D_U[2])
+}
+
+which(simu_data[,1]>dysreg_data[,1] & D_matrix[,1]==1)
+which(simu_data[,1]<dysreg_data[,1] & U_matrix[,1]==1)
+
+#Les résultats sont pas terribles, reprendre étape par étape
+
+```

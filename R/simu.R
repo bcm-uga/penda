@@ -1,36 +1,38 @@
-#'simulation
+#'dysreg_simulation
 #'
-#' This function simulates up and down-regulation for datas
+#' This function simulates the dysregulation (up and down) of datas.
 #'
-#'@param data_simu vector of original data to be modified
+#'@param simu_data vector of original data to be modified
 #'@param fraction fraction of data to modify
 #'@param threshold under this threshold, data modification is +-15. Above, it is *2 or /2.
 #'
-#'@return This function return a vector of modified data which simulate up and down regulation.
+#'@return This function returns a vector of modified data which simulates up and down regulation.
 #'
+#'@examples
+#'dysreg_simulation(simu_data, fraction = 0.3, threshold = 60)
 #'
 #'@export
 #'
 
-simulation = function(data_simu, fraction, threshold){
+dysreg_simulation = function(simu_data, fraction, threshold){
 
-  perturb = round(runif((fraction*length(data_simu)), min=1, max=length(data_simu)))
+  perturb = round(runif((fraction*length(simu_data)), min=1, max=length(simu_data)))
   perturb = perturb[-which(duplicated(perturb))]
   for(i in 1:length(perturb)){
     if (rnorm(1) < 0) {
-      if (data_simu[perturb[i]] < threshold) {
-        data_simu[perturb[i]] = data_simu[perturb[i]] -15
-        if (data_simu[perturb[i]] <=0){
-          data_simu[perturb[i]]=0
+      if (simu_data[perturb[i]] < threshold) {
+        simu_data[perturb[i]] = simu_data[perturb[i]] -15
+        if (simu_data[perturb[i]] <=0){
+          simu_data[perturb[i]]=0
         }
       } else {
-        data_simu[perturb[i]] = data_simu[perturb[i]] / 2
+        simu_data[perturb[i]] = simu_data[perturb[i]] / 2
       }
-    } else if (data_simu[perturb[i]] < threshold) {
-      data_simu[perturb[i]] = data_simu[perturb[i]] +15
+    } else if (simu_data[perturb[i]] < threshold) {
+      simu_data[perturb[i]] = simu_data[perturb[i]] +15
     } else {
-      data_simu[perturb[i]] = data_simu[perturb[i]] * 2
+      simu_data[perturb[i]] = simu_data[perturb[i]] * 2
     }
   }
-  return(data_simu)
+  return(simu_data)
 }

@@ -39,7 +39,7 @@ detect_zero_value = function(ctrl_data, cancer_data, threshold) {
 #'
 #' This function ranks each gene and finds the genes which are more or less exprimed.
 #'
-#'@param data_genes matrix with the gene expressions for each patient
+#'@param genes_data matrix with the gene expressions for each patient
 #'@param quant quantile to delimit the gene expression
 #'@param factor factor to delimit the study limit : between quantile min / factor and quantile max * factor
 #'@param threshold proportion of expression that must be in the conditions
@@ -54,14 +54,14 @@ detect_zero_value = function(ctrl_data, cancer_data, threshold) {
 #'
 #'@export
 
-find_D_U_ctrl = function (data_genes, quant, factor, threshold){
+find_D_U_ctrl = function (genes_data, quant, factor, threshold){
 
-  transposee = t(data_genes)
-  matrice_u = matrix( nrow = nrow(data_genes), ncol=nrow(data_genes), dimnames=list(rownames(data_genes),rownames(data_genes)))
-  matrice_d = matrix( nrow = nrow(data_genes), ncol=nrow(data_genes), dimnames=list(rownames(data_genes),rownames(data_genes)))
+  transposee = t(genes_data)
+  matrice_u = matrix( nrow = nrow(genes_data), ncol=nrow(genes_data), dimnames=list(rownames(genes_data),rownames(genes_data)))
+  matrice_d = matrix( nrow = nrow(genes_data), ncol=nrow(genes_data), dimnames=list(rownames(genes_data),rownames(genes_data)))
 
   #For each gene,
-  matrice_d = apply(data_genes, 1, function (g){
+  matrice_d = apply(genes_data, 1, function (g){
 
     quantile_gene = quantile(g, c(quant,(1-quant)))
     #d_genes are between (quantile min / factor) and gene expression
@@ -72,7 +72,7 @@ find_D_U_ctrl = function (data_genes, quant, factor, threshold){
 
   })
 
-  matrice_u = apply(data_genes, 1, function (g){
+  matrice_u = apply(genes_data, 1, function (g){
 
     quantile_gene = quantile(g, c(quant,(1-quant)))
     #u_genes are between gene expression and (quantile max * factor)
