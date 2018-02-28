@@ -7,11 +7,11 @@
 detect_zero_value(ctrl_data, cancer_data, threshold)
 }
 \arguments{
-\item{ctrl_data}{matrix with data to analyze}
+\item{ctrl_data}{A matrix with data to analyze}
 
-\item{cancer_data}{matrix with other data to analyze}
+\item{cancer_data}{A matrix with other data to analyze}
 
-\item{threshold}{maximum proportion of zero tolerated for each gene}
+\item{threshold}{The maximum proportion of zero tolerated for each gene}
 }
 \value{
 This function return a true false vector with true for the values to exclude.

@@ -17,9 +17,9 @@ output: html_document
 
 ##Data processing
 
-We import the control data, and we 150 gene for the 98 patients.
+We import the control data, and we take 150 genes for the 98 patients.
 The two last patients are used to simulate deregulation data.
-The function "detect_zero_value" allows to eliminate the gene with more than 80% of expression equal to 0.
+The function "detect_zero_value" allows to eliminate genes with more than 80% of expression equal to 0.
 The processed data has 104 genes.
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 ctrl_data = readRDS('~/projects/perso_DA/data_ctrl.rds')[1:150,]
@@ -71,9 +71,35 @@ for (p in 1:2){
   U_matrix[,p] = unlist(D_U[2])
 }
 
-which(simu_data[,1]>dysreg_data[,1] & D_matrix[,1]==1)
-which(simu_data[,1]<dysreg_data[,1] & U_matrix[,1]==1)
 
-#Les résultats sont pas terribles, reprendre étape par étape
+representation_fdr = function(D_matrix, U_matrix, simu_data, dysreg_data){
+  #True positive = true down + true up
+  TP = (length (which(simu_data > dysreg_data & D_matrix == 1)) 
+        + length (which(simu_data < dysreg_data & U_matrix == 1)))
+  
+  #False positive = down ou up alors que pas bougé
+  FP = (length (which(simu_data == dysreg_data & D_matrix == 1)) 
+        + length (which(simu_data == dysreg_data & U_matrix == 1)))
+
+  #False negative = pas bougé alors que down ou up
+  FN = (length (which(simu_data < dysreg_data & D_matrix == 0 & U_matrix == 0)) 
+        + length (which(simu_data > dysreg_data & D_matrix == 0 & U_matrix == 0)))
+
+  #TN = true pas bougé
+  TN = (length (which(simu_data == dysreg_data & D_matrix == 0 & U_matrix == 0)) 
+        + length (which(simu_data == dysreg_data & D_matrix == 0 & U_matrix == 0)))
+  #return(c(TP, FP, FN, TN))
+  df= data.frame(type = c("TP","FP","FN","TN", "FDR"), results=c(TP, FP, FN, TN, (FP/(TP+FP))))
+  library(ggplot2)
+  ggplot(df, aes(x=type, y=results, fill=type)) + geom_bar(stat="identity") + geom_text(aes(label=results), vjust=1)
+
+  
+}
+
+resultsP1 = representation_fdr(D_matrix[,1], U_matrix[,1], simu_data[,1], dysreg_data[,1])
+resultsP2 = representation_fdr(D_matrix[,2], U_matrix[,2], simu_data[,2], dysreg_data[,2])
+
+resultsP1
+resultsP2
 
 ```

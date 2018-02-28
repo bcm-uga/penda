@@ -3,9 +3,9 @@
 #'
 #' This function detects genes with more than threshold percent of expression values equals to zero.
 #'
-#'@param ctrl_data matrix with data to analyze
-#'@param cancer_data matrix with other data to analyze
-#'@param threshold maximum proportion of zero tolerated for each gene
+#'@param ctrl_data A matrix with data to analyze
+#'@param cancer_data A matrix with other data to analyze
+#'@param threshold The maximum proportion of zero tolerated for each gene
 #'
 #'@return This function return a true false vector with true for the values to exclude.
 #'
@@ -39,10 +39,10 @@ detect_zero_value = function(ctrl_data, cancer_data, threshold) {
 #'
 #' This function ranks each gene and finds the genes which are more or less exprimed.
 #'
-#'@param genes_data matrix with the gene expressions for each patient
-#'@param quant quantile to delimit the gene expression
-#'@param factor factor to delimit the study limit : between quantile min / factor and quantile max * factor
-#'@param threshold proportion of expression that must be in the conditions
+#'@param genes_data A matrix with the gene expressions for each patient
+#'@param quant A quantile to delimit the gene expression
+#'@param factor A factor to delimit the study limit : between quantile min / factor and quantile max * factor
+#'@param threshold The proportion of expression that must be in the conditions
 #'
 #'@return This function returns a list of two TRUE-FALSE matrix :
 #'the D matrix, with TRUE if the row gene has a lower expression than the column gene,

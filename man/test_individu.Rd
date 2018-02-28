@@ -8,29 +8,29 @@ test_individu(genes_data, patient_genes, quant_0, iterations, D_U_ctrl,
   threshold)
 }
 \arguments{
-\item{genes_data}{a matrix with genes expressions in controls for all the patients}
+\item{genes_data}{A matrix with genes expressions in controls for all the patients}
 
-\item{patient_genes}{all the genes expression for one patient}
+\item{patient_genes}{All the genes expression for one patient}
 
-\item{quant_0}{the quantile for the expression distribution for the step_0}
+\item{quant_0}{The quantile for the expression distribution for the step_0}
 
-\item{iterations}{the number of iterations for the test}
+\item{iterations}{The number of iterations for the test}
 
-\item{D_U_ctrl}{the list of Down and Up-expressed genes matrix in the control}
+\item{D_U_ctrl}{The list of Down and Up-expressed genes matrix in the control}
 
-\item{threshold}{the threshold for regulation_test}
+\item{threshold}{The threshold for regulation_test}
 }
 \value{
 This function return a list with two vector
 }
 \description{
-This function makes the test of the dysregulation of all gnes for one patient.
+This function makes the test of the dysregulation of all genes for one patient.
 }
 \examples{
 data_regulate = ctrl_data[,ncol(ctrl_data)]
-data_regulate = dysreg_simulation(data_regulates, fraction = 0.3, threshold = 60)
+data_regulate = dysreg_simulation(data_regulate, fraction = 0.3, threshold = 60)
 ctrl_data = ctrl_data[,-ncol(ctrl_data)]
 D_U_ctrl = find_D_U_ctrl(ctrl_data, quant = 0.01, factor = 30, threshold = 0.8)
-test_individu(ctrl_data, data_regulate, quant_0 = 0.05, iterations = 3, D_U_ctrl, thrshold = 0.1)
+test_individu(ctrl_data, data_regulate, quant_0 = 0.05, iterations = 3, D_U_ctrl, threshold = 0.1)
 
 }

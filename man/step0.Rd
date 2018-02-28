@@ -21,7 +21,7 @@ This function makes the list of genes at the extremities of expression distribut
 }
 \examples{
 data_regulate = ctrl_data[,ncol(ctrl_data)]
-data_regulate = dysreg_simulation(data_regulates, fraction = 0.3, threshold = 60)
+data_regulate = dysreg_simulation(data_regulate, fraction = 0.3, threshold = 60)
 ctrl_data = ctrl_data[,-ncol(ctrl_data)]
 step0(ctrl_data, data_regulate, quant = 0.05)
 

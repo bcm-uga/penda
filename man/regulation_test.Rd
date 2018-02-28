@@ -7,13 +7,13 @@
 regulation_test(gene, D_U_control, cancer_data, seuil)
 }
 \arguments{
-\item{gene}{the name of the gene to analyze}
+\item{gene}{The name of the gene to analyze}
 
-\item{D_U_control}{the list of Down and Up-expressed genes matrix in the control}
+\item{D_U_control}{The list of Down and Up-expressed genes matrix in the control}
 
-\item{cancer_data}{the matrix of gene expression in the cancer}
+\item{cancer_data}{A matrix of gene expression in the cancer}
 
-\item{seuil}{if Dd/Du and Uu/ud are under this threshold, the expression not change}
+\item{seuil}{If Dd/Du and Uu/ud are under this threshold, the expression not change}
 }
 \value{
 This function return 0 if the gene expression has not changed,
@@ -24,7 +24,7 @@ This function makes the test of expression dysregulation for a patient compared 
 }
 \examples{
 data_regulate = ctrl_data[,ncol(ctrl_data)]
-data_regulate = dysreg_simulation(data_regulates, fraction = 0.3, threshold = 60)
+data_regulate = dysreg_simulation(data_regulate, fraction = 0.3, threshold = 60)
 ctrl_data = ctrl_data[,-ncol(ctrl_data)]
 D_U_ctrl = find_D_U_ctrl(ctrl_data, quant = 0.01, factor = 30, threshold = 0.8)
 regulation_test(rownames(ctrl_data)[1], D_U_ctrl, data_regulate, 0.1)

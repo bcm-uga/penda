@@ -7,13 +7,13 @@
 find_D_U_ctrl(genes_data, quant, factor, threshold)
 }
 \arguments{
-\item{genes_data}{matrix with the gene expressions for each patient}
+\item{genes_data}{A matrix with the gene expressions for each patient}
 
-\item{quant}{quantile to delimit the gene expression}
+\item{quant}{A quantile to delimit the gene expression}
 
-\item{factor}{factor to delimit the study limit : between quantile min / factor and quantile max * factor}
+\item{factor}{A factor to delimit the study limit : between quantile min / factor and quantile max * factor}
 
-\item{threshold}{proportion of expression that must be in the conditions}
+\item{threshold}{The proportion of expression that must be in the conditions}
 }
 \value{
 This function returns a list of two TRUE-FALSE matrix :

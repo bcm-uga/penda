@@ -2,17 +2,17 @@
 #'
 #' This function makes the test of expression dysregulation for a patient compared to control
 #'
-#'@param gene the name of the gene to analyze
-#'@param D_U_control the list of Down and Up-expressed genes matrix in the control
-#'@param cancer_data the matrix of gene expression in the cancer
-#'@param seuil if Dd/Du and Uu/ud are under this threshold, the expression not change
+#'@param gene The name of the gene to analyze
+#'@param D_U_control The list of Down and Up-expressed genes matrix in the control
+#'@param cancer_data A matrix of gene expression in the cancer
+#'@param seuil If Dd/Du and Uu/ud are under this threshold, the expression not change
 #'
 #'@return This function return 0 if the gene expression has not changed,
 #' 1 if the gene is up-regulated and -1 if the gene is down-regulated
 #'
 #'@examples
 #'data_regulate = ctrl_data[,ncol(ctrl_data)]
-#'data_regulate = dysreg_simulation(data_regulates, fraction = 0.3, threshold = 60)
+#'data_regulate = dysreg_simulation(data_regulate, fraction = 0.3, threshold = 60)
 #'ctrl_data = ctrl_data[,-ncol(ctrl_data)]
 #'D_U_ctrl = find_D_U_ctrl(ctrl_data, quant = 0.01, factor = 30, threshold = 0.8)
 #'regulation_test(rownames(ctrl_data)[1], D_U_ctrl, data_regulate, 0.1)
@@ -82,7 +82,7 @@ regulation_test = function(gene, D_U_control, cancer_data, seuil){
 #'
 #'@examples
 #'data_regulate = ctrl_data[,ncol(ctrl_data)]
-#'data_regulate = dysreg_simulation(data_regulates, fraction = 0.3, threshold = 60)
+#'data_regulate = dysreg_simulation(data_regulate, fraction = 0.3, threshold = 60)
 #'ctrl_data = ctrl_data[,-ncol(ctrl_data)]
 #'step0(ctrl_data, data_regulate, quant = 0.05)
 #'
@@ -96,22 +96,22 @@ step0 = function (genes_data, patient_genes, quant){
 
 #'test_individu
 #'
-#' This function makes the test of the dysregulation of all gnes for one patient.
-#'@param genes_data a matrix with genes expressions in controls for all the patients
-#'@param patient_genes all the genes expression for one patient
-#'@param quant_0 the quantile for the expression distribution for the step_0
-#'@param iterations the number of iterations for the test
-#'@param D_U_ctrl the list of Down and Up-expressed genes matrix in the control
-#'@param threshold the threshold for regulation_test
+#' This function makes the test of the dysregulation of all genes for one patient.
+#'@param genes_data A matrix with genes expressions in controls for all the patients
+#'@param patient_genes All the genes expression for one patient
+#'@param quant_0 The quantile for the expression distribution for the step_0
+#'@param iterations The number of iterations for the test
+#'@param D_U_ctrl The list of Down and Up-expressed genes matrix in the control
+#'@param threshold The threshold for regulation_test
 #'
 #'@return This function return a list with two vector
 #'
 #'@examples
 #'data_regulate = ctrl_data[,ncol(ctrl_data)]
-#'data_regulate = dysreg_simulation(data_regulates, fraction = 0.3, threshold = 60)
+#'data_regulate = dysreg_simulation(data_regulate, fraction = 0.3, threshold = 60)
 #'ctrl_data = ctrl_data[,-ncol(ctrl_data)]
 #'D_U_ctrl = find_D_U_ctrl(ctrl_data, quant = 0.01, factor = 30, threshold = 0.8)
-#'test_individu(ctrl_data, data_regulate, quant_0 = 0.05, iterations = 3, D_U_ctrl, thrshold = 0.1)
+#'test_individu(ctrl_data, data_regulate, quant_0 = 0.05, iterations = 3, D_U_ctrl, threshold = 0.1)
 #'
 #'@export
 
