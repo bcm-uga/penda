@@ -7,9 +7,9 @@ output: html_document
 
 
 ```{r setup, include=FALSE}
-# source("./R/simu.R")
-# source("./R/ranking.R")
-# source("./R/testing.R")
+source("~/projects/penda/R/simu.R")
+source("~/projects/penda/R/ranking.R")
+source("~/projects/penda/R/testing.R")
 
 ```
 
@@ -17,14 +17,14 @@ output: html_document
 
 ##Data processing
 
-We import the control data, and we take 150 genes for the 98 patients.
-The two last patients are used to simulate deregulation data.
+We import the control data, and we take 1000 genes for the 98 patients.
+The three last patients are used to simulate deregulation data.
 The function "detect_zero_value" allows to eliminate genes with more than 80% of expression equal to 0.
-The processed data has 104 genes.
+The processed data has 629 genes.
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
-ctrl_data = readRDS('~/projects/perso_DA/data_ctrl.rds')[1:150,]
-simu_data = ctrl_data[,97:98]
-ctrl_data = ctrl_data[,-(97:98)]
+ctrl_data = readRDS('~/projects/perso_DA/data_ctrl.rds')[1:1000,]
+simu_data = ctrl_data[,96:98]
+ctrl_data = ctrl_data[,-(96:98)]
 
 null_values = detect_zero_value(ctrl_data, simu_data, 0.8)
 ctrl_data = ctrl_data[!null_values,]
@@ -40,7 +40,7 @@ The function "find_D_U_ctrl" returns two matrix. For each gene in columns, the r
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
-D_U_ctrl = find_D_U_ctrl(ctrl_data, 0.01, 30, 0.8)
+D_U_ctrl = find_D_U_ctrl(ctrl_data, 0.01, 4, 0.9)
 table(D_U_ctrl$D)
 table(D_U_ctrl$U)
 
@@ -52,7 +52,7 @@ table(D_U_ctrl$U)
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
-dysreg_data = dysreg_simulation(simu_data, 0.3, 60)
+dysreg_data = dysreg_simulation(simu_data, 0.4, 60)
 table(simu_data != dysreg_data)
 
 ```
@@ -63,13 +63,26 @@ table(simu_data != dysreg_data)
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
+
 D_matrix = dysreg_data
 U_matrix = dysreg_data
-for (p in 1:2){
-  D_U = test_individu(ctrl_data, dysreg_data[,p], 0.05, 3, D_U_ctrl, 0.1)
+for (p in 1:3){
+  D_U = test_individu(ctrl_data, dysreg_data[,p], 0.05, 20, D_U_ctrl, 0.1)
   D_matrix[,p] = unlist(D_U[1])
   U_matrix[,p] = unlist(D_U[2])
 }
+
+sum(U_matrix[,1])
+sum(D_matrix[,1])
+sum(U_matrix[,2])
+sum(D_matrix[,2])
+sum(U_matrix[,3])
+sum(D_matrix[,3])
+```
+
+##Representation
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+
 
 
 representation_fdr = function(D_matrix, U_matrix, simu_data, dysreg_data){
@@ -88,7 +101,7 @@ representation_fdr = function(D_matrix, U_matrix, simu_data, dysreg_data){
   #TN = true pas bougé
   TN = (length (which(simu_data == dysreg_data & D_matrix == 0 & U_matrix == 0)) 
         + length (which(simu_data == dysreg_data & D_matrix == 0 & U_matrix == 0)))
-  #return(c(TP, FP, FN, TN))
+
   df= data.frame(type = c("TP","FP","FN","TN", "FDR"), results=c(TP, FP, FN, TN, (FP/(TP+FP))))
   library(ggplot2)
   ggplot(df, aes(x=type, y=results, fill=type)) + geom_bar(stat="identity") + geom_text(aes(label=results), vjust=1)
@@ -98,8 +111,33 @@ representation_fdr = function(D_matrix, U_matrix, simu_data, dysreg_data){
 
 resultsP1 = representation_fdr(D_matrix[,1], U_matrix[,1], simu_data[,1], dysreg_data[,1])
 resultsP2 = representation_fdr(D_matrix[,2], U_matrix[,2], simu_data[,2], dysreg_data[,2])
+resultsP3 = representation_fdr(D_matrix[,3], U_matrix[,3], simu_data[,3], dysreg_data[,3])
 
 resultsP1
 resultsP2
+resultsP3
+
+#Certains taux de fdr élevés
+
+#Mais quand on fait le test individu sur la donnée de base (non dérégulée) par rapport aux autres contrôles...
+D_matrix_simu = simu_data
+U_matrix_simu = simu_data
+for (p in 1:3){
+  D_U = test_individu(ctrl_data, simu_data[,p], 0.05, 20, D_U_ctrl, 0.1)
+  D_matrix_simu[,p] = unlist(D_U[1])
+  U_matrix_simu[,p] = unlist(D_U[2])
+}
+
+#Patient 1, gènes Up et Down
+sum(U_matrix_simu[,1])
+sum(D_matrix_simu[,1])
+#Patient 2, gènes Up et Down
+sum(U_matrix_simu[,2])
+sum(D_matrix_simu[,2])
+#Patient 3, gènes Up et Down
+sum(U_matrix_simu[,3])
+sum(D_matrix_simu[,3])
+
+#La variation de l'expression intra-patients contrôles n'est pas très bien gérée par les tests (résultats sur 588 gènes, 45 gènes ~= 7.5%)
 
 ```
