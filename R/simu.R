@@ -21,15 +21,15 @@ dysreg_simulation = function(simu_data, fraction, threshold){
   for(i in 1:length(perturb)){
     if (rnorm(1) < 0) {
       if (simu_data[perturb[i]] < threshold) {
-        simu_data[perturb[i]] = simu_data[perturb[i]] -30
-        if (simu_data[perturb[i]] <=0){
-          simu_data[perturb[i]]=0
+        simu_data[perturb[i]] = simu_data[perturb[i]] - 30
+        if (simu_data[perturb[i]] <= 0){
+          simu_data[perturb[i]] = 0
         }
       } else {
         simu_data[perturb[i]] = simu_data[perturb[i]] / 4
       }
     } else if (simu_data[perturb[i]] < threshold) {
-      simu_data[perturb[i]] = simu_data[perturb[i]] +30
+      simu_data[perturb[i]] = simu_data[perturb[i]] + 30
     } else {
       simu_data[perturb[i]] = simu_data[perturb[i]] * 4
     }

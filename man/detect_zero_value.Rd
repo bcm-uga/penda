@@ -4,7 +4,7 @@
 \alias{detect_zero_value}
 \title{detect_zero_value}
 \usage{
-detect_zero_value(ctrl_data, cancer_data, threshold)
+detect_zero_value(ctrl_data, cancer_data, min, threshold)
 }
 \arguments{
 \item{ctrl_data}{A matrix with data to analyze}

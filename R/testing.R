@@ -5,7 +5,7 @@
 #'@param gene The name of the gene to analyze
 #'@param D_U_control The list of Down and Up-expressed genes matrix in the control
 #'@param cancer_data A matrix of gene expression in the cancer
-#'@param seuil If Dd/Du and Uu/ud are under this threshold, the expression not change
+#'@param threshold If Dd/Du and Uu/ud are under this threshold, the expression not change
 #'
 #'@return This function return 0 if the gene expression has not changed,
 #' 1 if the gene is up-regulated and -1 if the gene is down-regulated
@@ -20,7 +20,7 @@
 #'@export
 #'
 
-regulation_test = function(gene, D_U_control, cancer_data, seuil){
+regulation_test = function(gene, D_U_control, cancer_data, threshold){
 
   down_ctrl = D_U_control$D[,gene]
   up_ctrl = D_U_control$U[,gene]
@@ -36,7 +36,7 @@ regulation_test = function(gene, D_U_control, cancer_data, seuil){
 
   #If exists both up and down-regulated lists
   if (sum(down_ctrl) != 0 & sum(up_ctrl) != 0){
-    if ((Ud / sum(up_ctrl) < seuil) & ((Du / sum(down_ctrl) < seuil))){
+    if ((Ud / sum(up_ctrl) < threshold) & ((Du / sum(down_ctrl) < threshold))){
       changement = 0
     } else if ((Dd + Ud) < sum(down_ctrl)){
       changement = -1
@@ -47,7 +47,7 @@ regulation_test = function(gene, D_U_control, cancer_data, seuil){
   }
   #If exists only up-regulated list
   else if (sum(down_ctrl) == 0 & sum(up_ctrl) != 0){
-    if (Ud / sum(up_ctrl) < seuil){
+    if (Ud / sum(up_ctrl) < threshold){
       changement = 0
     } else {
       changement = 1
@@ -56,7 +56,7 @@ regulation_test = function(gene, D_U_control, cancer_data, seuil){
   }
   #if exists only down-regulated list
   else if (sum(down_ctrl) != 0 & sum(up_ctrl) == 0){
-    if (Du / sum(down_ctrl) < seuil){
+    if (Du / sum(down_ctrl) < threshold){
       changement = 0
     } else {
       changement = -1

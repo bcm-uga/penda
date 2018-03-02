@@ -18,17 +18,13 @@ source("~/projects/penda/R/testing.R")
 ##Data processing
 
 We import the control data, and we take 1000 genes for the 98 patients.
-The three last patients are used to simulate deregulation data.
-The function "detect_zero_value" allows to eliminate genes with more than 80% of expression equal to 0.
-The processed data has 629 genes.
+The five last patients are used to simulate deregulation data.
+The function "detect_zero_value" was used before to eliminates genes with more than 99% of expression value under 10.
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
-ctrl_data = readRDS('~/projects/perso_DA/data_ctrl.rds')[1:1000,]
-simu_data = ctrl_data[,96:98]
-ctrl_data = ctrl_data[,-(96:98)]
+ctrl_data = readRDS('~/projects/perso_DA/data_ctrl_process.rds')[1:1000,]
 
-null_values = detect_zero_value(ctrl_data, simu_data, 0.8)
-ctrl_data = ctrl_data[!null_values,]
-simu_data = simu_data[!null_values,]
+simu_data = ctrl_data[,94:98]
+ctrl_data = ctrl_data[,-(94:98)]
 
 ```
 
@@ -43,6 +39,8 @@ The function "find_D_U_ctrl" returns two matrix. For each gene in columns, the r
 D_U_ctrl = find_D_U_ctrl(ctrl_data, 0.01, 4, 0.9)
 table(D_U_ctrl$D)
 table(D_U_ctrl$U)
+
+check_D_U (D_U_ctrl, ctrl_data, 0.9)
 
 ```
 
@@ -81,6 +79,8 @@ sum(D_matrix[,3])
 ```
 
 ##Representation
+!! en cours de développement !!
+
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
 

@@ -4,7 +4,7 @@
 \alias{regulation_test}
 \title{regulation_test}
 \usage{
-regulation_test(gene, D_U_control, cancer_data, seuil)
+regulation_test(gene, D_U_control, cancer_data, threshold)
 }
 \arguments{
 \item{gene}{The name of the gene to analyze}
@@ -13,7 +13,7 @@ regulation_test(gene, D_U_control, cancer_data, seuil)
 
 \item{cancer_data}{A matrix of gene expression in the cancer}
 
-\item{seuil}{If Dd/Du and Uu/ud are under this threshold, the expression not change}
+\item{threshold}{If Dd/Du and Uu/ud are under this threshold, the expression not change}
 }
 \value{
 This function return 0 if the gene expression has not changed,
