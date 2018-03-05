@@ -4,17 +4,20 @@
 \alias{dysreg_simulation}
 \title{dysreg_simulation}
 \usage{
-dysreg_simulation(simu_data, fraction, threshold)
+dysreg_simulation(data, fraction, threshold)
 }
 \arguments{
-\item{simu_data}{vector of original data to be modified}
+\item{data}{vector or matrix of original data to edit}
 
 \item{fraction}{fraction of data to modify}
 
 \item{threshold}{under this threshold, data modification is +-15. Above, it is *2 or /2.}
 }
 \value{
-This function returns a vector of modified data which simulates up and down regulation.
+This function returns a list of three vectors or matrix :
+initial_data, datas before the modification
+simulated_data, datas with up and down modifications
+changes_index, index of datas with modifications
 }
 \description{
 This function simulates the dysregulation (up and down) of datas.

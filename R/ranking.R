@@ -112,11 +112,13 @@ check_D_U = function (D_U, genes_data, threshold){
   }
 
   else {
-
-    #test if genes down are realy down
-    down_pb = sapply(colnames(D_U_ctrl$D), function(gene){
-      pb = FALSE
+    #test if genes down are realy down and up genes are realy up
+    pb = sapply(colnames(D_U_ctrl$D), function(gene){
+      pb_d = FALSE
+      pb_u = FALSE
       nom_genes_D = names(which(D_U_ctrl$D[,gene]==1))
+      nom_genes_U = names(which(D_U_ctrl$U[,gene]==1))
+      #Research of the maximal down-expressed gene
       if (length(nom_genes_D)>1){
         mean_genes_D = apply(genes_data[nom_genes_D,], 1, mean)
         max_D = names(which(mean_genes_D == max(mean_genes_D), useNames=TRUE))
@@ -124,36 +126,32 @@ check_D_U = function (D_U, genes_data, threshold){
         max_D = nom_genes_D
       }
       gene_max_D = genes_data[max_D,]
-      if (sum(gene_max_D < genes_data[gene,]) < (threshold*length(gene_max_D))){
-        pb = TRUE
-      }
-      return(pb)
-    })
-    if (sum(down_pb) > 0){
-      return(list(error = "Warning, down genes sometimes overexpressed", nb_errors = sum(down_pb)))
-    } else {
 
-      #test if genes up are realy up
-      up_pb = sapply(colnames(D_U_ctrl$U), function(gene){
-        pb = FALSE
-        nom_genes_U = names(which(D_U_ctrl$U[,gene]==1))
-        if (length(nom_genes_U)>1){
-          mean_genes_U = apply(genes_data[nom_genes_U,], 1, mean)
-          max_U = names(which(mean_genes_U == max(mean_genes_U), useNames=TRUE))
-        } else {
-          max_U = nom_genes_U
-        }
-        gene_max_U = genes_data[max_U,]
-        if (sum(gene_max_U > genes_data[gene,]) < (threshold*length(gene_max_U))){
-          pb = TRUE
-        }
-        return(pb)
-      })
-      if (sum(up_pb) > 0){
-        return(list(error = "Warning, up genes sometimes underexpressed", nb_errors = sum(up_pb)))
+      #Research of the minimal up-expressed gene
+      if (length(nom_genes_U)>1){
+        mean_genes_U = apply(genes_data[nom_genes_U,], 1, mean)
+        max_U = names(which(mean_genes_U == max(mean_genes_U), useNames=TRUE))
       } else {
-        return ("OK")
+        max_U = nom_genes_U
       }
+      gene_max_U = genes_data[max_U,]
+
+      #Test if exist pb for down or up
+      if (sum(gene_max_D < genes_data[gene,]) < (threshold*length(gene_max_D))){
+        pb_d = TRUE
+      }
+      if (sum(gene_max_U > genes_data[gene,]) < (threshold*length(gene_max_U))){
+        pb_u = TRUE
+      }
+
+      return(list(d=pb_d, u=pb_u))
+    })
+    if (sum(pb$d) > 0){
+      return(list(error = "Warning, down genes sometimes overexpressed", nb_errors = sum(pb$d)))
+    } else if (sum(pb$u) > 0){
+       return(list(error = "Warning, up genes sometimes underexpressed", nb_errors = sum(pb$u)))
+    } else {
+        return ("OK")
     }
   }
 }

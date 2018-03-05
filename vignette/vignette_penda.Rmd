@@ -24,7 +24,10 @@ The function "detect_zero_value" was used before to eliminates genes with more t
 ctrl_data = readRDS('~/projects/perso_DA/data_ctrl_process.rds')[1:1000,]
 
 simu_data = ctrl_data[,94:98]
+colnames(simu_data) = c("P1","P2","P3","P4","P5")
+
 ctrl_data = ctrl_data[,-(94:98)]
+
 
 ```
 
@@ -40,19 +43,20 @@ D_U_ctrl = find_D_U_ctrl(ctrl_data, 0.01, 4, 0.9)
 table(D_U_ctrl$D)
 table(D_U_ctrl$U)
 
+
 check_D_U (D_U_ctrl, ctrl_data, 0.9)
 
 ```
 
 ##Simulation of dysregulation of gene expression
 
-"simu_data" is the gene expression of two control genes. The function "dysreg_simulation" randomnly dysregul about 30% of these expressions.
+"simu_data" is the gene expression of two control genes. The function "dysreg_simulation" randomnly dysregul 40% of these expressions.
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
-dysreg_data = dysreg_simulation(simu_data, 0.4, 60)
-table(simu_data != dysreg_data)
-
+simulation = dysreg_simulation(simu_data, 0.4, 60)
+table(simulation$initial_data != simulation$simulated_data)
+length(simulation$changes_index)
 ```
 
 
@@ -62,20 +66,19 @@ table(simu_data != dysreg_data)
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
 
-D_matrix = dysreg_data
-U_matrix = dysreg_data
-for (p in 1:3){
-  D_U = test_individu(ctrl_data, dysreg_data[,p], 0.05, 20, D_U_ctrl, 0.1)
+D_matrix = simulation$simulated_data
+U_matrix = simulation$simulated_data
+for(p in 1:ncol(simulation$simulated_data)){
+  D_U = test_individu(ctrl_data, simulation$simulated_data[,p], 0.05, 20, D_U_ctrl, 0.1)
   D_matrix[,p] = unlist(D_U[1])
   U_matrix[,p] = unlist(D_U[2])
 }
-
-sum(U_matrix[,1])
-sum(D_matrix[,1])
-sum(U_matrix[,2])
-sum(D_matrix[,2])
-sum(U_matrix[,3])
-sum(D_matrix[,3])
+saveRDS(D_matrix, "D_matrix.rds")
+saveRDS(U_matrix, "U_matrix.rds")
+#Nb of down genes
+colSums(D_matrix)
+#Nb of up genes
+colSums(U_matrix)
 ```
 
 ##Representation
@@ -83,50 +86,65 @@ sum(D_matrix[,3])
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
-
-
-representation_fdr = function(D_matrix, U_matrix, simu_data, dysreg_data){
+results_simulation = function(D_matrix, U_matrix, simulation, idx){
+  initial_data = simulation$initial_data[,idx]
+  simu_data = simulation$simulated_data[,idx]  
+  D_matrix = D_matrix[,idx]
+  U_matrix = U_matrix[,idx]
+  down = initial_data > simu_data
+  up = initial_data<simu_data
+  
+  
   #True positive = true down + true up
-  TP = (length (which(simu_data > dysreg_data & D_matrix == 1)) 
-        + length (which(simu_data < dysreg_data & U_matrix == 1)))
+  TP = (length (which(down == 1 & D_matrix == 1)) 
+        + length (which(up == 1 & U_matrix == 1)))
   
   #False positive = down ou up alors que pas bougé
-  FP = (length (which(simu_data == dysreg_data & D_matrix == 1)) 
-        + length (which(simu_data == dysreg_data & U_matrix == 1)))
+  FP = (length (which(down == 0 & D_matrix == 1)) 
+        + length (which(up == 0 & U_matrix == 1)))
 
   #False negative = pas bougé alors que down ou up
-  FN = (length (which(simu_data < dysreg_data & D_matrix == 0 & U_matrix == 0)) 
-        + length (which(simu_data > dysreg_data & D_matrix == 0 & U_matrix == 0)))
+  FN = (length (which((up == 1 | down == 1) & D_matrix == 0 & U_matrix == 0)))
 
   #TN = true pas bougé
-  TN = (length (which(simu_data == dysreg_data & D_matrix == 0 & U_matrix == 0)) 
-        + length (which(simu_data == dysreg_data & D_matrix == 0 & U_matrix == 0)))
-
-  df= data.frame(type = c("TP","FP","FN","TN", "FDR"), results=c(TP, FP, FN, TN, (FP/(TP+FP))))
-  library(ggplot2)
-  ggplot(df, aes(x=type, y=results, fill=type)) + geom_bar(stat="identity") + geom_text(aes(label=results), vjust=1)
-
-  
+  TN = (length (which(down == 0 & up == 0 & D_matrix == 0 & U_matrix == 0)))
+ 
+  return(list(TP=TP, FP = FP, FN = FN, TN = TN ))
 }
 
-resultsP1 = representation_fdr(D_matrix[,1], U_matrix[,1], simu_data[,1], dysreg_data[,1])
-resultsP2 = representation_fdr(D_matrix[,2], U_matrix[,2], simu_data[,2], dysreg_data[,2])
-resultsP3 = representation_fdr(D_matrix[,3], U_matrix[,3], simu_data[,3], dysreg_data[,3])
 
-resultsP1
-resultsP2
-resultsP3
+results1 = results_simulation(D_matrix, U_matrix, simulation, 1)
+results2 = results_simulation(D_matrix, U_matrix, simulation, 2)
+results3 = results_simulation(D_matrix, U_matrix, simulation, 3)
+results4 = results_simulation(D_matrix, U_matrix, simulation, 4)
+results5 = results_simulation(D_matrix, U_matrix, simulation, 5)
+
+dessin = function(results){
+  FP = results$FP
+  df= data.frame(type = c("TP","FP","FN","TN", "FDR"), results=c(unlist(results), (results$FP / (results$TP + results$FP))))
+  library(ggplot2)
+  ggplot(df, aes(x=type, y=results, fill=type)) + geom_bar(stat="identity") + geom_text(aes(label=results), vjust=1)
+}
+
+dessin(results1)
+dessin(results2)
+dessin(results3)
+dessin(results4)
+dessin(results5)
+
 
 #Certains taux de fdr élevés
 
 #Mais quand on fait le test individu sur la donnée de base (non dérégulée) par rapport aux autres contrôles...
-D_matrix_simu = simu_data
-U_matrix_simu = simu_data
-for (p in 1:3){
-  D_U = test_individu(ctrl_data, simu_data[,p], 0.05, 20, D_U_ctrl, 0.1)
+D_matrix_simu = simulation$simulated_data
+U_matrix_simu = simulation$simulated_data
+Sys.time()
+for (p in 1:5){
+  D_U = test_individu(ctrl_data, simulation$initial_data[,p], 0.05, 20, D_U_ctrl, 0.1)
   D_matrix_simu[,p] = unlist(D_U[1])
   U_matrix_simu[,p] = unlist(D_U[2])
 }
+Sys.time()
 
 #Patient 1, gènes Up et Down
 sum(U_matrix_simu[,1])
