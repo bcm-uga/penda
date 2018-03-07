@@ -21,7 +21,7 @@ We import the control data, and we take 1000 genes for the 98 patients.
 The five last patients are used to simulate deregulation data.
 The function "detect_zero_value" was used before to eliminates genes with more than 99% of expression value under 10.
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
-ctrl_data = readRDS('~/projects/perso_DA/data_ctrl_process.rds')[1:1000,]
+ctrl_data = readRDS('~/projects/perso_DA/data_ctrl_process.rds')
 
 simu_data = ctrl_data[,94:98]
 colnames(simu_data) = c("P1","P2","P3","P4","P5")
@@ -39,10 +39,10 @@ The function "find_D_U_ctrl" returns two matrix. For each gene in columns, the r
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
-D_U_ctrl = find_D_U_ctrl(ctrl_data, 0.01, 4, 0.9)
+D_U_ctrl = find_D_U_ctrl(ctrl_data, 0.001, 4, 0.99)
 table(D_U_ctrl$D)
 table(D_U_ctrl$U)
-
+saveRDS(D_U_ctrl, "D_U_93p.rds")
 
 check_D_U (D_U_ctrl, ctrl_data, 0.9)
 
@@ -65,16 +65,40 @@ length(simulation$changes_index)
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
-
-D_matrix = simulation$simulated_data
-U_matrix = simulation$simulated_data
+D_matrix_l0 = simulation$simulated_data
+U_matrix_l0 = simulation$simulated_data
 for(p in 1:ncol(simulation$simulated_data)){
-  D_U = test_individu(ctrl_data, simulation$simulated_data[,p], 0.05, 20, D_U_ctrl, 0.1)
-  D_matrix[,p] = unlist(D_U[1])
-  U_matrix[,p] = unlist(D_U[2])
+  D_U_l0 = test_individu(ctrl_data, simulation$simulated_data[,p], 0.03, 20, D_U_ctrl, 0.2)
+  D_matrix_l0[,p] = unlist(D_U_l0[1])
+  U_matrix_l0[,p] = unlist(D_U_l0[2])
 }
-saveRDS(D_matrix, "D_matrix.rds")
-saveRDS(U_matrix, "U_matrix.rds")
+
+D_matrix_sans_l0 = simulation$simulated_data
+U_matrix_sans_l0 = simulation$simulated_data
+for(p in 1:ncol(simulation$simulated_data)){
+  D_U_sans_l0 = test_individu_sans_l0(ctrl_data, simulation$simulated_data[,p], 0.03, 20, D_U_ctrl, 0.2)
+  D_matrix_sans_l0[,p] = unlist(D_U_sans_l0[1])
+  U_matrix_sans_l0[,p] = unlist(D_U_sans_l0[2])
+}
+
+D_matrix_l0_reduit = simulation$simulated_data
+U_matrix_l0_reduit = simulation$simulated_data
+for(p in 1:ncol(simulation$simulated_data)){
+  D_U_l0_reduit = test_individu(ctrl_data, simulation$simulated_data[,p], 0.01, 20, D_U_ctrl, 0.2)
+  D_matrix_l0_reduit[,p] = unlist(D_U_l0_reduit[1])
+  U_matrix_l0_reduit[,p] = unlist(D_U_l0_reduit[2])
+}
+
+D_matrix_sansi = simulation$simulated_data
+U_matrix_sansi = simulation$simulated_data
+for(p in 1:ncol(simulation$simulated_data)){
+  D_U_sansi = test_individu_sans_i(ctrl_data, simulation$simulated_data[,p], 0.01, 20, D_U_ctrl, 0.2)
+  D_matrix_sansi[,p] = unlist(D_U_sansi[1])
+  U_matrix_sansi[,p] = unlist(D_U_sansi[2])
+}
+
+# saveRDS(D_matrix, "D_matrix.rds")
+# saveRDS(U_matrix, "U_matrix.rds")
 #Nb of down genes
 colSums(D_matrix)
 #Nb of up genes
@@ -92,8 +116,7 @@ results_simulation = function(D_matrix, U_matrix, simulation, idx){
   D_matrix = D_matrix[,idx]
   U_matrix = U_matrix[,idx]
   down = initial_data > simu_data
-  up = initial_data<simu_data
-  
+  up = initial_data < simu_data
   
   #True positive = true down + true up
   TP = (length (which(down == 1 & D_matrix == 1)) 
@@ -112,12 +135,37 @@ results_simulation = function(D_matrix, U_matrix, simulation, idx){
   return(list(TP=TP, FP = FP, FN = FN, TN = TN ))
 }
 
+p1_l0 = results_simulation(D_matrix_l0, U_matrix_l0, simulation, 1)
+p1_sans_l0 = results_simulation(D_matrix_sans_l0, U_matrix_sans_l0, simulation, 1)
+p1_l0_reduit = results_simulation(D_matrix_l0_reduit, U_matrix_l0_reduit, simulation, 1)
+p1_l0_sansu  = results_simulation(D_matrix_sansi, U_matrix_sansi, simulation, 1)
 
-results1 = results_simulation(D_matrix, U_matrix, simulation, 1)
-results2 = results_simulation(D_matrix, U_matrix, simulation, 2)
-results3 = results_simulation(D_matrix, U_matrix, simulation, 3)
-results4 = results_simulation(D_matrix, U_matrix, simulation, 4)
-results5 = results_simulation(D_matrix, U_matrix, simulation, 5)
+p2_l0 = results_simulation(D_matrix_l0, U_matrix_l0, simulation, 2)
+p2_sans_l0 = results_simulation(D_matrix_sans_l0, U_matrix_sans_l0, simulation, 2)
+p2_l0_reduit = results_simulation(D_matrix_l0_reduit, U_matrix_l0_reduit, simulation, 2)
+p2_l0_sansu  = results_simulation(D_matrix_sansi, U_matrix_sansi, simulation, 2)
+
+p3_l0 = results_simulation(D_matrix_l0, U_matrix_l0, simulation, 3)
+p3_sans_l0 = results_simulation(D_matrix_sans_l0, U_matrix_sans_l0, simulation, 3)
+p3_l0_reduit = results_simulation(D_matrix_l0_reduit, U_matrix_l0_reduit, simulation, 3)
+p3_l0_sansu  = results_simulation(D_matrix_sansi, U_matrix_sansi, simulation, 3)
+
+p4_l0 = results_simulation(D_matrix_l0, U_matrix_l0, simulation, 4)
+p4_sans_l0 = results_simulation(D_matrix_sans_l0, U_matrix_sans_l0, simulation, 4)
+p4_l0_reduit = results_simulation(D_matrix_l0_reduit, U_matrix_l0_reduit, simulation, 4)
+p4_l0_sansu  = results_simulation(D_matrix_sansi, U_matrix_sansi, simulation, 4)
+
+
+p5_l0 = results_simulation(D_matrix_l0, U_matrix_l0, simulation, 5)
+p5_sans_l0 = results_simulation(D_matrix_sans_l0, U_matrix_sans_l0, simulation, 5)
+p5_l0_reduit = results_simulation(D_matrix_l0_reduit, U_matrix_l0_reduit, simulation, 5)
+p5_l0_sansu  = results_simulation(D_matrix_sansi, U_matrix_sansi, simulation, 5)
+
+# results1 = results_simulation(D_matrix, U_matrix, simulation, 1)
+# results2 = results_simulation(D_matrix, U_matrix, simulation, 2)
+# results3 = results_simulation(D_matrix, U_matrix, simulation, 3)
+# results4 = results_simulation(D_matrix, U_matrix, simulation, 4)
+# results5 = results_simulation(D_matrix, U_matrix, simulation, 5)
 
 dessin = function(results){
   FP = results$FP
@@ -126,18 +174,81 @@ dessin = function(results){
   ggplot(df, aes(x=type, y=results, fill=type)) + geom_bar(stat="identity") + geom_text(aes(label=results), vjust=1)
 }
 
-dessin(results1)
-dessin(results2)
-dessin(results3)
-dessin(results4)
-dessin(results5)
+# dessin(results1)
+# dessin(results2)
+# dessin(results3)
+# dessin(results4)
+# dessin(results5)
+
+dessin(p5_l0)
+dessin(p5_sans_l0)
+dessin(p5_l0_reduit)
+dessin(p5_sansi)
 
 
-#Certains taux de fdr élevés
+df_l0_ou_pas_p1 = data.frame( 
+              l0 = factor(rep(c("quantile l0 = 0.03","quantile l0 = 0.01", "sans l0", "sans itération"), each = 4)),
+              type = factor(rep(c("TP","FP", "FN", "TN"), times = 4)),
+              nbresults = unlist(c(p1_l0, p1_l0_reduit, p1_sans_l0, p1_sansi))
+)
 
-#Mais quand on fait le test individu sur la donnée de base (non dérégulée) par rapport aux autres contrôles...
-D_matrix_simu = simulation$simulated_data
-U_matrix_simu = simulation$simulated_data
+df_l0_ou_pas_p2 = data.frame( 
+              l0 = factor(rep(c("quantile l0 = 0.03","quantile l0 = 0.01", "sans l0", "sans itération"), each = 4)),
+              type = factor(rep(c("TP","FP", "FN", "TN"), times = 4)),
+              nbresults = unlist(c(p2_l0, p2_l0_reduit, p2_sans_l0, p2_sansi))
+)
+
+df_l0_ou_pas_p3 = data.frame( 
+              l0 = factor(rep(c("quantile l0 = 0.03","quantile l0 = 0.01", "sans l0", "sans itération"), each = 4)),
+              type = factor(rep(c("TP","FP", "FN", "TN"), times = 4)),
+              nbresults = unlist(c(p3_l0, p3_l0_reduit, p3_sans_l0, p3_sansi))
+)
+df_l0_ou_pas_p4 = data.frame( 
+              l0 = factor(rep(c("quantile l0 = 0.03","quantile l0 = 0.01", "sans l0", "sans itération"), each = 4)),
+              type = factor(rep(c("TP","FP", "FN", "TN"), times = 4)),
+              nbresults = unlist(c(p4_l0, p4_l0_reduit, p4_sans_l0, p4_sansi))
+)
+df_l0_ou_pas_p5 = data.frame( 
+              l0 = factor(rep(c("quantile l0 = 0.03","quantile l0 = 0.01", "sans l0", "sans itération"), each = 4)),
+              type = factor(rep(c("TP","FP", "FN", "TN"), times = 4)),
+              nbresults = unlist(c(p5_l0, p5_l0_reduit, p5_sans_l0, p5_sansi))
+)
+
+library(ggplot2)
+  ggplot(df_l0_ou_pas_p1, aes(x=l0, y=nbresults, fill=type)) + geom_bar(stat="identity", position=position_dodge()) + geom_text(aes(label=nbresults), vjust=-0.2, position = position_dodge(0.9))
+
+
+df_fdr = data.frame( 
+              l0 = factor(rep(c("quantile l0 = 0.03","quantile l0 = 0.01", "sans l0", "sans itération"), each = 4)),
+              type = factor(rep(c("TP","FP", "FN", "TN"), times = 4)),
+              patient = factor(rep(c("P1", "P2", "P3", "P4", "P5"), each = 16)),
+              nbresults = unlist(c(p1_l0, p1_l0_reduit, p1_sans_l0, p1_sansi, p2_l0, p2_l0_reduit, p2_sans_l0, p2_sansi,p3_l0, p3_l0_reduit, p3_sans_l0, p3_sansi, p4_l0, p4_l0_reduit, p4_sans_l0, p4_sansi, p5_l0, p5_l0_reduit, p5_sans_l0, p5_sansi ))/13860
+)
+
+df_fn_fp = data.frame( 
+              type_l0 = factor(rep(c("quantile l0 = 0.03", "quantile l0 = 0.01", "sans l0", "sans itération"), each = 2)),
+              type_error = factor(rep(c("FP", "FN"), times = 2)),
+              patient = factor(rep(c("P1", "P2", "P3", "P4", "P5"), each = 16)),
+              nbresults = unlist(c(p1_l0$FP, p1_l0$FN, p1_l0_reduit$FP, p1_l0_reduit$FN, p1_sans_l0$FP, p1_sans_l0$FN, p1_sansi$FP, p1_sansi$FN, 
+                                   p2_l0$FP, p2_l0$FN, p2_l0_reduit$FP, p2_l0_reduit$FN, p2_sans_l0$FP, p2_sans_l0$FN, p2_sansi$FP, p2_sansi$FN, 
+                                   p3_l0$FP, p3_l0$FN, p3_l0_reduit$FP, p3_l0_reduit$FN, p3_sans_l0$FP, p3_sans_l0$FN, p3_sansi$FP, p3_sansi$FN, 
+                                   p4_l0$FP, p4_l0$FN, p4_l0_reduit$FP, p4_l0_reduit$FN, p4_sans_l0$FP, p4_sans_l0$FN, p4_sansi$FP, p4_sansi$FN, 
+                                   p5_l0$FP, p5_l0$FN, p5_l0_reduit$FP, p5_l0_reduit$FN, p5_sans_l0$FP, p5_sans_l0$FN, p5_sansi$FP, p5_sansi$FN ))/13860
+)
+
+library(ggplot2)
+  ggplot(df_fn_fp, aes(x=type_l0, y=nbresults, fill=type_error)) + geom_boxplot() 
+  
+  
+```
+
+
+
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+
+#Test individu sur la donnée de base (non dérégulée) par rapport aux autres contrôles
+D_matrix_simu = simulation$initial_data
+U_matrix_simu = simulation$initial_data
 Sys.time()
 for (p in 1:5){
   D_U = test_individu(ctrl_data, simulation$initial_data[,p], 0.05, 20, D_U_ctrl, 0.1)
@@ -146,16 +257,73 @@ for (p in 1:5){
 }
 Sys.time()
 
-#Patient 1, gènes Up et Down
-sum(U_matrix_simu[,1])
-sum(D_matrix_simu[,1])
-#Patient 2, gènes Up et Down
-sum(U_matrix_simu[,2])
-sum(D_matrix_simu[,2])
-#Patient 3, gènes Up et Down
-sum(U_matrix_simu[,3])
-sum(D_matrix_simu[,3])
 
-#La variation de l'expression intra-patients contrôles n'est pas très bien gérée par les tests (résultats sur 588 gènes, 45 gènes ~= 7.5%)
 
+df= data.frame(lists = c("P1_D", "P1_U", "P2_D", "P2_U", "P3_D", "P3_U", "P4_D", "P4_U", "P5_D", "P5_U"), results=c(sum(D_matrix_simu[,1]), sum(U_matrix_simu[,1]), sum(D_matrix_simu[,2]), sum(U_matrix_simu[,2]), sum(D_matrix_simu[,3]), sum(U_matrix_simu[,3]), sum(D_matrix_simu[,4]), sum(U_matrix_simu[,4]), sum(D_matrix_simu[,5]), sum(U_matrix_simu[,5])))
+
+  library(ggplot2)
+  ggplot(df, aes(x=lists, y=results, fill=lists)) + geom_bar(stat="identity") + geom_text(aes(label=results), vjust=1)
+
+```
+
+Nouvelle simulation
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+
+n = function(x, u, a){
+  (1/(a*sqrt(2*pi))) * exp(-(((x-u)^2)/(2*a^2)))
+}
+x = seq(-20, 20, 0.05)
+y = n(x, 0, 1)
+ y1 <- cumsum(y)*diff(x)[1] #cumul
+
+ pf <- approxfun(x,y1) #cumulative density function
+ qf <- approxfun(y1,x) #quantile function
+ rf <- function(n) qf(runif(n)) #randome variable
+ 
+ 
+Heaviside = function(x, step=0){
+  return ((sign(x-step)+1)/2)
+}
+
+x=seq(0, 100, 0.1)
+p1 = function(x){
+  p1 = Heaviside(x-0.63)*(1+tanh((x-1.4)/0.4))*exp(-x/0.9)
+  p1 = p1/sum(p1)
+  return(p1)
+}
+cd1 = cumsum(p1(x))
+pf1 = approxfun(x,cd1) #cumulative density function
+qf1 = approxfun(cd1,x) #quantile function
+rf1 = function(p1) qf(runif(p1)) #randome variable
+ 
+
+
+
+p1(15)
+
+ 
+simu_v2 = function(data, threshold){
+  simu_data = data
+  sapply(data, function(g){
+    if (g > 100){
+     if (sample(1:100, 1) <= 22) {
+      if (sample(1:100, 1) <= 30) {
+        simu_data[g] = simu_data[g] * p1
+      } else {
+        simu_data[g] = simu_data[g] / p2
+      }
+    }
+  } else if (sample(1:100, 1) <= 30) {
+    if (sample (1:100,1) <= 50){
+      simu_data[g] = simu_data[g] - p3
+      if (simu_data[g] <= 0){
+        simu_data[g] = 0
+      }
+    } else {
+      simu_data[g] = simu_data[g] + p3
+    }
+  }
+})
+return(list(initial_data = data, simulated_data = simu_data, changes_index = perturb))
+}
 ```

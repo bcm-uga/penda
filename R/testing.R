@@ -131,14 +131,61 @@ test_individu = function (genes_data, patient_genes, quant_0, iterations, D_U_ct
     D_U_ctrl_tmp = list()
     D_U_ctrl_tmp$D = D_U_ctrl$D * !abs(l1)
     D_U_ctrl_tmp$U = D_U_ctrl$U * !abs(l1)
+
     #For each gene
     l1 = sapply(names(patient_genes), function(gene){
       expression = regulation_test(gene, D_U_ctrl_tmp, patient_genes, threshold)
       return(expression)
     })
+
   }
   U_genes = (l1 == 1)
   D_genes = (l1 == -1)
   return(list(D = D_genes, U = U_genes))
   gc()
 }
+
+
+##Fonctions test pour l0 et i
+
+test_individu_sans_l0 = function (genes_data, patient_genes, quant_0, iterations, D_U_ctrl, threshold){
+  l1 = rep(FALSE, nrow(genes_data))
+  #For each iteration
+  for (i in 1:iterations){
+    D_U_ctrl_tmp = list()
+    D_U_ctrl_tmp$D = D_U_ctrl$D * !abs(l1)
+    D_U_ctrl_tmp$U = D_U_ctrl$U * !abs(l1)
+
+    #For each gene
+    l1 = sapply(names(patient_genes), function(gene){
+      expression = regulation_test(gene, D_U_ctrl_tmp, patient_genes, threshold)
+      return(expression)
+    })
+
+  }
+  U_genes = (l1 == 1)
+  D_genes = (l1 == -1)
+  return(list(D = D_genes, U = U_genes))
+  gc()
+}
+
+test_individu_sans_i = function (genes_data, patient_genes, quant_0, iterations, D_U_ctrl, threshold){
+  #Suspicious genes are removed
+  l0 = rep(TRUE, nrow(genes_data))
+  idx_0 = step0(genes_data, patient_genes, quant_0)
+  l0[idx_0] = FALSE
+
+  D_U_ctrl$D = D_U_ctrl$D * l0
+  D_U_ctrl$U = D_U_ctrl$U * l0
+
+  l1 = sapply(names(patient_genes), function(gene){
+     expression = regulation_test(gene, D_U_ctrl, patient_genes, threshold)
+     return(expression)
+  })
+
+  U_genes = (l1 == 1)
+  D_genes = (l1 == -1)
+  return(list(D = D_genes, U = U_genes))
+  gc()
+}
+
