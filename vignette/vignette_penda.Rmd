@@ -21,7 +21,7 @@ We import the control data, and we take 1000 genes for the 98 patients.
 The five last patients are used to simulate deregulation data.
 The function "detect_zero_value" was used before to eliminates genes with more than 99% of expression value under 10.
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
-ctrl_data = readRDS('~/projects/perso_DA/data_ctrl_process.rds')
+ctrl_data = readRDS('~/projects/perso_DA/data_ctrl_process.rds')[1:1000,]
 
 simu_data = ctrl_data[,94:98]
 colnames(simu_data) = c("P1","P2","P3","P4","P5")
@@ -43,7 +43,7 @@ D_U_ctrl = find_D_U_ctrl(ctrl_data, 0.001, 4, 0.99)
 table(D_U_ctrl$D)
 table(D_U_ctrl$U)
 saveRDS(D_U_ctrl, "D_U_93p.rds")
-
+D_U_ctrl = readRDS("D_U_93p.rds")
 check_D_U (D_U_ctrl, ctrl_data, 0.9)
 
 ```
@@ -110,11 +110,9 @@ colSums(U_matrix)
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
-results_simulation = function(D_matrix, U_matrix, simulation, idx){
-  initial_data = simulation$initial_data[,idx]
-  simu_data = simulation$simulated_data[,idx]  
-  D_matrix = D_matrix[,idx]
-  U_matrix = U_matrix[,idx]
+results_simulation = function(D_matrix, U_matrix, simulation){
+  initial_data = simulation$initial_data
+  simu_data = simulation$simulated_data
   down = initial_data > simu_data
   up = initial_data < simu_data
   
@@ -138,28 +136,28 @@ results_simulation = function(D_matrix, U_matrix, simulation, idx){
 p1_l0 = results_simulation(D_matrix_l0, U_matrix_l0, simulation, 1)
 p1_sans_l0 = results_simulation(D_matrix_sans_l0, U_matrix_sans_l0, simulation, 1)
 p1_l0_reduit = results_simulation(D_matrix_l0_reduit, U_matrix_l0_reduit, simulation, 1)
-p1_l0_sansu  = results_simulation(D_matrix_sansi, U_matrix_sansi, simulation, 1)
+p1_sansi  = results_simulation(D_matrix_sansi, U_matrix_sansi, simulation, 1)
 
 p2_l0 = results_simulation(D_matrix_l0, U_matrix_l0, simulation, 2)
 p2_sans_l0 = results_simulation(D_matrix_sans_l0, U_matrix_sans_l0, simulation, 2)
 p2_l0_reduit = results_simulation(D_matrix_l0_reduit, U_matrix_l0_reduit, simulation, 2)
-p2_l0_sansu  = results_simulation(D_matrix_sansi, U_matrix_sansi, simulation, 2)
+p2_sansi  = results_simulation(D_matrix_sansi, U_matrix_sansi, simulation, 2)
 
 p3_l0 = results_simulation(D_matrix_l0, U_matrix_l0, simulation, 3)
 p3_sans_l0 = results_simulation(D_matrix_sans_l0, U_matrix_sans_l0, simulation, 3)
 p3_l0_reduit = results_simulation(D_matrix_l0_reduit, U_matrix_l0_reduit, simulation, 3)
-p3_l0_sansu  = results_simulation(D_matrix_sansi, U_matrix_sansi, simulation, 3)
+p3_sansi  = results_simulation(D_matrix_sansi, U_matrix_sansi, simulation, 3)
 
 p4_l0 = results_simulation(D_matrix_l0, U_matrix_l0, simulation, 4)
 p4_sans_l0 = results_simulation(D_matrix_sans_l0, U_matrix_sans_l0, simulation, 4)
 p4_l0_reduit = results_simulation(D_matrix_l0_reduit, U_matrix_l0_reduit, simulation, 4)
-p4_l0_sansu  = results_simulation(D_matrix_sansi, U_matrix_sansi, simulation, 4)
+p4_sansi  = results_simulation(D_matrix_sansi, U_matrix_sansi, simulation, 4)
 
 
 p5_l0 = results_simulation(D_matrix_l0, U_matrix_l0, simulation, 5)
 p5_sans_l0 = results_simulation(D_matrix_sans_l0, U_matrix_sans_l0, simulation, 5)
 p5_l0_reduit = results_simulation(D_matrix_l0_reduit, U_matrix_l0_reduit, simulation, 5)
-p5_l0_sansu  = results_simulation(D_matrix_sansi, U_matrix_sansi, simulation, 5)
+p5_sansi  = results_simulation(D_matrix_sansi, U_matrix_sansi, simulation, 5)
 
 # results1 = results_simulation(D_matrix, U_matrix, simulation, 1)
 # results2 = results_simulation(D_matrix, U_matrix, simulation, 2)
@@ -291,39 +289,108 @@ p1 = function(x){
   p1 = p1/sum(p1)
   return(p1)
 }
+plot(p1(x))
 cd1 = cumsum(p1(x))
+plot(cd1)
+
+p2 = function(x){
+  p2 = Heaviside(x-0.63)*(1+tanh((x-1.4)/0.5))*exp(-x/1.3)
+  p2 = p2/sum(p2)
+  return(p2)
+}
+plot(p2(x))
+cd2 = cumsum(p2(x))
+plot(cd2)
+
+xm=seq(0, 500, 0.5)
+p3 = function(x){
+  p3 = Heaviside(x-20)*(exp(x-20))*exp(-x*0.7)
+  p3 = p3/sum(p3)
+  return(p3)
+}
+plot(p3(xm))
+cd3 = cumsum(p3(xm))
+plot(cd3)
+
 pf1 = approxfun(x,cd1) #cumulative density function
 qf1 = approxfun(cd1,x) #quantile function
-rf1 = function(p1) qf(runif(p1)) #randome variable
+rf1 = function(n) qf1(runif(n)) #randome variable
  
+pf2 = approxfun(x,cd2) #cumulative density function
+qf2 = approxfun(cd2,x) #quantile function
+rf2 = function(n) qf2(runif(n)) #randome variable
+
+pf3 = approxfun(x,cd3) #cumulative density function
+qf3 = approxfun(cd3,x) #quantile function
+rf3 = function(n) qf3(runif(n)) #randome variable
 
 
-
-p1(15)
-
- 
-simu_v2 = function(data, threshold){
+simu_v2 = function(data){
   simu_data = data
-  sapply(data, function(g){
+  simu_data = sapply(simu_data, function(g){
     if (g > 100){
      if (sample(1:100, 1) <= 22) {
       if (sample(1:100, 1) <= 30) {
-        simu_data[g] = simu_data[g] * p1
+        g = g * rf1(1)
       } else {
-        simu_data[g] = simu_data[g] / p2
+        g = g / rf2(1)
       }
-    }
+     } else {
+       g = g
+     }
+    
   } else if (sample(1:100, 1) <= 30) {
     if (sample (1:100,1) <= 50){
-      simu_data[g] = simu_data[g] - p3
-      if (simu_data[g] <= 0){
-        simu_data[g] = 0
+      g = g - rf3(1)
+      if (g <= 0){
+        g = 0
       }
     } else {
-      simu_data[g] = simu_data[g] + p3
+      g = g + rf3(1)
     }
+  } else {
+    g = g 
   }
 })
-return(list(initial_data = data, simulated_data = simu_data, changes_index = perturb))
+  return(list(initial_data = data, simulated_data = simu_data, changes_idx = which(simulation2$initial_data != simulation2$simulated_data)))
 }
+
+
+simulation = dysreg_simulation(simu_data[,1], 0.2, 60)
+simulation2 = simu_v2(simu_data[,1])
+
+D_U = test_individu(ctrl_data, simulation$simulated_data, 0.03, 20, D_U_ctrl, 0.2)
+D_simu1 = unlist(D_U[1])
+U_simu1 = unlist(D_U[2])
+
+D_U = test_individu(ctrl_data, simulation2$simulated_data, 0.03, 20, D_U_ctrl, 0.2)
+D_simu2 = unlist(D_U[1])
+U_simu2 = unlist(D_U[2])
+
+results_simu1 = results_simulation(D_simu1, U_simu1, simulation)
+results_simu2 = results_simulation(D_simu2, U_simu2, simulation2)
+
+D_U = test_individu(ctrl_data, data_LUSC[1:1000,1], 0.03, 20, D_U_ctrl, 0.2)
+D_cancer1 = unlist(D_U[1])
+U_cancer1 = unlist(D_U[2])
+
+D_U = test_individu(ctrl_data, data_LUSC[1:1000,2], 0.03, 20, D_U_ctrl, 0.2)
+D_cancer2 = unlist(D_U[1])
+U_cancer2 = unlist(D_U[2])
+
+D_U = test_individu(ctrl_data, data_LUSC[1:1000,3], 0.03, 20, D_U_ctrl, 0.2)
+D_cancer3 = unlist(D_U[1])
+U_cancer3 = unlist(D_U[2])
+
+D_U = test_individu(ctrl_data, data_LUAD[1:1000,1], 0.03, 20, D_U_ctrl, 0.2)
+D_LUAD1 = unlist(D_U[1])
+U_LUAD1 = unlist(D_U[2])
+
+D_U = test_individu(ctrl_data, data_LUAD[1:1000,2], 0.03, 20, D_U_ctrl, 0.2)
+D_LUAD2 = unlist(D_U[1])
+U_LUAD2 = unlist(D_U[2])
+
+D_U = test_individu(ctrl_data, data_LUAD[1:1000,3], 0.03, 20, D_U_ctrl, 0.2)
+D_LUAD3 = unlist(D_U[1])
+U_LUAD3 = unlist(D_U[2])
 ```
