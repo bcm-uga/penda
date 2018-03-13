@@ -24,6 +24,6 @@ and the U Matrix with TRUE if the row gene has a higher expression than the colu
 This function ranks each gene and finds the genes which are more or less exprimed.
 }
 \examples{
-find_D_U_ctrl(ctrl_data, quant = 0.01, factor = 4, threshold = 0.9)
+find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
 
 }

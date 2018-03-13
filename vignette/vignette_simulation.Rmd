@@ -1,0 +1,139 @@
+---
+title: "vignette_simulation"
+author: "Clémentine Decamps"
+date: "9 mars 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("~/projects/penda/R/simu.R")
+source("~/projects/penda/R/ranking.R")
+source("~/projects/penda/R/testing.R")
+
+```
+
+##Data processing
+
+We import the control data, and we take 1000 genes for the 98 patients.
+The five last patients are used to simulate deregulation data.
+The function "detect_zero_value" was used before to eliminates genes with more than 99% of expression value under 10.
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+ctrl_data = readRDS('~/projects/perso_DA/data_ctrl_process.rds')
+
+simu_data = ctrl_data[,94:98]
+colnames(simu_data) = c("P1","P2","P3","P4","P5")
+
+ctrl_data = ctrl_data[,-(94:98)]
+
+
+```
+
+##Ranking in control
+
+The function "find_D_U_ctrl" returns two matrix. For each gene in columns, the row gene is 
+"TRUE" if is **D**own-expresed or **U**p-expressed.
+
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+
+# D_U_ctrl = find_D_U_ctrl(ctrl_data, 0.001, 4, 0.99)
+# table(D_U_ctrl$D)
+# table(D_U_ctrl$U)
+# saveRDS(D_U_ctrl, "D_U_93p.rds")
+D_U_ctrl = readRDS("D_U_93p.rds")
+D_U_ctrl$D = D_U_ctrl$D[1:1000,1:1000]
+D_U_ctrl$U = D_U_ctrl$U[1:1000,1:1000]
+
+check_D_U (D_U_ctrl, ctrl_data, 0.99)
+
+```
+
+
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+
+#DU_rearragement permet de sortir deux jolies matrices D et U 
+DU_rearrangement = function(multiple_tests, simu_data, threshold_values){
+  #Définition des matrices D et U pour toutes les conditions
+  D_simu = matrix(data = NA, nrow = length(simu_data)
+                  , ncol = length(threshold_values)
+                  , dimnames = list(names(simu_data), threshold_values)) 
+  U_simu = matrix(data = NA, nrow = length(simu_data)
+                  , ncol = length(threshold_values)
+                  , dimnames = list(names(simu_data), threshold_values))
+  
+  #On réarrange D et U dans les matrices pour toutes les conditions
+  for (r in 1:length(threshold_values)){
+    D_simu[,r] = unlist(multiple_tests[(r*2-1)])
+    U_simu[,r] = unlist(multiple_tests[r*2])
+  }
+  return(list(D = D_simu, U = U_simu))
+}
+
+
+#Mutiple D_U permet de faire le test pour plusieurs conditions de threshold
+multiple_DU = function(ctrl_data, D_U_ctrl, simulation, threshold_values, iterations, quantile){
+  #Test pour toutes les valeurs de threshold
+  multiple_test = sapply(threshold_values, function(t){
+    test_individu(ctrl_data, simulation$simulated_data, quantile, iterations, D_U_ctrl, t)
+  })
+  sorted_test = DU_rearrangement(multiple_test, simulation$initial_data, threshold_values )
+  return (sorted_test)
+} 
+
+threshold_values = c(0.003, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50)
+
+simu_v2_p1 = simu_v2(simu_data[,1])
+simu_v1_p1 = dysreg_simulation(simu_data[,1], 0.2, 100)
+# test_v1_p1 = multiple_DU(ctrl_data, D_U_ctrl, simu_v1_p1, threshold_values, 20, 0.2)
+# test_v2_p1 = multiple_DU(ctrl_data, D_U_ctrl, simu_v2_p1, threshold_values, 20, 0.2)
+
+#Fais la simulation, puis le test, puis le FDR
+total = function(ctrl_data, D_U_ctrl, threshold_values, iterations, quantile, simu_data, v2){
+  results = c()
+  #Pour chaque patient
+  for(p in 1:ncol(simu_data)){
+    #choix entre simu V1 ou V2
+    if(v2==TRUE){
+      simulation = complex_simulation(simu_data[,p])
+    } else {
+      simulation = dysreg_simulation(simu_data[,p], 0.2, 100)
+    }
+    #On fait le test pour toutes les conditions
+    test = multiple_DU(ctrl_data, D_U_ctrl, simulation, threshold_values, iterations, quantile)
+    #Pour chaque seuil du test
+    for(thre in 1:ncol(test$D)){
+      #On calcule FP, TP, FN, TN
+      results_simu = results_simulation(test$D[,thre], test$U[,thre], simulation)
+      #On calcule FDR et TPR
+      FDR = results_simu$FP / (results_simu$TP + results_simu$FP)
+      TPR  = results_simu$TP / (results_simu$TP + results_simu$FN)
+      #On bind les résultats
+      results = rbind(results, c(p, colnames(test$D)[thre], FDR, TPR))
+    }
+  }
+  colnames(results) = c("patient", "threshold", "FDR", "TPR")
+  return(results)
+}
+
+FDRetc_v2 = total(ctrl_data, D_U_ctrl, threshold_values, 20, 0.03, simu_data, TRUE)
+FDRetc_v1 = total(ctrl_data, D_U_ctrl, threshold_values, 20, 0.03, simu_data, FALSE)
+
+dfv2 = data.frame(patient = FDRetc_v2[,1], threshold = FDRetc_v2[,2], FDR = as.numeric(FDRetc_v2[,3]), TPR = as.numeric(FDRetc_v2[,4])) 
+dfv1 = data.frame(patient = FDRetc_v1[,1], threshold = FDRetc_v1[,2], FDR = as.numeric(FDRetc_v1[,3]), TPR = as.numeric(FDRetc_v1[,4])) 
+
+dfv2 = data.frame(FDRetc_v2)
+
+df = data.frame(simu = factor(rep(c("V1", "V2"), each = 55)),
+                FDR = c(FDRetc_v1[,"FDR"], FDRetc_v2[,"FDR"]),
+                TPR = c(FDRetc_v1[,"TPR"], FDRetc_v2[,"TPR"]))
+
+library(ggplot2)
+g2 = ggplot(dfv2, aes(x = TPR, y = FDR, color = threshold, group = patient)) + geom_point() + geom_line()
+g2 = g2 + xlim(0.48,0.75)
+
+library(ggplot2)
+g1 = ggplot(dfv1, aes(x = TPR, y = FDR, color = threshold, group = patient)) + geom_point() + geom_line()
+g1 = g1 + xlim(0.55,0.8)
+
+```
+

@@ -49,7 +49,7 @@ detect_zero_value = function(ctrl_data, cancer_data, min, threshold) {
 #'and the U Matrix with TRUE if the row gene has a higher expression than the column gene.
 #'
 #'@examples
-#'find_D_U_ctrl(ctrl_data, quant = 0.01, factor = 4, threshold = 0.9)
+#'find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
 
 #'
 #'@export
