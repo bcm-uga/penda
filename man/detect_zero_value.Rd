@@ -4,23 +4,20 @@
 \alias{detect_zero_value}
 \title{detect_zero_value}
 \usage{
-detect_zero_value(ctrl_data, cancer_data, min, threshold)
+detect_zero_value(ctrl_data, cancer_data, threshold, min = 0)
 }
 \arguments{
 \item{ctrl_data}{A matrix with data to analyze}
 
 \item{cancer_data}{A matrix with other data to analyze}
 
-\item{threshold}{The maximum proportion of zero tolerated for each gene}
+\item{threshold}{The maximum proportion of expression under min tolerated for each gene}
+
+\item{min}{The minimum value accepted}
 }
 \value{
 This function return a true false vector with true for the values to exclude.
 }
 \description{
-This function detects genes with more than threshold percent of expression values equals to zero.
-}
-\examples{
-null_values = detect_zero_value(ctrl_data, simu_data, threshold = 0.8)
-ctrl_data = ctrl_data[!null_values,]
-simu_data = simu_data[!null_values,]
+This function detects genes with more than threshold percent of expression values under the mine value.
 }

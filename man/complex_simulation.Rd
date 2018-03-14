@@ -7,19 +7,15 @@
 complex_simulation(data)
 }
 \arguments{
-\item{data}{vector or matrix of original data to edit}
+\item{data}{vector or matrix of original data to edit.}
 }
 \value{
 This function returns a list of three vectors or matrix :
 initial_data, datas before the modification
 simulated_data, datas with up and down modifications
-changes_index, index of datas with modifications
+changes_idx, index of datas with modifications
 }
 \description{
 This function simulates the dysregulation (up and down) of datas, using the distribution of
-dysregulation in real datas.
-}
-\examples{
-complex_simulation(simu_data)
-
+dysregulation in real cancer datas.
 }

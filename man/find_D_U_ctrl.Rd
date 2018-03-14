@@ -4,10 +4,10 @@
 \alias{find_D_U_ctrl}
 \title{find_D_U_ctrl}
 \usage{
-find_D_U_ctrl(genes_data, quant, factor, threshold)
+find_D_U_ctrl(ctrl_data, quant, factor, threshold)
 }
 \arguments{
-\item{genes_data}{A matrix with the gene expressions for each patient}
+\item{ctrl_data}{A matrix with the gene expressions for each patient}
 
 \item{quant}{A quantile to delimit the gene expression}
 
@@ -22,8 +22,4 @@ and the U Matrix with TRUE if the row gene has a higher expression than the colu
 }
 \description{
 This function ranks each gene and finds the genes which are more or less exprimed.
-}
-\examples{
-find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
-
 }

@@ -17,7 +17,3 @@ This function returns 0 if the argument is under the step, 1 if not.
 \description{
 The heaviside function value is zero for argument under the step, and one for argument above.
 }
-\examples{
-Heaviside(1+98-103, step = 0)
-
-}

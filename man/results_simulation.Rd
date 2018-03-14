@@ -7,12 +7,11 @@
 results_simulation(D_matrix, U_matrix, simulation)
 }
 \arguments{
-\item{D_matrix}{The matrix of down-regulated genes}
+\item{D_matrix}{The matrix of down-regulated genes.}
 
-\item{simulation}{The simulation data : the list with the iniatial_data,
-simulated_data and changes_index.}
+\item{U_matrix}{The matrix of up-regulated genes.}
 
-\item{fraction}{The matrix of up-regulated genes}
+\item{simulation}{The list of initial data $initial_data and modified data in $simulated_data}
 }
 \value{
 This function returns a list of four integer :
@@ -24,10 +23,4 @@ TN, the numbler of true negative results
 \description{
 This function computes the number of false positive, true positive, false negative
 and false positive results after the test on a simulation.
-}
-\examples{
-D_U = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
-simulation = dysreg_simulation(simu_data, fraction = 0.3, threshold = 60)
-results_simulation(D_matrix = D_U$D, U_matrix = D_U$U, simulation  = simulation
-
 }

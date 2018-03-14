@@ -4,12 +4,12 @@
 \alias{check_D_U}
 \title{check_D_U}
 \usage{
-check_D_U(D_U, genes_data, threshold)
+check_D_U(D_U_ctrl, ctrl_data, threshold)
 }
 \arguments{
-\item{D_U}{The list of the two matrix D and U for each genes}
+\item{D_U_ctrl}{The list of the two matrix D and U for each genes}
 
-\item{genes_data}{The matrix of gene expression used to make D and U matrix}
+\item{ctrl_data}{The matrix of gene expression used to make D and U matrix}
 
 \item{threshold}{The threshold used to make D and U matrix. It's the proportion of genes that
 must meet the conditions}
@@ -21,9 +21,4 @@ This function returns an error message if D or U list don't mette the conditions
 This function check if not exists genes both up and down expressed, and for each gene :
 if the maximal down gene is less expressed in threshold% of cases,
 if the minimal up gene is more expressed in threshold % of cases.
-}
-\examples{
-D_U = find_D_U_ctrl(ctrl_data, quant = 0.01, factor = 4, threshold = 0.9)
-check_D_U(D_U, ctrl_data, threshold = 0.9)
-
 }

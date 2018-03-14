@@ -1,42 +1,46 @@
-#'dysreg_simulation
+#'simplified_simulation
 #'
 #' This function simulates the dysregulation (up and down) of datas.
 #'
-#'@param data vector or matrix of original data to edit
-#'@param fraction fraction of data to modify
-#'@param threshold under this threshold, data modification is +-15. Above, it is *2 or /2.
+#'@param data The vector or matrix of original data to edit.
+#'@param fraction The fraction of data to modify.
+#'@param threshold The expression value under which data modification is +- modifier
+#'Above the threshold, dysregulation is expression * or / factor.
+#'@param modifier Under the threshold, the up-regulation is to add at the expression this number,
+#'and the down-regulation to substract this number.
+#'@param factor Below the threshold, the up-regulation is to multiply expression by this number,
+#'and the down-regulation to divide.
 #'
 #'@return This function returns a list of three vectors or matrix :
 #'initial_data, datas before the modification
 #'simulated_data, datas with up and down modifications
-#'changes_index, index of datas with modifications
+#'changes_idx, index of datas with modifications
 #'
-#'@examples
-#'dysreg_simulation(simu_data, fraction = 0.3, threshold = 60)
+#'@example
+#'simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
 #'
 #'@export
-#'
 
-dysreg_simulation = function(data, fraction, threshold){
+simplified_simulation = function(data, fraction, threshold, modifier = 30, factor = 4){
   simu_data = data
   perturb = sample(length(simu_data), fraction*length(simu_data))
   for(i in 1:length(perturb)){
     if (rnorm(1) < 0) {
       if (simu_data[perturb[i]] < threshold) {
-        simu_data[perturb[i]] = simu_data[perturb[i]] - 30
+        simu_data[perturb[i]] = simu_data[perturb[i]] - modifier
         if (simu_data[perturb[i]] <= 0){
           simu_data[perturb[i]] = 0
         }
       } else {
-        simu_data[perturb[i]] = simu_data[perturb[i]] / 4
+        simu_data[perturb[i]] = simu_data[perturb[i]] / factor
       }
     } else if (simu_data[perturb[i]] < threshold) {
-      simu_data[perturb[i]] = simu_data[perturb[i]] + 30
+      simu_data[perturb[i]] = simu_data[perturb[i]] + modifier
     } else {
-      simu_data[perturb[i]] = simu_data[perturb[i]] * 4
+      simu_data[perturb[i]] = simu_data[perturb[i]] * factor
     }
   }
-  return(list(initial_data = data, simulated_data = simu_data, changes_index = perturb))
+  return(list(initial_data = data, simulated_data = simu_data, changes_idx = perturb))
 }
 
 
@@ -45,10 +49,9 @@ dysreg_simulation = function(data, fraction, threshold){
 #' This function computes the number of false positive, true positive, false negative
 #' and false positive results after the test on a simulation.
 #'
-#'@param D_matrix The matrix of down-regulated genes
-#'@param fraction The matrix of up-regulated genes
-#'@param simulation The simulation data : the list with the iniatial_data,
-#'simulated_data and changes_index.
+#'@param D_matrix The matrix of down-regulated genes.
+#'@param U_matrix The matrix of up-regulated genes.
+#'@param simulation The list of initial data $initial_data and modified data in $simulated_data
 #'
 #'@return This function returns a list of four integer :
 #'TP, the number of true postive results
@@ -56,13 +59,12 @@ dysreg_simulation = function(data, fraction, threshold){
 #'FN, the numbler of false negative results
 #'TN, the numbler of true negative results
 #'
-#'@examples
+#'@example
 #'D_U = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
-#'simulation = dysreg_simulation(simu_data, fraction = 0.3, threshold = 60)
-#'results_simulation(D_matrix = D_U$D, U_matrix = D_U$U, simulation  = simulation
+#'simulation = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
+#'results_simulation(D_matrix = D_U$D, U_matrix = D_U$U, initial_data = simulation$initial_data, simulated_data = simulation$simulated_data)
 #'
 #'@export
-#'
 
 results_simulation = function(D_matrix, U_matrix, simulation){
   initial_data = simulation$initial_data
@@ -84,36 +86,37 @@ results_simulation = function(D_matrix, U_matrix, simulation){
   #TN = real not changed results
   TN = (length (which(down == 0 & up == 0 & D_matrix == 0 & U_matrix == 0)))
 
-  return(list(TP=TP, FP = FP, FN = FN, TN = TN ))
+  return(list(TP = TP, FP = FP, FN = FN, TN = TN ))
 }
+
 
 #'get_random_variable
 #'
-#' This function allows to get random values on a density function.
+#' This function gives a random values following a given density function.
 #'
 #'@param F The density function.
-#'@param x A vector with values of the function.
+#'@param x A vector with the definition area of the function.
 #'@param nb_r The number of random values wanted
 #'
 #'@return This function returns a vector with nb_r values of F.
 #'
-#'@examples
+#'@example
 #'x = seq(-20, 20, 0.05)
 #'F = function(x, u, a){
-#'  (1/(a*sqrt(2*pi))) * exp(-(((x-u)^2)/(2*a^2)))
+#'  (1 / (a * sqrt(2 * pi))) * exp(-(((x - u)^2) / (2 * a^2)))
 #'}
 #'get_random_variable(F, x, nb_r = 10000, u = 0, a = 1)
 #'
 #'@export
-#'
 
 get_random_variable = function (F, x, nb_r,...){
   y = F(x,...)
-  p1 <- cumsum(y)*diff(x)[1] #cumul
-  qf <- approxfun(p1,x) #quantile function
-  rf <- function(n) qf(runif(n)) #random variable
+  cumul = cumsum(y) * diff(x)[1]
+  qf = approxfun(cumul, x) #quantile function
+  rf = function(n) qf(runif(n)) #random variable
   return(rf(nb_r))
 }
+
 
 #'Heaviside
 #'
@@ -124,54 +127,93 @@ get_random_variable = function (F, x, nb_r,...){
 #'
 #'@return This function returns 0 if the argument is under the step, 1 if not.
 #'
-#'@examples
+#'@example
 #'Heaviside(1+98-103, step = 0)
 #'
 #'@export
-#'
 
 Heaviside = function(x, step = 0){
-  return ((sign(x-step)+1)/2)
+  return((sign(x - step) + 1) / 2)
 }
 
-#P1 - distribution of up regulation factor for genes with an expression above 100
+
+#'P1
+#'
+#' P1 models the density function of the expression multiplicative factor for the
+#' up-regulation of a gene with an expression above 100.
+#'
+#'@param x
+#'
+#'@return This function returns
+#'
+#'@example
+#'
+#'@export
+
 p1 = function(x){
-  p1 = Heaviside(x-0.63)*(1+tanh((x-1.4)/0.4))*exp(-x/0.9)
-  p1 = p1/(sum(p1)*diff(x)[1])
+  p1 = Heaviside(x - 0.63) * (1 + tanh((x - 1.4) / 0.4)) * exp(-x / 0.9)
+  p1 = p1 / (sum(p1) * diff(x)[1])
   return(p1)
 }
 
-#P2 - distribution of down regulation factor for genes with an expression above 100
+
+#'P2
+#'
+#' P2 models the density function of the expression divisor for the
+#' down-regulation of a gene with an expression above 100.
+#'
+#'@param x
+#'
+#'@return This function returns
+#'
+#'@example
+#'
+#'@export
+
 p2 = function(x){
-  p2 = Heaviside(x-0.63)*(1+tanh((x-1.4)/0.5))*exp(-x/1.3)
-  p2 = p2/(sum(p2)*diff(x)[1])
+  p2 = Heaviside(x - 0.63) * (1 + tanh((x - 1.4) / 0.5)) * exp(-x / 1.3)
+  p2 = p2 / (sum(p2) * diff(x)[1])
   return(p2)
 }
 
-#P3 - distribtuon of expression difference for dysregulated genes with an expression under 100
+
+#'P3
+#'
+#' P2 models the density function of the expression modifier (to add or substract) for the
+#' dysregulation of a gene with an expression under 100.
+#'
+#'@param x
+#'
+#'@return This function returns
+#'
+#'@example
+#'
+#'@export
+
 p3 = function(x){
-  p3 = Heaviside(x-20)*(exp(-x*0.007))*exp((x-20)*exp(-x*0.07))
-  p3 = p3/(sum(p3)*diff(x)[1])
+  p3 = Heaviside(x - 20) * (exp(-x * 0.007)) * exp((x - 20) * exp(-x * 0.07))
+  p3 = p3 / (sum(p3) * diff(x)[1])
   return(p3)
 }
+
 
 #'complex_simulation
 #'
 #' This function simulates the dysregulation (up and down) of datas, using the distribution of
-#' dysregulation in real datas.
+#' dysregulation in real cancer datas.
 #'
-#'@param data vector or matrix of original data to edit
+#'@param data vector or matrix of original data to edit.
 #'
 #'@return This function returns a list of three vectors or matrix :
 #'initial_data, datas before the modification
 #'simulated_data, datas with up and down modifications
-#'changes_index, index of datas with modifications
+#'changes_idx, index of datas with modifications
 #'
-#'@examples
+#'@example
 #'complex_simulation(simu_data)
 #'
 #'@export
-#'
+
 complex_simulation = function(data){
   simu_data = data
   simu_data = sapply(simu_data, function(g){
@@ -203,6 +245,4 @@ complex_simulation = function(data){
   })
   return(list(initial_data = data, simulated_data = simu_data, changes_idx = which(data != simu_data)))
 }
-
-
 

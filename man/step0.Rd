@@ -4,25 +4,18 @@
 \alias{step0}
 \title{step0}
 \usage{
-step0(genes_data, patient_genes, quant)
+step0(ctrl_data, patient_genes, quant)
 }
 \arguments{
-\item{genes_data}{a matrix with genes expressions in controls for all the patients}
+\item{ctrl_data}{The matrix with genes expressions in controls for all the patients.}
 
-\item{patient_genes}{all the genes expression for one patient}
+\item{patient_genes}{The vector of genes expressions for one patient.}
 
-\item{quant}{the quantile for the expression distribution}
+\item{quant}{The quantile for the expression distribution limit.}
 }
 \value{
-This function return a vector with all the genes outside of the distribution limit
+This function return a vector with all the genes outside of the distribution limit.
 }
 \description{
 This function makes the list of genes at the extremities of expression distribution.
-}
-\examples{
-data_regulate = ctrl_data[,ncol(ctrl_data)]
-data_regulate = dysreg_simulation(data_regulate, fraction = 0.3, threshold = 60)
-ctrl_data = ctrl_data[,-ncol(ctrl_data)]
-step0(ctrl_data, data_regulate, quant = 0.05)
-
 }

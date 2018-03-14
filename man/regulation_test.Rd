@@ -4,29 +4,21 @@
 \alias{regulation_test}
 \title{regulation_test}
 \usage{
-regulation_test(gene, D_U_control, cancer_data, threshold)
+regulation_test(gene, D_U_ctrl, patient_genes, threshold)
 }
 \arguments{
-\item{gene}{The name of the gene to analyze}
+\item{gene}{The name of the gene to analyze.}
 
-\item{D_U_control}{The list of Down and Up-expressed genes matrix in the control}
+\item{D_U_ctrl}{The list of Down and Up-expressed genes matrix in the control.}
 
-\item{cancer_data}{A matrix of gene expression in the cancer}
+\item{patient_genes}{The vector of genes expressions for one patient.}
 
 \item{threshold}{If Dd/Du and Uu/ud are under this threshold, the expression not change}
 }
 \value{
 This function return 0 if the gene expression has not changed,
-1 if the gene is up-regulated and -1 if the gene is down-regulated
+1 if the gene is up-regulated and -1 if the gene is down-regulated.
 }
 \description{
-This function makes the test of expression dysregulation for a patient compared to control
-}
-\examples{
-data_regulate = ctrl_data[,ncol(ctrl_data)]
-data_regulate = dysreg_simulation(data_regulate, fraction = 0.3, threshold = 60)
-ctrl_data = ctrl_data[,-ncol(ctrl_data)]
-D_U_ctrl = find_D_U_ctrl(ctrl_data, quant = 0.01, factor = 30, threshold = 0.8)
-regulation_test(rownames(ctrl_data)[1], D_U_ctrl, data_regulate, 0.1)
-
+This function makes the test of expression dysregulation for a patient compared to control.
 }
