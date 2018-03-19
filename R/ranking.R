@@ -23,11 +23,11 @@ detect_zero_value = function(ctrl_data, cancer_data, threshold, min = 0) {
   idx_lusc = 1:ncol(cancer_data) + ncol(ctrl_data)
 
   values0 = apply(binded_data, 1, function(l) {
-    #Computing the proportion of genes values  > min
-    percentLUSC = sum(l[idx_lusc] > min) / length(idx_lusc)
-    percentCtrl = sum(l[idx_ctrl] > min) / length(idx_ctrl)
-    #If the proportion is under the threshold, we return true
-    if (percentLUSC < threshold & percentCtrl < threshold){
+    #Computing the proportion of genes values  < min
+    percentLUSC = sum(l[idx_lusc] <= min) / length(idx_lusc)
+    percentCtrl = sum(l[idx_ctrl] <= min) / length(idx_ctrl)
+    #If the proportion is above the threshold, we return true
+    if (percentLUSC >= threshold & percentCtrl >= threshold){
       return(TRUE)
     } else {
       return(FALSE)
