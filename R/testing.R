@@ -76,7 +76,7 @@ regulation_test = function(gene, D_U_ctrl, patient_genes, threshold){
 #'@param patient_genes The vector of genes expressions for one patient.
 #'@param quant The quantile for the expression distribution limit.
 #'
-#'@return This function return a vector with all the genes outside of the distribution limit.
+#'@return This function return a logical vector with TRUE for genes outside of the distribution limit.
 #'
 #'@example
 #'simulated_data = ctrl_data[,ncol(ctrl_data)]
@@ -89,7 +89,7 @@ regulation_test = function(gene, D_U_ctrl, patient_genes, threshold){
 step0 = function (ctrl_data, patient_genes, quant){
   quantile_gene = apply(ctrl_data, 1, quantile, c(quant,(1-quant)))
   outsiders = ((patient_genes < quantile_gene[1,]) | (patient_genes > quantile_gene[2,]))
-  return(which(outsiders == 1))
+  return(outsiders)
 }
 
 
@@ -119,14 +119,13 @@ step0 = function (ctrl_data, patient_genes, quant){
 patient_test = function (ctrl_data, patient_genes, quant_0, iterations, D_U_ctrl, threshold){
 
   #Suspicious genes with an expression out of bounds are removed of D_U.
-  l0 = rep(TRUE, nrow(ctrl_data))
-  idx_0 = step0(ctrl_data, patient_genes, quant_0)
-  l0[idx_0] = FALSE
-  D_U_ctrl$D = D_U_ctrl$D * l0
-  D_U_ctrl$U = D_U_ctrl$U * l0
+  l0 = step0(ctrl_data, patient_genes, quant_0)
+  D_U_ctrl$D = D_U_ctrl$D * !l0
+  D_U_ctrl$U = D_U_ctrl$U * !l0
 
   l1 = rep(FALSE, nrow(ctrl_data))
   #For each iteration
+
   for (i in 1:iterations){
     #Genes dysregulated at the previous iteration are removed of D_U.
     D_U_ctrl_tmp = list()
@@ -143,3 +142,4 @@ patient_test = function (ctrl_data, patient_genes, quant_0, iterations, D_U_ctrl
   return(list(D = D_genes, U = U_genes))
   gc()
 }
+

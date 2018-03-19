@@ -220,9 +220,9 @@ complex_simulation = function(data){
     #if the expression is > 100
     if (g > 100){
       #22% chance of dysregulation
-      if (sample(1:100, 1) <= 22) {
+      if (runif(1) <= 0.22) {
         #30% chance of up-regulation
-        if (sample(1:100, 1) <= 30) {
+        if (runif(1) <= 0.30) {
           g = g * 2^(get_random_variable(p1, seq(0,100,0.1), 1))
         }
         #else, down-regulation
@@ -231,10 +231,10 @@ complex_simulation = function(data){
         }
       }
     #if expression < 100, 30% chance of dysregulation
-    } else if (sample(1:100, 1) <= 30) {
+    } else if (runif(1) <= 0.30) {
       #50% chance of down-regulation, 50% chance of up-regulation. While expression < 0, retry.
       while(g < 0){
-        if (sample (1:100,1) <= 50){
+        if (runif(1) <= 0.50){
           g = g - (get_random_variable(p3, seq(0, 500, 0.5), 1))
         } else {
           g = g + (get_random_variable(p3, seq(0, 500, 0.5), 1))
