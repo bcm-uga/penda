@@ -19,5 +19,5 @@ detect_zero_value(ctrl_data, cancer_data, threshold, min = 0)
 This function return a true false vector with true for the values to exclude.
 }
 \description{
-This function detects genes with more than threshold percent of expression values under the mine value.
+This function detects genes with more than threshold percent of expression values under the min value.
 }

@@ -16,6 +16,3 @@ This function returns
 P2 models the density function of the expression divisor for the
 down-regulation of a gene with an expression above 100.
 }
-\examples{
-
-}

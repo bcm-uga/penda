@@ -14,7 +14,7 @@ step0(ctrl_data, patient_genes, quant)
 \item{quant}{The quantile for the expression distribution limit.}
 }
 \value{
-This function return a vector with all the genes outside of the distribution limit.
+This function return a logical vector with TRUE for genes outside of the distribution limit.
 }
 \description{
 This function makes the list of genes at the extremities of expression distribution.

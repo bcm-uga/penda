@@ -16,6 +16,3 @@ This function returns
 P2 models the density function of the expression modifier (to add or substract) for the
 dysregulation of a gene with an expression under 100.
 }
-\examples{
-
-}

@@ -18,7 +18,7 @@ must meet the conditions}
 This function returns an error message if D or U list don't mette the conditions. In normal case, the function return "OK" message.
 }
 \description{
-This function check if not exists genes both up and down expressed, and for each gene :
+This function checks if not exists genes both up and down expressed, and for each gene :
 if the maximal down gene is less expressed in threshold% of cases,
 if the minimal up gene is more expressed in threshold % of cases.
 }

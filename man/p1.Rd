@@ -16,6 +16,3 @@ This function returns
 P1 models the density function of the expression multiplicative factor for the
 up-regulation of a gene with an expression above 100.
 }
-\examples{
-
-}

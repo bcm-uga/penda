@@ -13,7 +13,8 @@ patient_test(ctrl_data, patient_genes, quant_0, iterations, D_U_ctrl, threshold)
 
 \item{quant_0}{The quantile of the expression distribution for the step_0.}
 
-\item{iterations}{The number of iterations for the test.}
+\item{iterations}{The maximal number of iterations for the test. If the dysregulation list
+no longer changes, iterations are stop before.}
 
 \item{D_U_ctrl}{The list of Down and Up-expressed genes matrix in the control.}
 
@@ -21,8 +22,8 @@ patient_test(ctrl_data, patient_genes, quant_0, iterations, D_U_ctrl, threshold)
 }
 \value{
 This function return a list with two vector :
-D, with 1 for genes down-regulated
-U, with 1 for genes up-regulated.
+D, with TRUE for genes down-regulated
+U, with TRUE for genes up-regulated.
 }
 \description{
 This function makes the test of the dysregulation of all genes for one patient.

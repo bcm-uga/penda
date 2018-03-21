@@ -4,7 +4,8 @@
 \alias{simplified_simulation}
 \title{simplified_simulation}
 \usage{
-simplified_simulation(data, fraction, threshold, modifier = 30, factor = 4)
+simplified_simulation(data, fraction, threshold = 60, modifier = 30,
+  factor = 4)
 }
 \arguments{
 \item{data}{The vector or matrix of original data to edit.}
