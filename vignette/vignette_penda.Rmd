@@ -22,30 +22,27 @@ The five last patients are used to simulate deregulation data.
 The function "detect_zero_value" was used before to eliminates genes with more than 99% of expression value under 10.
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 ctrl_data = readRDS('~/projects/perso_DA/data_ctrl_process.rds')[1:1000,]
-
 simu_data = ctrl_data[,94:98]
 colnames(simu_data) = c("P1","P2","P3","P4","P5")
 
 ctrl_data = ctrl_data[,-(94:98)]
-
-
 ```
 
 
 ##Ranking in control
 
-The function "find_D_U_ctrl" returns two matrix. For each gene in columns, the row gene is 
-"TRUE" if is **D**own-expresed or **U**p-expressed.
+We used the function "find_D_U_ctrl" which returns two matrix. For each gene in columns, the row gene is "TRUE" if is **D**own-expresed or **U**p-expressed.
+The limit is between the quantile 0.001/4 and the quantile 0.999*4. 99% of patients must be in the conditions.
+The function "check_D_U" checks if not exists genes both up and down expressed, and for each gene :
+- if the maximal down gene is less expressed in 99% of controls.
+- if the minimal up gene is more expressed in 99 % of controls.
+
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
-# D_U_ctrl = find_D_U_ctrl(ctrl_data, 0.001, 4, 0.99)
-# table(D_U_ctrl$D)
-# table(D_U_ctrl$U)
-# saveRDS(D_U_ctrl, "D_U_93p.rds")
-D_U_ctrl = readRDS("D_U_93p.rds")
-D_U_ctrl$D = D_U_ctrl$D[1:1000,1:1000]
-D_U_ctrl$U = D_U_ctrl$U[1:1000,1:1000]
+D_U_ctrl = find_D_U_ctrl(ctrl_data, 0.001, 4, 0.99)
+table(D_U_ctrl$D)
+table(D_U_ctrl$U)
 
 check_D_U (D_U_ctrl, ctrl_data, 0.99)
 
@@ -53,149 +50,115 @@ check_D_U (D_U_ctrl, ctrl_data, 0.99)
 
 ##Simulation of dysregulation of gene expression
 
-"simu_data" is the gene expression of two control genes. The function "dysreg_simulation" randomnly dysregul 40% of these expressions.
+We want to dysregul genes of 3 control patients in "simu_data" to simulate a cancer dysregulation.
+The function "simplified_simulation" randomly dysreguls a given proportion of genes expressions. Here, we choose 30% of genes.
+We do the simulation on 3 patients, and then we concatenate the results.
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
-simulation = dysreg_simulation(simu_data, 0.4, 60)
+simup1 = simplified_simulation(simu_data[,1], 0.3)
+simup2 = simplified_simulation(simu_data[,2], 0.3)
+simup3 = simplified_simulation(simu_data[,3], 0.3)
+simulation = list()
+
+simulation$simulated_data = matrix(c(simup1$simulated_data, simup2$simulated_data, simup3$simulated_data), ncol=3, dimnames = list(rownames(simu_data)))
+simulation$initial_data = matrix(c(simup1$initial_data, simup2$initial_data, simup3$initial_data), ncol=3, dimnames = list(rownames(simu_data)))
+simulation$changes_idx = matrix(c(simup1$changes_idx, simup2$changes_idx, simup3$changes_idx), ncol=3)
+
 table(simulation$initial_data != simulation$simulated_data)
-length(simulation$changes_index)
+length(simulation$changes_idx)
 ```
 
 
-##Test of the deregulation
+#Test of the deregulation
 
+We make the dysregulation for the 3 patients. 
+The quantile of l0 is 0.03, it means that genes at the extremities of expression distribution (under 3% or above 97%) are not used in the control list.
+0.2 is the threshold for the dysregulation.
 
+Please be careful to have gene names as row names in your datas. 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
-D_matrix_l0 = simulation$simulated_data
-U_matrix_l0 = simulation$simulated_data
-for(p in 1:1){
-  D_U_l0 = test_individu(ctrl_data, simulation$simulated_data[,p], 0.03, 20, D_U_ctrl, 0.2)
-  D_matrix_l0[,p] = unlist(D_U_l0[1])
-  U_matrix_l0[,p] = unlist(D_U_l0[2])
+D_matrix = simulation$simulated_data
+U_matrix = simulation$simulated_data
+for(p in 1:3){
+  print(c("Patient number",p))
+  D_U = patient_test(ctrl_data, simulation$simulated_data[,p], 0.03, 20, D_U_ctrl, 0.2)
+  D_matrix[,p] = unlist(D_U[1])
+  U_matrix[,p] = unlist(D_U[2])
 }
 
-D_matrix_sans_l0 = simulation$simulated_data
-U_matrix_sans_l0 = simulation$simulated_data
-for(p in 1:1){
-  D_U_sans_l0 = test_individu_sans_l0(ctrl_data, simulation$simulated_data[,p], 0.03, 20, D_U_ctrl, 0.2)
-  D_matrix_sans_l0[,p] = unlist(D_U_sans_l0[1])
-  U_matrix_sans_l0[,p] = unlist(D_U_sans_l0[2])
-}
-
-D_matrix_l0_reduit = simulation$simulated_data
-U_matrix_l0_reduit = simulation$simulated_data
-for(p in 1:1){
-  D_U_l0_reduit = test_individu(ctrl_data, simulation$simulated_data[,p], 0.01, 20, D_U_ctrl, 0.2)
-  D_matrix_l0_reduit[,p] = unlist(D_U_l0_reduit[1])
-  U_matrix_l0_reduit[,p] = unlist(D_U_l0_reduit[2])
-}
-
-D_matrix_sansi = simulation$simulated_data
-U_matrix_sansi = simulation$simulated_data
-for(p in 1:1){
-  D_U_sansi = test_individu_sans_i(ctrl_data, simulation$simulated_data[,p], 0.01, 20, D_U_ctrl, 0.2)
-  D_matrix_sansi[,p] = unlist(D_U_sansi[1])
-  U_matrix_sansi[,p] = unlist(D_U_sansi[2])
-}
-
-# saveRDS(D_matrix, "D_matrix.rds")
-# saveRDS(U_matrix, "U_matrix.rds")
-#Nb of down genes
-#colSums(D_matrix)
-#Nb of up genes
-#colSums(U_matrix)
+#Number of predicted down-regulated genes
+colSums(D_matrix)
+#Number of predicted up-regulated genes
+colSums(U_matrix)
 ```
 
-##Representation
-!! en cours de développement !!
+#Representation
+
+The function "results_simulation" computes the number of false positive, true positive, false negative and false positive results from the test and the original datas.
+The function "draw_results" make an histogram with these results.
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
+results = results_simulation(D_matrix, U_matrix, simulation)
 
-#Représentation des résultats avec ou sans l0, avec ou sans itérations
-
-p1_l0 = results_simulation(D_matrix_l0, U_matrix_l0, simulation)
-p1_sans_l0 = results_simulation(D_matrix_sans_l0, U_matrix_sans_l0, simulation)
-p1_l0_reduit = results_simulation(D_matrix_l0_reduit, U_matrix_l0_reduit, simulation)
-p1_sansi  = results_simulation(D_matrix_sansi, U_matrix_sansi, simulation)
-
-dessin = function(results){
-  FP = results$FP
-  df= data.frame(type = c("TP","FP","FN","TN", "FDR"), results=c(unlist(results), (results$FP / (results$TP + results$FP))))
-  library(ggplot2)
-  ggplot(df, aes(x=type, y=results, fill=type)) + geom_bar(stat="identity") + geom_text(aes(label=results), vjust=1)
-}
-
-
-dessin(p1_l0)
-dessin(p1_sans_l0)
-dessin(p1_l0_reduit)
-dessin(p1_sansi)
-
-
-#Représentation des différences
-
-df_l0_ou_pas_p1 = data.frame( 
-              l0 = factor(rep(c("quantile l0 = 0.03","quantile l0 = 0.01", "sans l0", "sans itération"), each = 4)),
-              type = factor(rep(c("TP","FP", "FN", "TN"), times = 4)),
-              nbresults = unlist(c(p1_l0, p1_l0_reduit, p1_sans_l0, p1_sansi))
-)
-
-library(ggplot2)
-  ggplot(df_l0_ou_pas_p1, aes(x=l0, y=nbresults, fill=type)) + geom_bar(stat="identity", position=position_dodge()) + geom_text(aes(label=nbresults), vjust=-0.2, position = position_dodge(0.9))
-
-
-
-  
+draw_results(results)
 ```
 
 
 
-Simulation complexe
+##Complex simulation 
 
-Test avec la loi normale
-
-n = function(x, u, a){
-  (1/(a*sqrt(2*pi))) * exp(-(((x-u)^2)/(2*a^2)))
-}
-x = seq(-20, 20, 0.05)
-y = n(x, 0, 1)
- y1 <- cumsum(y)*diff(x)[1] #cumul
-
- pf <- approxfun(x,y1) #cumulative density function
- qf <- approxfun(y1,x) #quantile function
- rf <- function(n) qf(runif(n)) #randome variable
+Complex_simulation used the real distribution of dyresgulation in our cancers to makes the simulation.
+We want to dysregul genes of 3 control patients in "simu_data" to simulate a cancer dysregulation.
+We do the simulation on 3 patients, and then we concatenate the results.
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
-#P1
-x=seq(0, 100, 0.1)
+csimup1 = complex_simulation(simu_data[,1])
+csimup2 = complex_simulation(simu_data[,2])
+csimup3 = complex_simulation(simu_data[,3])
+csimulation = list()
 
-test = get_random_variable(p1, x, nb_r=10000)
-test = get_random_variable(p2, x, nb_r=10000)
+csimulation$simulated_data = matrix(c(csimup1$simulated_data, csimup2$simulated_data, csimup3$simulated_data), ncol=3, dimnames = list(rownames(simu_data)))
+csimulation$initial_data = matrix(c(csimup1$initial_data, csimup2$initial_data, csimup3$initial_data), ncol=3, dimnames = list(rownames(simu_data)))
+csimulation$changes_idx = list(csimup1$changes_idx, csimup2$changes_idx, csimup3$changes_idx)
 
-xm=seq(0, 500, 0.5)
+table(csimulation$initial_data != csimulation$simulated_data)
 
-test = get_random_variable(p3, xm, nb_r=10000)
+```
 
-simulation = dysreg_simulation(simu_data[,1], 0.2, 60)
-simulation2 = simu_v2(simu_data[,1])
-summary(simulation)
-summary(simulation2)
+#Test of the deregulation
 
-D_U = test_individu(ctrl_data, simulation$simulated_data, 0.03, 20, D_U_ctrl, 0.2)
-D_simu1 = unlist(D_U[1])
-U_simu1 = unlist(D_U[2])
+We make the dysregulation for the 3 patients with a complex simulation. 
 
-D_U = test_individu(ctrl_data, simulation2$simulated_data, 0.03, 20, D_U_ctrl, 0.2)
-D_simu2 = unlist(D_U[1])
-U_simu2 = unlist(D_U[2])
+Please be careful to have gene names as row names in your datas. 
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
-results_simu1 = results_simulation(D_simu1, U_simu1, simulation)
-results_simu2 = results_simulation(D_simu2, U_simu2, simulation2)
+D_matrixc = csimulation$simulated_data
+U_matrixc = csimulation$simulated_data
+for(p in 1:3){
+  print(c("Patient number",p))
+  D_U = patient_test(ctrl_data, csimulation$simulated_data[,p], 0.03, 20, D_U_ctrl, 0.2)
+  D_matrixc[,p] = unlist(D_U[1])
+  U_matrixc[,p] = unlist(D_U[2])
+}
 
-dessin(results_simu1)
-dessin(results_simu2)
+#Number of predicted down-regulated genes
+colSums(D_matrixc)
+#Number of predicted up-regulated genes
+colSums(U_matrixc)
+```
+
+#Representation
+
+The function "results_simulation" computes the number of false positive, true positive, false negative and false positive results from the test and the original datas.
+The function "draw_results" make an histogram with these results.
+
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+
+resultsc = results_simulation(D_matrixc, U_matrixc, csimulation)
+
+draw_results(resultsc)
 ```

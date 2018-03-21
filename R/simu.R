@@ -21,7 +21,7 @@
 #'
 #'@export
 
-simplified_simulation = function(data, fraction, threshold, modifier = 30, factor = 4){
+simplified_simulation = function(data, fraction, threshold = 60, modifier = 30, factor = 4){
   simu_data = data
   perturb = sample(length(simu_data), fraction*length(simu_data))
   for(i in 1:length(perturb)){
@@ -90,6 +90,30 @@ results_simulation = function(D_matrix, U_matrix, simulation){
 }
 
 
+#'draw_results
+#'
+#' This function computes the the FDR and the TPR and makes a ggplot of the results.
+#'
+#'@param results The list TP, FP, FN and TN return by "results_simulation"
+#'
+#'@return This function returns a barplot of results, FDR and TPR.
+#'
+#'@example
+#'D_U = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
+#'simulation = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
+#'res = results_simulation(D_matrix = D_U$D, U_matrix = D_U$U, initial_data = simulation$initial_data, simulated_data = simulation$simulated_data)
+#'draw_results(res)
+#'
+#'@export
+
+draw_results = function(results){
+  FP = results$FP
+  df= data.frame(type = c("TP","FP","FN","TN", "FDR", "TPR"), results=c(unlist(results), (results$FP / (results$TP + results$FP)), results$TP / (results$TP + results$FN)))
+  library(ggplot2)
+  ggplot(df, aes(x=type, y=results, fill=type)) + geom_bar(stat="identity") + geom_text(aes(label=results), vjust=1)
+}
+
+
 #'get_random_variable
 #'
 #' This function gives a random values following a given density function.
@@ -147,8 +171,6 @@ Heaviside = function(x, step = 0){
 #'@return This function returns
 #'
 #'@example
-#'
-#'@export
 
 p1 = function(x){
   p1 = Heaviside(x - 0.63) * (1 + tanh((x - 1.4) / 0.4)) * exp(-x / 0.9)
@@ -167,8 +189,6 @@ p1 = function(x){
 #'@return This function returns
 #'
 #'@example
-#'
-#'@export
 
 p2 = function(x){
   p2 = Heaviside(x - 0.63) * (1 + tanh((x - 1.4) / 0.5)) * exp(-x / 1.3)
@@ -187,8 +207,6 @@ p2 = function(x){
 #'@return This function returns
 #'
 #'@example
-#'
-#'@export
 
 p3 = function(x){
   p3 = Heaviside(x - 20) * (exp(-x * 0.007)) * exp((x - 20) * exp(-x * 0.07))

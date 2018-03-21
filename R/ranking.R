@@ -1,7 +1,7 @@
 
 #'detect_zero_value
 #'
-#' This function detects genes with more than threshold percent of expression values under the mine value.
+#' This function detects genes with more than threshold percent of expression values under the min value.
 #'
 #'@param ctrl_data A matrix with data to analyze
 #'@param cancer_data A matrix with other data to analyze
@@ -90,7 +90,7 @@ find_D_U_ctrl = function (ctrl_data, quant, factor, threshold){
 
 #'check_D_U
 #'
-#' This function check if not exists genes both up and down expressed, and for each gene :
+#' This function checks if not exists genes both up and down expressed, and for each gene :
 #' if the maximal down gene is less expressed in threshold% of cases,
 #' if the minimal up gene is more expressed in threshold % of cases.
 #'

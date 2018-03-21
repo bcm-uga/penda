@@ -99,20 +99,21 @@ step0 = function (ctrl_data, patient_genes, quant){
 #'@param ctrl_data A matrix with genes expressions in controls for all the patients.
 #'@param patient_genes A vector with all the genes expressions for one patient.
 #'@param quant_0 The quantile of the expression distribution for the step_0.
-#'@param iterations The number of iterations for the test.
+#'@param iterations The maximal number of iterations for the test. If the dysregulation list
+#'no longer changes, iterations are stop before.
 #'@param D_U_ctrl The list of Down and Up-expressed genes matrix in the control.
 #'@param threshold The threshold for regulation_test
 #'
 #'@return This function return a list with two vector :
-#'D, with 1 for genes down-regulated
-#'U, with 1 for genes up-regulated.
+#'D, with TRUE for genes down-regulated
+#'U, with TRUE for genes up-regulated.
 #'
 #'@example
 #'simulated_data = ctrl_data[,ncol(ctrl_data)]
 #'simulated_data = simplified_simulation(simulated_data, fraction = 0.3, threshold = 60)
 #'ctrl_data = ctrl_data[,-ncol(ctrl_data)]
 #'D_U_ctrl = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
-#'patient_test(ctrl_data, simulated_data, quant_0 = 0.05, iterations = 10, D_U_ctrl, threshold = 0.1)
+#'patient_test(ctrl_data, simulated_data, quant_0 = 0.05, iterations = 10, D_U_ctrl, threshold = 0.2)
 #'
 #'@export
 
@@ -122,11 +123,13 @@ patient_test = function (ctrl_data, patient_genes, quant_0, iterations, D_U_ctrl
   l0 = step0(ctrl_data, patient_genes, quant_0)
   D_U_ctrl$D = D_U_ctrl$D * !l0
   D_U_ctrl$U = D_U_ctrl$U * !l0
-
   l1 = rep(FALSE, nrow(ctrl_data))
+  l1n1 = rep(FALSE, nrow(ctrl_data))
+  l1n2 = rep(FALSE, nrow(ctrl_data))
+  print("Begining of iterations")
   #For each iteration
-
   for (i in 1:iterations){
+    print(i)
     #Genes dysregulated at the previous iteration are removed of D_U.
     D_U_ctrl_tmp = list()
     D_U_ctrl_tmp$D = D_U_ctrl$D * !abs(l1)
@@ -136,10 +139,18 @@ patient_test = function (ctrl_data, patient_genes, quant_0, iterations, D_U_ctrl
       expression = regulation_test(gene, D_U_ctrl_tmp, patient_genes, threshold)
       return(expression)
     })
+    if((sum(l1 == l1n1) == length(l1)) | (sum(l1 == l1n2) == length(l1))){
+      print ("Stabilisation of deregulation")
+      break
+    } else {
+      l1n2 = l1n1
+      l1n1 = l1
+    }
   }
-  U_genes = (l1 == 1)
-  D_genes = (l1 == -1)
+  U_genes = (l1 == 1 | l1n1 == 1)
+  D_genes = (l1 == -1 | l1n1 == -1)
   return(list(D = D_genes, U = U_genes))
   gc()
 }
+
 
