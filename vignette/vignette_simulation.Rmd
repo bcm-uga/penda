@@ -10,137 +10,111 @@ knitr::opts_chunk$set(echo = TRUE)
 source("~/projects/penda/R/simu.R")
 source("~/projects/penda/R/ranking.R")
 source("~/projects/penda/R/testing.R")
+Rcpp::sourceCpp('~/projects/penda/R/ranking_rcpp.cpp')
 
 ```
+
 
 ##Data processing
 
-We import the control data, and we take 1000 genes for the 98 patients.
-The five last patients are used to simulate deregulation data.
-The function "detect_zero_value" was used before to eliminates genes with more than 99% of expression value under 10.
+Import your control datas, the bigger they are, the longer the analysis takes.
+You can use the function "detect_zero_value" to eliminates genes with more than "threshold" % of expression value under "min" in control or cancer datas. For example : 
+#'null_values = detect_zero_value(your_data, your_cancer_data, threshold = 0.99, min = 10)
+#'your_data = your_data[!null_values,]
+#'your_cancer_data = your_cancer_data[!null_values,]
+
+The five last patients are used to makes "simu_data" and simulates the dysregulation. They are substrate of "ctrl_data" for not distort the next steps.
+
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 ctrl_data = readRDS('~/projects/perso_DA/data_ctrl_process.rds')
+LUSC_data = readRDS('~/projects/perso_DA/data_LUSC_process.rds')
 
-simu_data = ctrl_data[,94:98]
+simu_data = ctrl_data[, (ncol(ctrl_data)-4):ncol(ctrl_data)]
 colnames(simu_data) = c("P1","P2","P3","P4","P5")
 
-ctrl_data = ctrl_data[,-(94:98)]
-
-#Paramètres simuv1 : 30% des données, seuil à 60
-simuv1 = readRDS("simuv1.rds")
-simuv2 = readRDS("simuv2.rds")
-
-
+ctrl_data = ctrl_data[, -((ncol(ctrl_data)-4):ncol(ctrl_data))]
 ```
+
+
+##Making simulations
+
+The function "simplified_simulation" allows to simulate the dysregulation in our 5 test patients. You can choose several parameters, the first is the "fraction" of datas to dysregulate. The dysregulation is +- "modifier" if the gene expression is under the "threshold", or * / "factor" if the gene expression is above. 
+You must adapt your parameters at the expected dysregulation in your real dysregulated datas.
+The simulation returns the vector of initial data, the vector of datas with modifications and the index of modified data. We gather these vectors in matrices in the list "simulation".
+
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+
+simup1 = simplified_simulation(simu_data[,1], fraction = 0.3)
+simup2 = simplified_simulation(simu_data[,2], fraction = 0.3)
+simup3 = simplified_simulation(simu_data[,3], fraction = 0.3)
+simup4 = simplified_simulation(simu_data[,4], fraction = 0.3)
+simup5 = simplified_simulation(simu_data[,5], fraction = 0.3)
+
+simulation = list()
+
+simulation$initial_data = matrix(c(simup1$initial_data, simup2$initial_data, simup3$initial_data, simup4$initial_data, simup5$initial_data), ncol=5, dimnames = list(rownames(simu_data)))
+simulation$simulated_data = matrix(c(simup1$simulated_data, simup2$simulated_data, simup3$simulated_data, simup4$simulated_data, simup5$simulated_data), ncol=5, dimnames = list(rownames(simu_data)))
+simulation$changes_idx = matrix(c(simup1$changes_idx, simup2$changes_idx, simup3$changes_idx, simup4$changes_idx, simup5$changes_idx), ncol=5)
+```
+
 
 ##Ranking in control
 
-The function "find_D_U_ctrl" returns two matrix. For each gene in columns, the row gene is 
-"TRUE" if is **D**own-expresed or **U**p-expressed.
+The function "find_D_U_ctrl" search for each genes what are genes more and less expressed in most of the cases. You can choose the limit distribution of genes studied with parameters "quant" and "factor." For one gene g, we consider only genes between (the quantile quant of g distribution / factor) and (the quantile (1-quant) of g distribution * factor).
+The bigger your limits are, the more up and down-expressed genes you will have for each gene.
+The last parameter of "find_D_U_ctrl" is the "threshold", the proportion of patients that must be in the conditions (differential expression and between the limits). A higher threshold increase the robustness of the lists, but decrease the number of genes differentially expressed.
+"find_D_U_ctrl_rcpp" is faster but need rcpp package.
+
+The function returns two matrix. For each gene in columns, the row gene is "TRUE" if is **D**own-expresed or **U**p-expressed.
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
 # D_U_ctrl = find_D_U_ctrl(ctrl_data, 0.001, 4, 0.99)
-# table(D_U_ctrl$D)
-# table(D_U_ctrl$U)
 # saveRDS(D_U_ctrl, "D_U_93p.rds")
 D_U_ctrl = readRDS("D_U_93p.rds")
-
-check_D_U (D_U_ctrl, ctrl_data, 0.99)
 
 ```
 
 
+##Test the dysregulation
+
+The next step is to compare your control dataset and your dysregulate datas to detect genes with an up or down regulation. For that, it's the function "patient_test" which makes the dysregulation test for each genes of one patient.
+
+The firt step is called "step0". We look at the normal distribution of each gene, if the patient gene is at the extremities of this distribution, it's suspect and we remove it of the D_U_ctrl. It's the parameter "quant_0" which allows to determine the accepted distribution, between the quantile quant_0(gene distribution) and the quantile 1-quant_0(gene distribution). A higher quantile is supposed to improve the FDR and to make the test faster, but it's also decrease the TPR.
+
+After that, "regulation_test" is made the number of "iterations" requested until the stabilisation. This test checks for each gene if down-genes "D" or up-genes "U" have changed. "Du" are D genes become up, and "Ud" are U genes become down. The test need a threshold, if (Ud/U) and (Du/D) are under this threshold, we consider that this gene is not dysregulated. If you choose a threshold too high, you will have lots of false-positive, but if you choose a threshold too low you increase your number of false-negative. A small threshold can also increase the number of iterations before the stabilisation, and so the time of the test.
+
+To help your choose of the threshold for the test, and the quantile for the step0, you can use the function "multiple_test".
+This function allows to vary quantile or threshold values, with a vector of multiple value, an unique value for the other parameter, and TRUE or FALSE for the "threshold_change".
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
-#DU_rearragement permet de sortir deux jolies matrices D et U 
-DU_rearrangement = function(multiple_tests, simu_data, threshold_values){
-  #Définition des matrices D et U pour toutes les conditions
-  D_simu = matrix(data = NA, nrow = length(simu_data)
-                  , ncol = length(threshold_values)
-                  , dimnames = list(names(simu_data), threshold_values)) 
-  U_simu = matrix(data = NA, nrow = length(simu_data)
-                  , ncol = length(threshold_values)
-                  , dimnames = list(names(simu_data), threshold_values))
-  
-  #On réarrange D et U dans les matrices pour toutes les conditions
-  for (r in 1:length(threshold_values)){
-    D_simu[,r] = unlist(multiple_tests[(r*2-1)])
-    U_simu[,r] = unlist(multiple_tests[r*2])
-  }
-  return(list(D = D_simu, U = U_simu))
-}
+threshold_values = c(0.003, 0.1, 0.2, 0.3, 0.5)
+quantile_values = c(0, 0.005, 0.01, 0.03, 0.05, 0.1)
+
+#test_threshold = multiple_tests(ctrl_data, D_U_ctrl, 10, simulation, threshold_values, 0.03)
+# saveRDS(test_threshold, "test_threshold.rds")
+test_threshold = readRDS("test_threshold.rds")
+
+#test_quantile = multiple_tests(ctrl_data, D_U_ctrl, 10, simulation, quantile_values, 0.2, threshold_change = FALSE)
+# saveRDS(test_quantile, "test_quantile.rds")
+test_quantile = readRDS("test_quantile.rds")
 
 
-#Mutiple D_U permet de faire le test pour plusieurs conditions de threshold
-multiple_DU = function(ctrl_data, D_U_ctrl, simulation, threshold_values, iterations, quantile){
-  #Test pour toutes les valeurs de threshold
-  multiple_test = sapply(threshold_values, function(t){
-    patient_test(ctrl_data, simulation$simulated_data, quantile, iterations, D_U_ctrl, t)
-  })
-  sorted_test = DU_rearrangement(multiple_test, simulation$initial_data, threshold_values )
-  return (sorted_test)
-} 
+#Data frame FDR and TPR for the two simulations
+df_thres = data.frame(patient = test_threshold[,1], threshold = test_threshold[,2], FDR = as.numeric(test_threshold[,3]), TPR = as.numeric(test_threshold[,4])) 
 
+df_quant = data.frame(patient = test_quantile[,1], quantile = test_quantile[,2], FDR = as.numeric(test_quantile[,3]), TPR = as.numeric(test_quantile[,4])) 
 
-#Fais le test, puis le FDR
-total = function(ctrl_data, D_U_ctrl, threshold_values, iterations, quantile, simulation){
-  results = c()
-  #Pour chaque patient
-  for(p in 1:ncol(simulation$initial_data)){
-    simulation_p = list(initial_data = simulation$initial_data[,p], simulated_data = simulation$simulated_data[,p]) 
-      #On fait le test pour toutes les conditions
-    test = multiple_DU(ctrl_data, D_U_ctrl, simulation_p, threshold_values, iterations, quantile)
-    #Pour chaque seuil du test
-    for(thre in 1:ncol(test$D)){
-      #On calcule FP, TP, FN, TN
-      results_simu = results_simulation(test$D[,thre], test$U[,thre], simulation_p)
-      #On calcule FDR et TPR
-      FDR = results_simu$FP / (results_simu$TP + results_simu$FP)
-      TPR  = results_simu$TP / (results_simu$TP + results_simu$FN)
-      #On bind les résultats
-      results = rbind(results, c(p, colnames(test$D)[thre], FDR, TPR))
-    }
-  }
-  colnames(results) = c("patient", "threshold", "FDR", "TPR")
-  return(results)
-}
+#Graphic representation
+library(ggplot2)
+graph_thres = ggplot(df_thres, aes(x = TPR, y = FDR, color = threshold, group = patient, shape = patient)) + geom_point() + geom_line()
+graph_quant = ggplot(df_quant, aes(x = TPR, y = FDR, color = quantile, group = patient, shape = patient)) + geom_point() + geom_line()
 
-threshold_values = c(0.003, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50)
+#Threshold : 
+graph_thres
 
-t_debut_v2 = Sys.time()
-FDRetc_v2 = total(ctrl_data, D_U_ctrl, threshold_values, 20, 0.03, simuv2)
-saveRDS(FDRetc_v2, "FDRetc_v2.rds")
-
-t_debut_v1 = Sys.time()
-FDRetc_v1 = total(ctrl_data, D_U_ctrl, threshold_values, 20, 0.03, simuv1)
-saveRDS(FDRetc_v1, "FDRetc_v1.rds")
-
-t_debut_v1_sansl0 = Sys.time()
-FDRetc_v1_sansl0 = total(ctrl_data, D_U_ctrl, threshold_values, 20, 0, simuv1)
-
-t_debut_v2_sansl0 = Sys.time()
-FDRetc_v2_sansl0 = total(ctrl_data, D_U_ctrl, threshold_values, 20, 0, simuv2)
-t_fin = Sys.time()
-
-
-
-dfv2 = data.frame(patient = FDRetc_v2[,1], threshold = FDRetc_v2[,2], FDR = as.numeric(FDRetc_v2[,3]), TPR = as.numeric(FDRetc_v2[,4])) 
-dfv1 = data.frame(patient = FDRetc_v1[,1], threshold = FDRetc_v1[,2], FDR = as.numeric(FDRetc_v1[,3]), TPR = as.numeric(FDRetc_v1[,4])) 
-
-g2 = ggplot(dfv2, aes(x = TPR, y = FDR, color = threshold, group = patient)) + geom_point() + geom_line()
-
-g1 = ggplot(dfv1, aes(x = TPR, y = FDR, color = threshold, group = patient)) + geom_point() + geom_line()
-
-
-
-DF2 = data.frame(l0 = factor(rep(c("Avec l0", "Sans l0"), each = 55)), 
-                 patient = c(FDRetc_v2[,1], FDRetc_v2_sansl0[,1]),
-                 threshold = c(FDRetc_v2[,2], FDRetc_v2_sansl0[,2]), 
-                 FDR = c(as.numeric(FDRetc_v2[,3]), as.numeric(FDRetc_v2_sansl0[,3])), 
-                 TPR = c(as.numeric(FDRetc_v2[,4]), as.numeric(FDRetc_v2_sansl0[,4]))) 
-
-
+#Quantile : 
+graph_quant
 
 ```
 
