@@ -7,10 +7,10 @@
 p1(x)
 }
 \arguments{
-\item{x}{}
+\item{x}{vector of input values}
 }
 \value{
-This function returns
+This function returns the value of p1 for x (between 0 and 1).
 }
 \description{
 P1 models the density function of the expression multiplicative factor for the

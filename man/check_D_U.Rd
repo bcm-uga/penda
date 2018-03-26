@@ -7,12 +7,12 @@
 check_D_U(D_U_ctrl, ctrl_data, threshold)
 }
 \arguments{
-\item{D_U_ctrl}{The list of the two matrix D and U for each genes}
+\item{D_U_ctrl}{The list of the two matrices D and U for each genes.}
 
-\item{ctrl_data}{The matrix of gene expression used to make D and U matrix}
+\item{ctrl_data}{The matrix of gene expression used to make D and U matrices.}
 
-\item{threshold}{The threshold used to make D and U matrix. It's the proportion of genes that
-must meet the conditions}
+\item{threshold}{The threshold used to make D and U matrices. It's the proportion of genes that
+must meet the conditions.}
 }
 \value{
 This function returns an error message if D or U list don't mette the conditions. In normal case, the function return "OK" message.

@@ -7,10 +7,10 @@
 p2(x)
 }
 \arguments{
-\item{x}{}
+\item{x}{vector of input values}
 }
 \value{
-This function returns
+This function returns the value of p2 for x (between 0 and 1).
 }
 \description{
 P2 models the density function of the expression divisor for the

@@ -4,16 +4,19 @@
 \alias{regulation_test}
 \title{regulation_test}
 \usage{
-regulation_test(gene, D_U_ctrl, patient_genes, threshold)
+regulation_test(gene, D_U_ctrl, patient_genes, threshold, ctrl_data,
+  quant = 0)
 }
 \arguments{
 \item{gene}{The name of the gene to analyze.}
 
-\item{D_U_ctrl}{The list of Down and Up-expressed genes matrix in the control.}
+\item{D_U_ctrl}{The list of Down and Up-expressed genes matrices in the control.}
 
 \item{patient_genes}{The vector of genes expressions for one patient.}
 
 \item{threshold}{If Dd/Du and Uu/ud are under this threshold, the expression not change}
+
+\item{ctrl_data}{The matrix with genes expressions in controls for all the patients.}
 }
 \value{
 This function return 0 if the gene expression has not changed,

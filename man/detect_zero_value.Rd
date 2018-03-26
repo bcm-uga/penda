@@ -7,13 +7,13 @@
 detect_zero_value(ctrl_data, cancer_data, threshold, min = 0)
 }
 \arguments{
-\item{ctrl_data}{A matrix with data to analyze}
+\item{ctrl_data}{A matrix with data to analyze.}
 
-\item{cancer_data}{A matrix with other data to analyze}
+\item{cancer_data}{A matrix with other data to analyze.}
 
-\item{threshold}{The maximum proportion of expression under min tolerated for each gene}
+\item{threshold}{The maximum proportion of expression under min tolerated for each gene.}
 
-\item{min}{The minimum value accepted}
+\item{min}{The minimum value accepted.}
 }
 \value{
 This function return a true false vector with true for the values to exclude.

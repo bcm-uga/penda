@@ -16,7 +16,7 @@ patient_test(ctrl_data, patient_genes, quant_0, iterations, D_U_ctrl, threshold)
 \item{iterations}{The maximal number of iterations for the test. If the dysregulation list
 no longer changes, iterations are stop before.}
 
-\item{D_U_ctrl}{The list of Down and Up-expressed genes matrix in the control.}
+\item{D_U_ctrl}{The list of Down and Up-expressed genes matrices in the control.}
 
 \item{threshold}{The threshold for regulation_test}
 }

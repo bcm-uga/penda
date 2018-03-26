@@ -7,16 +7,16 @@
 find_D_U_ctrl(ctrl_data, quant, factor, threshold)
 }
 \arguments{
-\item{ctrl_data}{A matrix with the gene expressions for each patient}
+\item{ctrl_data}{A matrix with the gene expressions for each patient.}
 
-\item{quant}{A quantile to delimit the gene expression}
+\item{quant}{A quantile to delimit the gene expression.}
 
-\item{factor}{A factor to delimit the study limit : between quantile min / factor and quantile max * factor}
+\item{factor}{A factor to delimit the study limit : between quantile min / factor and quantile max * factor.}
 
-\item{threshold}{The proportion of expression that must be in the conditions}
+\item{threshold}{The proportion of expression that must be in the conditions.}
 }
 \value{
-This function returns a list of two TRUE-FALSE matrix :
+This function returns a list of two logical matrices :
 the D matrix, with TRUE if the row gene has a lower expression than the column gene,
 and the U Matrix with TRUE if the row gene has a higher expression than the column gene.
 }

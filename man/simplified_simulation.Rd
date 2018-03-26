@@ -22,7 +22,7 @@ and the down-regulation to substract this number.}
 and the down-regulation to divide.}
 }
 \value{
-This function returns a list of three vectors or matrix :
+This function returns a list of three vectors or matrices :
 initial_data, datas before the modification
 simulated_data, datas with up and down modifications
 changes_idx, index of datas with modifications

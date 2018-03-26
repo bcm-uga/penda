@@ -10,7 +10,7 @@ complex_simulation(data)
 \item{data}{vector or matrix of original data to edit.}
 }
 \value{
-This function returns a list of three vectors or matrix :
+This function returns a list of three vectors or matrices :
 initial_data, datas before the modification
 simulated_data, datas with up and down modifications
 changes_idx, index of datas with modifications

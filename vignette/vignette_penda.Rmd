@@ -81,12 +81,14 @@ Please be careful to have gene names as row names in your datas.
 
 D_matrix = simulation$simulated_data
 U_matrix = simulation$simulated_data
+t12 = Sys.time()
 for(p in 1:3){
   print(c("Patient number",p))
   D_U = patient_test(ctrl_data, simulation$simulated_data[,p], 0.03, 20, D_U_ctrl, 0.2)
   D_matrix[,p] = unlist(D_U[1])
   U_matrix[,p] = unlist(D_U[2])
 }
+t22 = Sys.time()
 
 #Number of predicted down-regulated genes
 colSums(D_matrix)
@@ -162,3 +164,9 @@ resultsc = results_simulation(D_matrixc, U_matrixc, csimulation)
 
 draw_results(resultsc)
 ```
+cl <- makeCluster(8)
+t1 = Sys.time()
+p=patient_test(ctrl_data, simuv1$simulated_data[,1], 0.03, 20, D_U_ctrl, 0.1)
+t2 = Sys.time()
+
+

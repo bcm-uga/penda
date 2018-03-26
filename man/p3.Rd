@@ -7,10 +7,10 @@
 p3(x)
 }
 \arguments{
-\item{x}{}
+\item{x}{vector of input values}
 }
 \value{
-This function returns
+This function returns the value of p3 for x (between 0 and 1).
 }
 \description{
 P2 models the density function of the expression modifier (to add or substract) for the
