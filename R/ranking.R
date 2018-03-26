@@ -1,12 +1,11 @@
-
 #'detect_zero_value
 #'
 #' This function detects genes with more than threshold percent of expression values under the min value.
 #'
-#'@param ctrl_data A matrix with data to analyze
-#'@param cancer_data A matrix with other data to analyze
-#'@param threshold The maximum proportion of expression under min tolerated for each gene
-#'@param min The minimum value accepted
+#'@param ctrl_data A matrix with data to analyze.
+#'@param cancer_data A matrix with other data to analyze.
+#'@param threshold The maximum proportion of expression under min tolerated for each gene.
+#'@param min The minimum value accepted.
 #'
 #'@return This function return a true false vector with true for the values to exclude.
 #'
@@ -40,12 +39,12 @@ detect_zero_value = function(ctrl_data, cancer_data, threshold, min = 0) {
 #'
 #' This function ranks each gene and finds the genes which are more or less exprimed.
 #'
-#'@param ctrl_data A matrix with the gene expressions for each patient
-#'@param quant A quantile to delimit the gene expression
-#'@param factor A factor to delimit the study limit : between quantile min / factor and quantile max * factor
-#'@param threshold The proportion of expression that must be in the conditions
+#'@param ctrl_data A matrix with the gene expressions for each patient.
+#'@param quant A quantile to delimit the gene expression.
+#'@param factor A factor to delimit the study limit : between quantile min / factor and quantile max * factor.
+#'@param threshold The proportion of expression that must be in the conditions.
 #'
-#'@return This function returns a list of two TRUE-FALSE matrix :
+#'@return This function returns a list of two logical matrices :
 #'the D matrix, with TRUE if the row gene has a lower expression than the column gene,
 #'and the U Matrix with TRUE if the row gene has a higher expression than the column gene.
 #'
@@ -94,10 +93,10 @@ find_D_U_ctrl = function (ctrl_data, quant, factor, threshold){
 #' if the maximal down gene is less expressed in threshold% of cases,
 #' if the minimal up gene is more expressed in threshold % of cases.
 #'
-#'@param D_U_ctrl The list of the two matrix D and U for each genes
-#'@param ctrl_data The matrix of gene expression used to make D and U matrix
-#'@param threshold The threshold used to make D and U matrix. It's the proportion of genes that
-#'must meet the conditions
+#'@param D_U_ctrl The list of the two matrices D and U for each genes.
+#'@param ctrl_data The matrix of gene expression used to make D and U matrices.
+#'@param threshold The threshold used to make D and U matrices. It's the proportion of genes that
+#'must meet the conditions.
 #'
 #'@return This function returns an error message if D or U list don't mette the conditions. In normal case, the function return "OK" message.
 #'
