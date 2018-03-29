@@ -20,12 +20,14 @@
 #'
 #'@export
 
-regulation_test = function(gene, D_U_ctrl, patient_genes, threshold, ctrl_data, quant = 0){
+regulation_test = function(gene, D_U_ctrl, patient_genes, threshold, ctrl_data, quant = 0, factor = 1){
 
   down_ctrl = D_U_ctrl$D[,gene]
   up_ctrl = D_U_ctrl$U[,gene]
   changement = numeric()
   quantile_gene = quantile(ctrl_data[gene,], c(quant,(1-quant)))
+  quantile_gene[1] = quantile_gene[1] / factor
+  quantile_gene[2] = quantile_gene[2] * factor
 
   Du = (patient_genes[down_ctrl == TRUE] > patient_genes[gene])
   Du = sum (Du)
@@ -47,23 +49,23 @@ regulation_test = function(gene, D_U_ctrl, patient_genes, threshold, ctrl_data, 
   }
   #If exists only up-regulated list
   else if (sum(down_ctrl) == 0 & sum(up_ctrl) != 0){
-    if ((Ud / sum(up_ctrl) < threshold) & (patient_genes[gene] > quantile_gene[1])){
+    if ((Ud / sum(up_ctrl) < threshold) & (patient_genes[gene] >= quantile_gene[1])){
       changement = 0
-    } else if (patient_genes[gene] < quantile_gene[1]){
-      changement = -1
-    } else {
+    } else if (Ud / sum(up_ctrl) > threshold){
       changement = 1
+    } else {
+      changement = -1
     }
     return(changement)
   }
   #if exists only down-regulated list
   else if (sum(down_ctrl) != 0 & sum(up_ctrl) == 0){
-    if ((Du / sum(down_ctrl) < threshold & (patient_genes[gene] < quantile_gene[2]))){
+    if ((Du / sum(down_ctrl) < threshold) & (patient_genes[gene] < quantile_gene[2])){
       changement = 0
-    } else if (patient_genes[gene] > quantile_gene[2]){
-      changement = 1
-    } else {
+    } else if (Du / sum(down_ctrl) > threshold){
       changement = -1
+    } else {
+      changement = 1
     }
     return(changement)
   }
@@ -174,7 +176,7 @@ step0 = function (ctrl_data, patient_genes, quant){
 #'
 #'@export
 
-patient_test = function (ctrl_data, patient_genes, quant_0, iterations, D_U_ctrl, threshold){
+patient_test = function (ctrl_data, patient_genes, quant_0, iterations, D_U_ctrl, threshold, factor_test = 1){
 
   #Suspicious genes with an expression out of bounds are removed of D_U.
   l0 = step0(ctrl_data, patient_genes, quant_0)
@@ -193,7 +195,7 @@ patient_test = function (ctrl_data, patient_genes, quant_0, iterations, D_U_ctrl
     D_U_ctrl_tmp$U = D_U_ctrl$U * !abs(l1)
     #The dysregulation of each genes is compute.
     l1 = sapply(names(patient_genes), function(gene){
-      expression = regulation_test(gene, D_U_ctrl_tmp, patient_genes, threshold, ctrl_data)
+      expression = regulation_test(gene, D_U_ctrl_tmp, patient_genes, threshold, ctrl_data, factor = factor_test)
       return(expression)
     })
     if((sum(l1 == l1n1) == length(l1)) | (sum(l1 == l1n2) == length(l1))){
