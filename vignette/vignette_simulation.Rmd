@@ -19,11 +19,12 @@ Rcpp::sourceCpp('~/projects/penda/R/ranking_rcpp.cpp')
 
 Import your control datas, the bigger they are, the longer the analysis takes.
 You can use the function "detect_zero_value" to eliminates genes with more than "threshold" % of expression value under "min" in control or cancer datas. For example : 
+
 #'null_values = detect_zero_value(your_data, your_cancer_data, threshold = 0.99, min = 10)
 #'your_data = your_data[!null_values,]
 #'your_cancer_data = your_cancer_data[!null_values,]
 
-The five last patients are used to makes "simu_data" and simulates the dysregulation. They are substrate of "ctrl_data" for not distort the next steps.
+The five last patients are used to makes "simu_data" and simulates the dysregulation. They are substracte of "ctrl_data" for not distort the next steps.
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 ctrl_data = readRDS('~/projects/perso_DA/data_ctrl_process.rds')
@@ -65,14 +66,18 @@ The bigger your limits are, the more up and down-expressed genes you will have f
 The last parameter of "find_D_U_ctrl" is the "threshold", the proportion of patients that must be in the conditions (differential expression and between the limits). A higher threshold increase the robustness of the lists, but decrease the number of genes differentially expressed.
 "find_D_U_ctrl_rcpp" is faster but need rcpp package.
 
-The function returns two matrix. For each gene in columns, the row gene is "TRUE" if is **D**own-expresed or **U**p-expressed.
+The new function "find_D_U_ctrl_size" replaces the limit based on quantile with a limit on number of genes in each list. The parameter "s_max" is the maximum number of D and U genes for each gene. A little numbler of D and U genes, center on the gene expression, seems more signifiant.
+
+These functions return two matrix. For each gene in columns, the row gene is "TRUE" if is **D**own-expresed or **U**p-expressed.
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
-# D_U_ctrl = find_D_U_ctrl(ctrl_data, 0.001, 4, 0.99)
+# D_U_ctrl = find_D_U_ctrl(ctrl_data, quantile = 0.001, factor = 4, threshold = 0.99)
 # saveRDS(D_U_ctrl, "D_U_93p.rds")
 D_U_ctrl = readRDS("D_U_93p.rds")
 
+#D_U_ctrl = find_D_U_ctrl_rcpp(ctrl_data, quantile = 0.001, factor = 4, threshold = 0.99)
+#D_U_ctrl = find_D_U_ctrl_size(ctrl_data, threshold = 0.99, s_max = 100)
 ```
 
 
@@ -80,7 +85,7 @@ D_U_ctrl = readRDS("D_U_93p.rds")
 
 The next step is to compare your control dataset and your dysregulate datas to detect genes with an up or down regulation. For that, it's the function "patient_test" which makes the dysregulation test for each genes of one patient.
 
-The firt step is called "step0". We look at the normal distribution of each gene, if the patient gene is at the extremities of this distribution, it's suspect and we remove it of the D_U_ctrl. It's the parameter "quant_0" which allows to determine the accepted distribution, between the quantile quant_0(gene distribution) and the quantile 1-quant_0(gene distribution). A higher quantile is supposed to improve the FDR and to make the test faster, but it's also decrease the TPR.
+The firt step is called "step0". We look at the normal distribution of each gene, if the patient gene is at the extremities of this distribution, it's suspect and we remove it of the D_U_ctrl. It's the parameter "quant_0" which allows to determine the accepted distribution, between the quantile quant_0(gene distribution) and the quantile 1-quant_0(gene distribution). A higher quantile is supposed to improve the FDR and to make the test faster, but it also decrease the TPR.
 
 After that, "regulation_test" is made the number of "iterations" requested until the stabilisation. This test checks for each gene if down-genes "D" or up-genes "U" have changed. "Du" are D genes become up, and "Ud" are U genes become down. The test need a threshold, if (Ud/U) and (Du/D) are under this threshold, we consider that this gene is not dysregulated. If you choose a threshold too high, you will have lots of false-positive, but if you choose a threshold too low you increase your number of false-negative. A small threshold can also increase the number of iterations before the stabilisation, and so the time of the test.
 
@@ -91,11 +96,11 @@ This function allows to vary quantile or threshold values, with a vector of mult
 threshold_values = c(0.003, 0.1, 0.2, 0.3, 0.5)
 quantile_values = c(0, 0.005, 0.01, 0.03, 0.05, 0.1)
 
-#test_threshold = multiple_tests(ctrl_data, D_U_ctrl, 10, simulation, threshold_values, 0.03)
+#test_threshold = multiple_tests(ctrl_data, D_U_ctrl, iterations = 10, simulation, threshold_values, 0.03)
 # saveRDS(test_threshold, "test_threshold.rds")
 test_threshold = readRDS("test_threshold.rds")
 
-#test_quantile = multiple_tests(ctrl_data, D_U_ctrl, 10, simulation, quantile_values, 0.2, threshold_change = FALSE)
+#test_quantile = multiple_tests(ctrl_data, D_U_ctrl, iterations = 10, simulation, quantile_values, 0.2, threshold_change = FALSE)
 # saveRDS(test_quantile, "test_quantile.rds")
 test_quantile = readRDS("test_quantile.rds")
 

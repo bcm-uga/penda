@@ -14,7 +14,7 @@ results_simulation(D_matrix, U_matrix, simulation)
 \item{simulation}{The list of initial data $initial_data and modified data in $simulated_data}
 }
 \value{
-This function returns a list of four integer :
+This function returns a list of four integers :
 TP, the number of true postive results
 FP, the number of false postive results
 FN, the numbler of false negative results

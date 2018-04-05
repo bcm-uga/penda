@@ -18,7 +18,7 @@ source("~/projects/penda/R/testing.R")
 ##Data processing
 
 We import the control data, and we take 1000 genes for the 98 patients.
-The five last patients are used to simulate deregulation data.
+The five last patients are used to  make the dataset of simulations.
 The function "detect_zero_value" was used before to eliminates genes with more than 99% of expression value under 10.
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 ctrl_data = readRDS('~/projects/perso_DA/data_ctrl_process.rds')[1:1000,]
@@ -70,13 +70,15 @@ length(simulation$changes_idx)
 ```
 
 
-#Test of the deregulation
+#Test of the dysregulation
 
-We make the dysregulation for the 3 patients. 
+We make the test for the 3 dysregulated patients. 
 The quantile of l0 is 0.03, it means that genes at the extremities of expression distribution (under 3% or above 97%) are not used in the control list.
-0.2 is the threshold for the dysregulation.
+0.2 is the threshold to test if genes has changed.
+20 is the maximum number of iterations allowed to stabilize the results.
 
 Please be careful to have gene names as row names in your datas. 
+
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
 D_matrix = simulation$simulated_data
@@ -113,7 +115,6 @@ draw_results(results)
 ##Complex simulation 
 
 Complex_simulation used the real distribution of dyresgulation in our cancers to makes the simulation.
-We want to dysregul genes of 3 control patients in "simu_data" to simulate a cancer dysregulation.
 We do the simulation on 3 patients, and then we concatenate the results.
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
@@ -131,9 +132,9 @@ table(csimulation$initial_data != csimulation$simulated_data)
 
 ```
 
-#Test of the deregulation
+#Test of the dysregulation
 
-We make the dysregulation for the 3 patients with a complex simulation. 
+We make the test for the 3 patients with a complex simulation. 
 
 Please be careful to have gene names as row names in your datas. 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}

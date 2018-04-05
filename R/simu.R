@@ -196,7 +196,7 @@ complex_simulation = function(data){
 #'@param U_matrix The matrix of up-regulated genes.
 #'@param simulation The list of initial data $initial_data and modified data in $simulated_data
 #'
-#'@return This function returns a list of four integer :
+#'@return This function returns a list of four integers :
 #'TP, the number of true postive results
 #'FP, the number of false postive results
 #'FN, the numbler of false negative results
@@ -377,7 +377,7 @@ test_multiple_quantiles = function(ctrl_data, D_U_ctrl, simulation, threshold, i
 #'@param unique_value The value of the parameter that does not vary.
 #'@param threshold_change TRUE if you want to vary the threshold, FALSE if you want to vary the quantile.
 #'
-#'@return This function returns a matrix with : the patient, the value of the changing paramter,
+#'@return This function returns a matrix with 4 columns : the patient number, the value of the changing parameter,
 #'the FDR and the TPR of the test.
 #'
 #'@example

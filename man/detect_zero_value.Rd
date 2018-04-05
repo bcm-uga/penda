@@ -16,7 +16,7 @@ detect_zero_value(ctrl_data, cancer_data, threshold, min = 0)
 \item{min}{The minimum value accepted.}
 }
 \value{
-This function return a true false vector with true for the values to exclude.
+This function returns a true false vector with true for the values to exclude.
 }
 \description{
 This function detects genes with more than threshold percent of expression values under the min value.

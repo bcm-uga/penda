@@ -8,7 +8,7 @@
 #'@param threshold If Dd/Du and Uu/ud are under this threshold, the expression not change
 #'@param ctrl_data The matrix with genes expressions in controls for all the patients.
 #'
-#'@return This function return 0 if the gene expression has not changed,
+#'@return This function returns 0 if the gene expression has not changed,
 #' 1 if the gene is up-regulated and -1 if the gene is down-regulated.
 #'
 #'@example
@@ -58,7 +58,7 @@ regulation_test = function(gene, D_U_ctrl, patient_genes, threshold, ctrl_data, 
     }
     return(changement)
   }
-  #if exists only down-regulated list
+  #If exists only down-regulated list
   else if (sum(down_ctrl) != 0 & sum(up_ctrl) == 0){
     if ((Du / sum(down_ctrl) < threshold) & (patient_genes[gene] < quantile_gene[2])){
       changement = 0
@@ -79,6 +79,30 @@ regulation_test = function(gene, D_U_ctrl, patient_genes, threshold, ctrl_data, 
   }
 }
 
+
+#'original_test
+#'
+#' Original_test is the older version of regulation_test. In this version, we don't use the
+#' quantile method in case of void down or up-expressed genes list.
+#'
+#'@param gene The name of the gene to analyze.
+#'@param D_U_ctrl The list of Down and Up-expressed genes matrices in the control.
+#'@param patient_genes The vector of genes expressions for one patient.
+#'@param threshold If Dd/Du and Uu/ud are under this threshold, the expression not change
+#'@param ctrl_data The matrix with genes expressions in controls for all the patients.
+#'
+#'@return This function returns 0 if the gene expression has not changed,
+#' 1 if the gene is up-regulated and -1 if the gene is down-regulated.
+#'
+#'@example
+#'simulated_data = ctrl_data[,ncol(ctrl_data)]
+#'simulated_data = simplified_simulation(simulated_data, fraction = 0.3, threshold = 60)
+#'ctrl_data = ctrl_data[,-ncol(ctrl_data)]
+#'D_U_ctrl = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
+#'original_test(gene = rownames(ctrl_data)[1], D_U_ctrl, patient_genes = simulated_data$simulated_data, threshold = 0.1, ctrl_data)
+#'
+#'@export
+#'
 original_test = function(gene, D_U_ctrl, patient_genes, threshold, ctrl_data, quant = 0){
 
   down_ctrl = D_U_ctrl$D[,gene]
@@ -163,7 +187,7 @@ step0 = function (ctrl_data, patient_genes, quant){
 #'@param D_U_ctrl The list of Down and Up-expressed genes matrices in the control.
 #'@param threshold The threshold for regulation_test
 #'
-#'@return This function return a list with two vector :
+#'@return This function return a list with two vectors :
 #'D, with TRUE for genes down-regulated
 #'U, with TRUE for genes up-regulated.
 #'
@@ -179,6 +203,7 @@ step0 = function (ctrl_data, patient_genes, quant){
 patient_test = function (ctrl_data, patient_genes, quant_0, iterations, D_U_ctrl, threshold, factor_test = 1){
 
   #Suspicious genes with an expression out of bounds are removed of D_U.
+  print ("Step 0")
   l0 = step0(ctrl_data, patient_genes, quant_0)
   D_U_ctrl$D = D_U_ctrl$D * !l0
   D_U_ctrl$U = D_U_ctrl$U * !l0
@@ -199,7 +224,7 @@ patient_test = function (ctrl_data, patient_genes, quant_0, iterations, D_U_ctrl
       return(expression)
     })
     if((sum(l1 == l1n1) == length(l1)) | (sum(l1 == l1n2) == length(l1))){
-      print ("Stabilisation of deregulation")
+      print ("Stabilisation of the dysregulated genes list")
       break
     } else {
       l1n2 = l1n1
@@ -211,41 +236,3 @@ patient_test = function (ctrl_data, patient_genes, quant_0, iterations, D_U_ctrl
   return(list(D = D_genes, U = U_genes))
   gc()
 }
-
-
-original_patient_test = function (ctrl_data, patient_genes, quant_0, iterations, D_U_ctrl, threshold){
-
-  #Suspicious genes with an expression out of bounds are removed of D_U.
-  l0 = step0(ctrl_data, patient_genes, quant_0)
-  D_U_ctrl$D = D_U_ctrl$D * !l0
-  D_U_ctrl$U = D_U_ctrl$U * !l0
-  l1 = rep(FALSE, nrow(ctrl_data))
-  l1n1 = rep(FALSE, nrow(ctrl_data))
-  l1n2 = rep(FALSE, nrow(ctrl_data))
-  print("Begining of iterations")
-  #For each iteration
-  for (i in 1:iterations){
-    print(i)
-    #Genes dysregulated at the previous iteration are removed of D_U.
-    D_U_ctrl_tmp = list()
-    D_U_ctrl_tmp$D = D_U_ctrl$D * !abs(l1)
-    D_U_ctrl_tmp$U = D_U_ctrl$U * !abs(l1)
-    #The dysregulation of each genes is compute.
-    l1 = sapply(names(patient_genes), function(gene){
-      expression = original_test(gene, D_U_ctrl_tmp, patient_genes, threshold, ctrl_data)
-      return(expression)
-    })
-    if((sum(l1 == l1n1) == length(l1)) | (sum(l1 == l1n2) == length(l1))){
-      print ("Stabilisation of deregulation")
-      break
-    } else {
-      l1n2 = l1n1
-      l1n1 = l1
-    }
-  }
-  U_genes = (l1 == 1 | l1n1 == 1)
-  D_genes = (l1 == -1 | l1n1 == -1)
-  return(list(D = D_genes, U = U_genes))
-  gc()
-}
-

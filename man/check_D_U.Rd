@@ -15,7 +15,7 @@ check_D_U(D_U_ctrl, ctrl_data, threshold)
 must meet the conditions.}
 }
 \value{
-This function returns an error message if D or U list don't mette the conditions. In normal case, the function return "OK" message.
+This function returns an error message if D or U list doesn't meet the conditions. In normal case, the function returns an "OK" message.
 }
 \description{
 This function checks if not exists genes both up and down expressed, and for each gene :

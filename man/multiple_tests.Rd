@@ -24,7 +24,7 @@ no longer changes, iterations are stop before.}
 \item{threshold_change}{TRUE if you want to vary the threshold, FALSE if you want to vary the quantile.}
 }
 \value{
-This function returns a matrix with : the patient, the value of the changing paramter,
+This function returns a matrix with 4 columns : the patient number, the value of the changing parameter,
 the FDR and the TPR of the test.
 }
 \description{

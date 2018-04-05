@@ -4,7 +4,8 @@
 \alias{patient_test}
 \title{patient_test}
 \usage{
-patient_test(ctrl_data, patient_genes, quant_0, iterations, D_U_ctrl, threshold)
+patient_test(ctrl_data, patient_genes, quant_0, iterations, D_U_ctrl, threshold,
+  factor_test = 1)
 }
 \arguments{
 \item{ctrl_data}{A matrix with genes expressions in controls for all the patients.}
@@ -21,7 +22,7 @@ no longer changes, iterations are stop before.}
 \item{threshold}{The threshold for regulation_test}
 }
 \value{
-This function return a list with two vector :
+This function return a list with two vectors :
 D, with TRUE for genes down-regulated
 U, with TRUE for genes up-regulated.
 }
