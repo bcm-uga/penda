@@ -216,8 +216,8 @@ results_simulation = function(D_matrix, U_matrix, simulation){
   up = initial_data < simu_data
 
   #True positive = real down results and real up results
-  TP = (length (which(down == 1 & D_matrix == 1))
-        + length (which(up == 1 & U_matrix == 1)))
+  TP = (length (which(down == TRUE & D_matrix == TRUE))
+        + length (which(up == TRUE & U_matrix == TRUE)))
 
   #False positive = down or up results, but not changed in reality
   FP = (length (which(down == 0 & D_matrix == 1))
@@ -329,6 +329,16 @@ test_multiple_thresholds = function(ctrl_data, D_U_ctrl, simulation, threshold_v
   return (sorted_test)
 }
 
+test_multiple_thresholds_sl0 = function(ctrl_data, D_U_ctrl, simulation, threshold_values, iterations, quant_test, factor_test){
+  #Test for all threshold values
+  multiple_test = sapply(threshold_values, function(t){
+    print(c("Threshold",t))
+    patient_test_sansl0(ctrl_data, simulation$simulated_data, iterations, D_U_ctrl, t, quant_test, factor_test)
+  })
+  sorted_test = DU_rearrangement(multiple_test, simulation$initial_data, threshold_values )
+  return (sorted_test)
+}
+
 
 #'test_multiple_quantiles
 #'
@@ -388,7 +398,7 @@ test_multiple_quantiles = function(ctrl_data, D_U_ctrl, simulation, threshold, i
 #'
 #'@export
 
-multiple_tests = function(ctrl_data, D_U_ctrl, iterations, simulation, multiple_values, unique_value, threshold_change = TRUE){
+multiple_tests = function(ctrl_data, D_U_ctrl, iterations, simulation, multiple_values, unique_value, threshold_change = TRUE, quant_test = 0, factor_test = 1){
   results = c()
   #For each patient
   for(p in 1:ncol(simulation$initial_data)){
@@ -419,3 +429,37 @@ multiple_tests = function(ctrl_data, D_U_ctrl, iterations, simulation, multiple_
   }
   return(results)
 }
+
+
+multiple_tests_sl0 = function(ctrl_data, D_U_ctrl, iterations, simulation, multiple_values, unique_value, threshold_change = TRUE,  quant_test = 0, factor_test = 1){
+  results = c()
+  #For each patient
+  for(p in 1:ncol(simulation$initial_data)){
+    print(c("Patient number",p))
+    simulation_p = list(initial_data = simulation$initial_data[,p], simulated_data = simulation$simulated_data[,p])
+
+    #The test is made for all the values, of threshold if threshold_change = TRUE or of quantile
+    if (threshold_change == TRUE){
+      test = test_multiple_thresholds_sl0(ctrl_data, D_U_ctrl, simulation_p, multiple_values, iterations, quant_test, factor_test)
+    } else {
+      test = test_multiple_quantiles(ctrl_data, D_U_ctrl, simulation_p, unique_value, iterations, multiple_values)
+    }
+
+    #For each value,
+    for(value in 1:ncol(test$D)){
+      #Computing of FP, TP, FN, TN
+      results_simu = results_simulation(test$D[,value], test$U[,value], simulation_p)
+      #Computing of FDR and TPR
+      FDR = results_simu$FP / (results_simu$TP + results_simu$FP)
+      TPR  = results_simu$TP / (results_simu$TP + results_simu$FN)
+      results = rbind(results, c(p, colnames(test$D)[value], FDR, TPR))
+    }
+  }
+  if (threshold_change == TRUE){
+    colnames(results) = c("patient", "threshold", "FDR", "TPR")
+  } else {
+    colnames(results) = c("patient", "quantile", "FDR", "TPR")
+  }
+  return(results)
+}
+
