@@ -19,3 +19,10 @@ This function returns a vector with nb_r values of F.
 \description{
 This function gives a random values following a given density function.
 }
+\examples{
+x = seq(-20, 20, 0.05)
+F = function(x, u, a){
+ (1 / (a * sqrt(2 * pi))) * exp(-(((x - u)^2) / (2 * a^2)))
+}
+get_random_variable(F, x, nb_r = 10000, u = 0, a = 1)
+}

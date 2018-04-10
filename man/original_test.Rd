@@ -4,7 +4,7 @@
 \alias{original_test}
 \title{original_test}
 \usage{
-original_test(gene, D_U_ctrl, patient_genes, threshold, ctrl_data, quant = 0)
+original_test(gene, D_U_ctrl, patient_genes, threshold, ctrl_data)
 }
 \arguments{
 \item{gene}{The name of the gene to analyze.}
@@ -24,4 +24,12 @@ This function returns 0 if the gene expression has not changed,
 \description{
 Original_test is the older version of regulation_test. In this version, we don't use the
 quantile method in case of void down or up-expressed genes list.
+}
+\examples{
+simulation = ctrl_data[,ncol(ctrl_data)-3 : ncol(ctrl_data)]
+simulation = simplified_simulation(simulation, fraction = 0.3, threshold = 60)
+ctrl_data = ctrl_data[,-ncol(ctrl_data)-3:ncol(ctrl_data)]
+D_U_ctrl = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
+test_p1 = original_test(gene = rownames(ctrl_data)[1], D_U_ctrl, patient_genes = simulation$simulated_data[,1], threshold = 0.1, ctrl_data)
+
 }

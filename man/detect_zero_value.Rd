@@ -7,9 +7,9 @@
 detect_zero_value(ctrl_data, cancer_data, threshold, min = 0)
 }
 \arguments{
-\item{ctrl_data}{A matrix with data to analyze.}
+\item{ctrl_data}{A matrix with datas to analyze.}
 
-\item{cancer_data}{A matrix with other data to analyze.}
+\item{cancer_data}{A matrix with other conditions datas to analyze.}
 
 \item{threshold}{The maximum proportion of expression under min tolerated for each gene.}
 
@@ -20,4 +20,10 @@ This function returns a true false vector with true for the values to exclude.
 }
 \description{
 This function detects genes with more than threshold percent of expression values under the min value.
+}
+\examples{
+null_values = detect_zero_value(ctrl_data, simu_data, threshold = 0.8, min = 10)
+ctrl_data = ctrl_data[!null_values,]
+simu_data = simu_data[!null_values,]
+
 }

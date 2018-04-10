@@ -24,3 +24,9 @@ TN, the numbler of true negative results
 This function computes the number of false positive, true positive, false negative
 and false positive results after the test on a simulation.
 }
+\examples{
+D_U = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
+simulation = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
+results_simulation(D_matrix = D_U$D, U_matrix = D_U$U, initial_data = simulation$initial_data, simulated_data = simulation$simulated_data)
+
+}

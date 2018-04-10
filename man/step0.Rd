@@ -19,3 +19,10 @@ This function return a logical vector with TRUE for genes outside of the distrib
 \description{
 This function makes the list of genes at the extremities of expression distribution.
 }
+\examples{
+simulation = ctrl_data[,ncol(ctrl_data)-3 : ncol(ctrl_data)]
+simulation = simplified_simulation(simulation, fraction = 0.3, threshold = 60)
+ctrl_data = ctrl_data[,-ncol(ctrl_data)-3:ncol(ctrl_data)]
+step0(ctrl_data, simulation$simulated_data[,1], quant = 0.03)
+
+}

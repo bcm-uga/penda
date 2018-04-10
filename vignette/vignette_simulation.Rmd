@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 source("~/projects/penda/R/simu.R")
 source("~/projects/penda/R/ranking.R")
 source("~/projects/penda/R/testing.R")
+source('~/projects/penda/R/choose_param.R')
 Rcpp::sourceCpp('~/projects/penda/R/ranking_rcpp.cpp')
 
 ```
@@ -39,6 +40,7 @@ ctrl_data = ctrl_data[, -((ncol(ctrl_data)-4):ncol(ctrl_data))]
 
 ##Making simulations
 
+#Simplified simulation
 The function "simplified_simulation" allows to simulate the dysregulation in our 5 test patients. You can choose several parameters, the first is the "fraction" of datas to dysregulate. The dysregulation is +- "modifier" if the gene expression is under the "threshold", or * / "factor" if the gene expression is above. 
 You must adapt your parameters at the expected dysregulation in your real dysregulated datas.
 The simulation returns the vector of initial data, the vector of datas with modifications and the index of modified data. We gather these vectors in matrices in the list "simulation".
@@ -53,9 +55,29 @@ simup5 = simplified_simulation(simu_data[,5], fraction = 0.3)
 
 simulation = list()
 
-simulation$initial_data = matrix(c(simup1$initial_data, simup2$initial_data, simup3$initial_data, simup4$initial_data, simup5$initial_data), ncol=5, dimnames = list(rownames(simu_data)))
-simulation$simulated_data = matrix(c(simup1$simulated_data, simup2$simulated_data, simup3$simulated_data, simup4$simulated_data, simup5$simulated_data), ncol=5, dimnames = list(rownames(simu_data)))
-simulation$changes_idx = matrix(c(simup1$changes_idx, simup2$changes_idx, simup3$changes_idx, simup4$changes_idx, simup5$changes_idx), ncol=5)
+simulation$initial_data = cbind(simup1$initial_data, simup2$initial_data, simup3$initial_data, simup4$initial_data, simup5$initial_data)
+simulation$simulated_data = cbind(simup1$simulated_data, simup2$simulated_data, simup3$simulated_data, simup4$simulated_data, simup5$simulated_data)
+simulation$changes_idx = cbind(simup1$changes_idx, simup2$changes_idx, simup3$changes_idx, simup4$changes_idx, simup5$changes_idx)
+
+```
+
+
+#Complex Simulation
+
+Instead of the simplified simulation, you can use "complex_simulation" which use the real distribution of modifications in a sample of cancer data. 
+
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+
+simuc1 = complex_simulation(simu_data[,1])
+simuc2 = complex_simulation(simu_data[,1])
+simuc3 = complex_simulation(simu_data[,3])
+
+simulationc = list()
+
+simulationc$initial_data = cbind(simuc1$initial_data, simuc2$initial_data, simuc3$initial_data)
+simulationc$simulated_data = cbind(simuc1$simulated_data, simuc2$simulated_data, simuc3$simulated_data)
+simulationc$changes_idx = list(simuc1$changes_idx, simuc2$changes_idx, simuc3$changes_idx)
+
 ```
 
 
@@ -67,6 +89,7 @@ The last parameter of "find_D_U_ctrl" is the "threshold", the proportion of pati
 "find_D_U_ctrl_rcpp" is faster but need rcpp package.
 
 The new function "find_D_U_ctrl_size" replaces the limit based on quantile with a limit on number of genes in each list. The parameter "s_max" is the maximum number of D and U genes for each gene. A little numbler of D and U genes, center on the gene expression, seems more signifiant.
+"find_D_U_ctrl_size_rcpp" is the same faster, which need rcpp package.
 
 These functions return two matrix. For each gene in columns, the row gene is "TRUE" if is **D**own-expresed or **U**p-expressed.
 
@@ -78,6 +101,8 @@ D_U_ctrl = readRDS("D_U_93p.rds")
 
 #D_U_ctrl = find_D_U_ctrl_rcpp(ctrl_data, quantile = 0.001, factor = 4, threshold = 0.99)
 #D_U_ctrl = find_D_U_ctrl_size(ctrl_data, threshold = 0.99, s_max = 100)
+#D_U_ctrl = find_D_U_ctrl_size_rcpp(ctrl_data, threshold = 0.99, s_max = 100)
+
 ```
 
 

@@ -2,21 +2,22 @@
 #'
 #' This function detects genes with more than threshold percent of expression values under the min value.
 #'
-#'@param ctrl_data A matrix with data to analyze.
-#'@param cancer_data A matrix with other data to analyze.
+#'@param ctrl_data A matrix with datas to analyze.
+#'@param cancer_data A matrix with other conditions datas to analyze.
 #'@param threshold The maximum proportion of expression under min tolerated for each gene.
 #'@param min The minimum value accepted.
 #'
 #'@return This function returns a true false vector with true for the values to exclude.
 #'
-#'@example
+#'@examples
 #'null_values = detect_zero_value(ctrl_data, simu_data, threshold = 0.8, min = 10)
 #'ctrl_data = ctrl_data[!null_values,]
 #'simu_data = simu_data[!null_values,]
-
+#'
 #'@export
 
 detect_zero_value = function(ctrl_data, cancer_data, threshold, min = 0) {
+
   binded_data = cbind(ctrl_data, cancer_data)
   idx_ctrl = 1:ncol(ctrl_data)
   idx_lusc = 1:ncol(cancer_data) + ncol(ctrl_data)
@@ -88,6 +89,125 @@ find_D_U_ctrl = function (ctrl_data, quant, factor, threshold){
 }
 
 
+#' find_D_U_ctrl_size
+#'
+#' This function ranks each gene and finds the genes which are more or less exprimed.
+#' Instead of using a limit expression for each gene, you give the maximum number of genes up and down.
+#'
+#'@param ctrl_data A matrix with the gene expressions for each patient.
+#'@param threshold The proportion of expression that must be in the conditions.
+#'@param s_max The maximum number of down and up-expressed gene for each genes.
+#'
+#'@return This function returns a list of two logical matrices :
+#'the D matrix, with TRUE if the row gene has a lower expression than the column gene,
+#'and the U Matrix with TRUE if the row gene has a higher expression than the column gene.
+#'
+#'@example
+#'find_D_U_ctrl_size(ctrl_data, threshold = 0.99, s_max = 50)
+#'
+#'@export
+
+find_D_U_ctrl_size = function (ctrl_data, threshold, s_max = 50){
+
+  transposee = t(ctrl_data)
+  matrice_u = matrix( nrow = nrow(ctrl_data), ncol=nrow(ctrl_data)
+                      , dimnames=list(rownames(ctrl_data),rownames(ctrl_data)))
+  matrice_d = matrix( nrow = nrow(ctrl_data), ncol=nrow(ctrl_data)
+                      , dimnames=list(rownames(ctrl_data),rownames(ctrl_data)))
+  median_gene = apply(ctrl_data, 1, median)
+
+  print("Computing down-expresed genes")
+  matrice_d = apply(ctrl_data, 1, function (g){
+    #d_genes are < gene expression
+    d_genes = transposee < g
+    sum_d_genes = apply(d_genes, 2, sum)
+    selected_d_genes = (sum_d_genes > (length(g) * threshold))
+    median_d_genes = median_gene[selected_d_genes]
+    #If too many d_genes, we select only the closest to g
+    if (length(median_d_genes) > s_max){
+      sort_median = sort(median_d_genes)
+      sort_median = sort_median[(length(median_d_genes) - (s_max-1)) : length(median_d_genes)]
+      selected_d_genes[] = FALSE
+      selected_d_genes[names(sort_median)] = TRUE
+    }
+    return(selected_d_genes)
+  })
+
+  print("Computing up-expresed genes")
+  matrice_u = apply(ctrl_data, 1, function (g){
+    #u_genes are > gene expression
+    u_genes = transposee > g
+    sum_u_genes = apply(u_genes,2,sum)
+    selected_u_genes = (sum_u_genes > (length(g) * threshold))
+    median_u_genes = median_gene[selected_u_genes]
+    #If to manny u_genes, we select only the closest to g
+    if (length(median_u_genes) > s_max){
+      sort_median = sort(median_u_genes)
+      sort_median = sort_median[1 : s_max]
+      selected_u_genes[] = FALSE
+      selected_u_genes[names(sort_median)] = TRUE
+    }
+    return(selected_u_genes)
+  })
+
+  return(list(D = matrice_d, U = matrice_u))
+}
+
+
+#' find_D_U_ctrl_size_rcpp
+#'
+#' This function ranks each gene and finds the genes which are more or less exprimed.
+#' It's the same than "find_D_U_ctrl_size" but faster because uses rcpp to rank.
+#'
+#'@param ctrl_data A matrix with the gene expressions for each patient.
+#'@param threshold The proportion of expression that must be in the conditions.
+#'@param s_max The maximum number of down and up-expressed gene for each genes.
+#'
+#'@return This function returns a list of two logical matrices :
+#'the D matrix, with TRUE if the row gene has a lower expression than the column gene,
+#'and the U Matrix with TRUE if the row gene has a higher expression than the column gene.
+#'
+#'@example
+#'find_D_U_ctrl_size_rcpp(ctrl_data, threshold = 0.99, s_max = 50)
+#'
+#'@export
+
+find_D_U_ctrl_size_rcpp = function (ctrl_data, threshold, s_max = 50){
+
+  print("Computing down and up-expressed genes")
+  #Using DU_rcpp to compute down and up-expressed genes.
+  DU = DU_rcpp(ctrl_data, 0.99)
+  genes_U = unlist(DU$U)
+  dimnames(genes_U) = list(DU$n, DU$n)
+  genes_D = unlist(DU$D)
+  dimnames(genes_D) = list(DU$n, DU$n)
+
+  median_gene = apply(ctrl_data, 1, median)
+
+  print("Size restriction")
+
+  #For each gene, if D or U list are too big, we select the closer to g.
+  for (i in 1:ncol(genes_D)){
+    d_genes = median_gene[genes_D[,i]==1]
+    u_genes = median_gene[genes_U[,i]==1]
+    if (length(d_genes) > s_max){
+      sort_median = sort(d_genes)
+      sort_median = sort_median[(length(d_genes) - (s_max-1)) : length(d_genes)]
+      genes_D[,i] = FALSE
+      genes_D[names(sort_median),i] = TRUE
+    }
+    if (length(u_genes) > s_max){
+      sort_median = sort(u_genes)
+      sort_median = sort_median[1 : s_max]
+      genes_U[,i] = FALSE
+      genes_U[names(sort_median),i] = TRUE
+    }
+  }
+  gc()
+  return(list(D = genes_D, U = genes_U))
+}
+
+
 #'check_D_U
 #'
 #' This function checks if not exists genes both up and down expressed, and for each gene :
@@ -108,11 +228,12 @@ find_D_U_ctrl = function (ctrl_data, quant, factor, threshold){
 #'@export
 
 check_D_U = function (D_U_ctrl, ctrl_data, threshold){
+
   #Test if exists genes both down and up
   if (length(which(D_U_ctrl$D == 1 & D_U_ctrl$U == 1)) != 0){
     return( list(error = "Warning, genes should not be both down and up regulated "
                  , nb_errors = length(which(D_U_ctrl$D == 1 & D_U_ctrl$U == 1)))
-            )
+    )
   }
   else {
     #Test if maximal down gene is less expressed, and minimal up gene is more expressed
@@ -152,74 +273,9 @@ check_D_U = function (D_U_ctrl, ctrl_data, threshold){
     if (sum(pb$d) > 0){
       return(list(error = "Warning, down genes sometimes overexpressed", nb_errors = sum(pb$d)))
     } else if (sum(pb$u) > 0){
-       return(list(error = "Warning, up genes sometimes underexpressed", nb_errors = sum(pb$u)))
+      return(list(error = "Warning, up genes sometimes underexpressed", nb_errors = sum(pb$u)))
     } else {
-        return ("OK")
+      return ("OK")
     }
   }
 }
-
-#' find_D_U_ctrl_size
-#'
-#' This function ranks each gene and finds the genes which are more or less exprimed.
-#' If there are too many genes, the closest are kept.
-#'
-#'@param ctrl_data A matrix with the gene expressions for each patient.
-#'@param threshold The proportion of expression that must be in the conditions.
-#'@param s_max The maximal number of down and up-expressed gene for each genes.
-#'
-#'@return This function returns a list of two logical matrices :
-#'the D matrix, with TRUE if the row gene has a lower expression than the column gene,
-#'and the U Matrix with TRUE if the row gene has a higher expression than the column gene.
-#'
-#'@example
-#'find_D_U_ctrl_size(ctrl_data, threshold = 0.99, s_max = 50)
-#'
-#'@export
-
-find_D_U_ctrl_size = function (ctrl_data, threshold, s_max = 50){
-
-  transposee = t(ctrl_data)
-  matrice_u = matrix( nrow = nrow(ctrl_data), ncol=nrow(ctrl_data)
-                      , dimnames=list(rownames(ctrl_data),rownames(ctrl_data)))
-  matrice_d = matrix( nrow = nrow(ctrl_data), ncol=nrow(ctrl_data)
-                      , dimnames=list(rownames(ctrl_data),rownames(ctrl_data)))
-  median_gene = apply(ctrl_data, 1, median)
-
-  print("Computing down-expresed genes")
-  matrice_d = apply(ctrl_data, 1, function (g){
-    #d_genes are < gene expression
-    d_genes = transposee < g
-    sum_d_genes = apply(d_genes, 2, sum)
-    selected_d_genes = (sum_d_genes > (length(g) * threshold))
-    median_d_genes = median_gene[selected_d_genes]
-    #If too many d_genes, we select only the closest to g
-    if (length(median_d_genes) > lmax){
-      sort_median = sort(median_d_genes)
-      sort_median = sort_median[(length(median_d_genes) - (lmax-1)) : length(median_d_genes)]
-      selected_d_genes[] = FALSE
-      selected_d_genes[names(sort_median)] = TRUE
-    }
-    return(selected_d_genes)
-  })
-
-  print("Computing down-expresed genes")
-  matrice_u = apply(ctrl_data, 1, function (g){
-    #u_genes are > gene expression
-    u_genes = transposee > g
-    sum_u_genes = apply(u_genes,2,sum)
-    selected_u_genes = (sum_u_genes > (length(g) * threshold))
-    median_u_genes = median_gene[selected_u_genes]
-    #If to manny u_genes, we select only the closest to g
-    if (length(median_u_genes) > lmax){
-      sort_median = sort(median_u_genes)
-      sort_median = sort_median[1 : lmax]
-      selected_u_genes[] = FALSE
-      selected_u_genes[names(sort_median)] = TRUE
-    }
-    return(selected_u_genes)
-  })
-
-  return(list(D = matrice_d, U = matrice_u))
-}
-

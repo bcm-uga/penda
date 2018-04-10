@@ -17,11 +17,24 @@ regulation_test(gene, D_U_ctrl, patient_genes, threshold, ctrl_data,
 \item{threshold}{If Dd/Du and Uu/ud are under this threshold, the expression not change}
 
 \item{ctrl_data}{The matrix with genes expressions in controls for all the patients.}
+
+\item{quant}{Quant is used to make the quantile of the normal distribution of a gene when the gene has not D or U lists. A down-regulated gene is under the quantile, and an up-regulated is above.}
+
+\item{factor}{The factor modifiy the quantile, the min quantile is divied by factor, and the max is multiplied.}
 }
 \value{
 This function returns 0 if the gene expression has not changed,
 1 if the gene is up-regulated and -1 if the gene is down-regulated.
 }
 \description{
-This function makes the test of expression dysregulation for a patient compared to control.
+This function makes the test of expression dysregulation of one gene for a patient compared to control.
+It's an hybrid method, which use the rank method and the quantile method in addition when there is no up or down list.
+}
+\examples{
+simulation = ctrl_data[,ncol(ctrl_data)-3 : ncol(ctrl_data)]
+simulation = simplified_simulation(simulation, fraction = 0.3, threshold = 60)
+ctrl_data = ctrl_data[,-ncol(ctrl_data)-3:ncol(ctrl_data)]
+D_U_ctrl = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
+test_patient1 = regulation_test(gene = rownames(ctrl_data)[1], D_U_ctrl, patient_genes = simulation$simulated_data[,1], threshold = 0.1, ctrl_data)
+
 }

@@ -15,3 +15,10 @@ This function returns a barplot of results, FDR and TPR.
 \description{
 This function computes the the FDR and the TPR and makes a ggplot of the results.
 }
+\examples{
+D_U = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
+simulation = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
+res = results_simulation(D_matrix = D_U$D, U_matrix = D_U$U, initial_data = simulation$initial_data, simulated_data = simulation$simulated_data)
+draw_results(res)
+
+}
