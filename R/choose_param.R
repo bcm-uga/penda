@@ -250,14 +250,21 @@ choose_threshold = function(ctrl_data, D_U_ctrl, iterations, simulation, thresho
       results = rbind(results, c(p, colnames(test$D)[value], FDR, TPR))
     }
   }
+
   #Search the FDR goal
-  small_FDR = results[results[,3] <= FDR_goal & !is.na(results[,3]) ,]
+  median_t = c()
+  for (value in 1:length(threshold_values)){
+    threshold = threshold_values[value]
+    FDRt = as.numeric(results[results[,2] == threshold & !is.na(results[,3]), 3])
+    median_t = rbind(median_t, c(threshold, median(FDRt)))
+  }
+  small_FDR = median_t[median_t[,2] <= FDR_goal,]
   if(length(small_FDR) !=0){
-    idx = which(small_FDR[,3] == max(small_FDR[,3]))
+    idx = which(small_FDR[,2] == max(small_FDR[,2]))
     print ("The threshold closest to the FDR is")
-    print (small_FDR[idx, 2])
-    print("Which has a FDR of")
-    print(small_FDR[idx, 3])
+    print (small_FDR[idx, 1])
+    print("Which has a median FDR of")
+    print(small_FDR[idx, 2])
   } else {
     print ("Your FDR is not reachable, check the results table to choose your threshold.")
   }
@@ -283,11 +290,11 @@ choose_threshold = function(ctrl_data, D_U_ctrl, iterations, simulation, thresho
 #'
 #'@examples
 #'simulation = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
-#'which_quantile = choose_quantile(ctrl_data, simulation)
+#'which_quantile = choose_quantile(ctrl_data, simulation, FDR_goal = 0.06)
 #'
 #'@export
 
-choose_quantile = function(ctrl_data, simulation, FDR_goal, factor = 1.4, quantile_values = c(0.005, 0.01, 0.015, 0.02, 0.025, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15, 0.2)){
+choose_quantile = function(ctrl_data, simulation, FDR_goal, factor = 1.4, quantile_values = c(0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.2)){
   results = c()
   print ("Computing results")
   for (q in 1:length(quantile_values)){
@@ -297,6 +304,7 @@ choose_quantile = function(ctrl_data, simulation, FDR_goal, factor = 1.4, quanti
     TPR  = results_simu$TP / (results_simu$TP + results_simu$FN)
     results = rbind(results, c(quantile_values[q], FDR, TPR))
   }
+
   small_FDR = results[results[,2] <= FDR_goal & !is.na(results[,2]) ,]
   if(length(small_FDR) !=0){
     idx = which(small_FDR[,2] == max(small_FDR[,2]))

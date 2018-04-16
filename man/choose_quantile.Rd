@@ -5,8 +5,8 @@
 \title{choose_quantile}
 \usage{
 choose_quantile(ctrl_data, simulation, FDR_goal, factor = 1.4,
-  quantile_values = c(0.005, 0.01, 0.015, 0.02, 0.025, 0.03, 0.04, 0.05, 0.06,
-  0.07, 0.08, 0.09, 0.1, 0.15, 0.2))
+  quantile_values = c(0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08,
+  0.09, 0.1, 0.2))
 }
 \arguments{
 \item{ctrl_data}{A matrix with genes expressions in controls for all the patients.}
@@ -29,6 +29,6 @@ After that, it computes FDR and TPR, and print the quantile closest of your goal
 }
 \examples{
 simulation = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
-which_quantile = choose_quantile(ctrl_data, simulation)
+which_quantile = choose_quantile(ctrl_data, simulation, FDR_goal = 0.06)
 
 }

@@ -16,14 +16,14 @@ Rcpp::sourceCpp('~/projects/penda/R/ranking_rcpp.cpp')
 ```
 
 
-##Data processing
+#Data processing
 
 Import your control datas, the bigger they are, the longer the analysis takes.
 You can use the function "detect_zero_value" to eliminates genes with more than "threshold" % of expression value under "min" in control or cancer datas. For example : 
 
-#'null_values = detect_zero_value(your_data, your_cancer_data, threshold = 0.99, min = 10)
-#'your_data = your_data[!null_values,]
-#'your_cancer_data = your_cancer_data[!null_values,]
+null_values = detect_zero_value(your_data, your_cancer_data, threshold = 0.99, min = 10)
+your_data = your_data[!null_values,]
+your_cancer_data = your_cancer_data[!null_values,]
 
 The five last patients are used to makes "simu_data" and simulates the dysregulation. They are substracte of "ctrl_data" for not distort the next steps.
 
@@ -38,9 +38,9 @@ ctrl_data = ctrl_data[, -((ncol(ctrl_data)-4):ncol(ctrl_data))]
 ```
 
 
-##Making simulations
+#Making simulations
 
-#Simplified simulation
+##Simplified simulation
 The function "simplified_simulation" allows to simulate the dysregulation in our 5 test patients. You can choose several parameters, the first is the "fraction" of datas to dysregulate. The dysregulation is +- "modifier" if the gene expression is under the "threshold", or * / "factor" if the gene expression is above. 
 You must adapt your parameters at the expected dysregulation in your real dysregulated datas.
 The simulation returns the vector of initial data, the vector of datas with modifications and the index of modified data. We gather these vectors in matrices in the list "simulation".
@@ -62,7 +62,7 @@ simulation$changes_idx = cbind(simup1$changes_idx, simup2$changes_idx, simup3$ch
 ```
 
 
-#Complex Simulation
+##Complex Simulation
 
 Instead of the simplified simulation, you can use "complex_simulation" which use the real distribution of modifications in a sample of cancer data. 
 
@@ -81,7 +81,7 @@ simulationc$changes_idx = list(simuc1$changes_idx, simuc2$changes_idx, simuc3$ch
 ```
 
 
-##Ranking in control
+#Ranking in control
 
 The function "find_D_U_ctrl" search for each genes what are genes more and less expressed in most of the cases. You can choose the limit distribution of genes studied with parameters "quant" and "factor." For one gene g, we consider only genes between (the quantile quant of g distribution / factor) and (the quantile (1-quant) of g distribution * factor).
 The bigger your limits are, the more up and down-expressed genes you will have for each gene.
@@ -106,16 +106,21 @@ D_U_ctrl = readRDS("D_U_93p.rds")
 ```
 
 
-##Test the dysregulation
+#Test the dysregulation
 
 The next step is to compare your control dataset and your dysregulate datas to detect genes with an up or down regulation. For that, it's the function "patient_test" which makes the dysregulation test for each genes of one patient.
 
-The firt step is called "step0". We look at the normal distribution of each gene, if the patient gene is at the extremities of this distribution, it's suspect and we remove it of the D_U_ctrl. It's the parameter "quant_0" which allows to determine the accepted distribution, between the quantile quant_0(gene distribution) and the quantile 1-quant_0(gene distribution). A higher quantile is supposed to improve the FDR and to make the test faster, but it also decrease the TPR.
+Inside patient_test, "regulation_test" is made the number of "iterations" requested until the stabilisation. This test checks for each gene if down-genes "D" or up-genes "U" have changed. "Du" are D genes become up, and "Ud" are U genes become down. The test need a threshold, if (Ud/U) and (Du/D) are under this threshold, we consider that this gene is not dysregulated. If you choose a threshold too high, you will have lots of false-positive, but if you choose a threshold too low you increase your number of false-negative. A small threshold can also increase the number of iterations before the stabilisation, and so the time of the test.
 
-After that, "regulation_test" is made the number of "iterations" requested until the stabilisation. This test checks for each gene if down-genes "D" or up-genes "U" have changed. "Du" are D genes become up, and "Ud" are U genes become down. The test need a threshold, if (Ud/U) and (Du/D) are under this threshold, we consider that this gene is not dysregulated. If you choose a threshold too high, you will have lots of false-positive, but if you choose a threshold too low you increase your number of false-negative. A small threshold can also increase the number of iterations before the stabilisation, and so the time of the test.
+##With step 0, better for large D and U lists
+
+"patient_test" use a firt step called "step0". We look at the normal distribution of each gene, if the patient gene is at the extremities of this distribution, it's suspect and we remove it of the D_U_ctrl. It's the parameter "quant_0" which allows to determine the accepted distribution, between the quantile quant_0(gene distribution) and the quantile 1-quant_0(gene distribution). A higher quantile is supposed to improve the FDR and to make the test faster, but it also decrease the TPR.
+
+After that, "regulation_test" is made the number of "iterations" requested until the stabilisation. T
 
 To help your choose of the threshold for the test, and the quantile for the step0, you can use the function "multiple_test".
 This function allows to vary quantile or threshold values, with a vector of multiple value, an unique value for the other parameter, and TRUE or FALSE for the "threshold_change".
+
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
 threshold_values = c(0.003, 0.1, 0.2, 0.3, 0.5)
@@ -148,3 +153,50 @@ graph_quant
 
 ```
 
+##Without step 0, with an hybrid method
+
+In this method, "regulation_test" use a naive method in case a gene don't have D or U list. The extremity quantiles of normal gene distribution is compute, and the D gene is then under quantilemin/factor, the U gene above quantilemax*factor.
+
+The first step is to choose the quantile and the factor for the naive test. It's the function "choose_quantile", you set a factor and the test is made for different quantiles. By default, quantiles tested are : 0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1 and 0.2. You can make the function several times to test different factors. 
+If you "FDR_goal" is not reachable, the graph representation can help you to choose the better.
+
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+
+qf1 = choose_quantile(ctrl_data, simulation, FDR_goal = 0.06, factor = 1)
+qf12 = choose_quantile(ctrl_data, simulation, FDR_goal = 0.06, factor = 1.2)
+qf14 = choose_quantile(ctrl_data, simulation, FDR_goal = 0.06, factor = 1.4)
+qf16 = choose_quantile(ctrl_data, simulation, FDR_goal = 0.06, factor = 1.6)
+qf2 = choose_quantile(ctrl_data, simulation, FDR_goal = 0.06, factor = 2)
+
+#Graphic representation
+
+df_quant = data.frame(quantile = factor(c(qf1[,1], qf12[,1], qf14[,1], qf16[,1], qf2[,1]))
+                       , FDR = as.numeric(c(qf1[,2], qf12[,2], qf14[,2], qf16[,2], qf2[,2]))
+                       , TPR = as.numeric(c(qf1[,3], qf12[,3], qf14[,3], qf16[,3], qf2[,3]))
+                       , facteur = factor(c(rep(c(1,1.2,1.4,1.6, 2), each = 12)))
+)
+
+
+library(ggplot2)
+ggplot(df_quant, aes(x = TPR, y = FDR, color = quantile, group = facteur, shape = facteur)) + geom_point() + geom_line()  + ggtitle("Naive test for different quantiles and factors")
+
+```
+
+When you have choose your factor and your quantile, you must choose a threshold for your test.
+The function "choose_threshold" allows to vary threshold values, it prints the threshold with the higher FDR under your FDR goal, and returns a matrix with all the FDR and TPR. 
+
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+threshold_values = c(0.003, 0.1, 0.2, 0.3, 0.5)
+
+which_threshold = choose_threshold(ctrl_data, D_U_ctrl, 20, simulation, threshold_values, FDR_goal = 0.06, quant_test = 0, factor_test = 1)
+
+dft = as.data.frame(which_threshold)
+dft$FDR = as.numeric(which_threshold[,3])
+dft$TPR = as.numeric(which_threshold[,4])
+
+library(ggplot2)
+ggplot(dft, aes(x = TPR, y = FDR, color = threshold, group = patient, shape = patient)) + geom_point() + geom_line()
+
+
+
+```
