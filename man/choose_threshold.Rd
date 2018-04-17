@@ -33,10 +33,3 @@ the FDR and the TPR of the test.
 This function makes for each patient the test with multiple values for the treshold.
 After that, it computes FDR and TPR, and print the threshold closest of your goal FDR.
 }
-\examples{
-D_U = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
-simulation = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
-threshold_values = c(0.003, 0.1, 0.2, 0.3, 0.5)
-which_threshold = choose_threshold(ctrl_data, D_U, iterations = 10, simulation, threshold_values, FDR_goal = 0.06)
-
-}

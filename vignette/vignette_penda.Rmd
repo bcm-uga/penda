@@ -1,4 +1,16 @@
 ---
+title: "Performing PErsoNalized Data Analysis with `penda`"
+author: "Magali Richard, Florent Chuffart, Clémentine Decamps, Daniel Jost"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+---
+
+---
 title: "Presentation of Penda"
 author: "Clémentine Decamps"
 date: "`r Sys.Date()`"

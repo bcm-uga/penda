@@ -1,8 +1,13 @@
 ---
-title: "vignette_simulation"
-author: "Clémentine Decamps"
-date: "9 mars 2018"
-output: html_document
+title: "Advancer User - Performing PErsoNalized Data Analysis with `penda`"
+author: "Magali Richard, Florent Chuffart, Clémentine Decamps, Daniel Jost"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
 ---
 
 ```{r setup, include=FALSE}
