@@ -221,7 +221,7 @@ multiple_tests = function(ctrl_data, D_U_ctrl, iterations, simulation, multiple_
 #'@return This function returns a matrix with 4 columns : the patient number, the value of the threshold tested,
 #'the FDR and the TPR of the test.
 #'
-#'@examples
+#'@example
 #'D_U = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
 #'simulation = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
 #'threshold_values = c(0.003, 0.1, 0.2, 0.3, 0.5)
@@ -230,7 +230,6 @@ multiple_tests = function(ctrl_data, D_U_ctrl, iterations, simulation, multiple_
 #'@export
 
 choose_threshold = function(ctrl_data, D_U_ctrl, iterations, simulation, threshold_values, FDR_goal = 0.06, quant_test = 0, factor_test = 1){
-
   results = c()
   #For each patient
   for(p in 1:ncol(simulation$initial_data)){
@@ -260,15 +259,23 @@ choose_threshold = function(ctrl_data, D_U_ctrl, iterations, simulation, thresho
   }
   small_FDR = median_t[median_t[,2] <= FDR_goal,]
   if(length(small_FDR) !=0){
-    idx = which(small_FDR[,2] == max(small_FDR[,2]))
-    print ("The threshold closest to the FDR is")
-    print (small_FDR[idx, 1])
-    print("Which has a median FDR of")
-    print(small_FDR[idx, 2])
+    #If only one FDR under the FDR goal
+    if (is.vector(small_FDR)){
+      print ("The threshold closest to the FDR is")
+      print (small_FDR[1])
+      print("Which has a median FDR of")
+      print(small_FDR[2])
+    #If more than one FDR under the FDR goal
+    } else {
+      idx = which(small_FDR[,2] == max(small_FDR[,2]))
+      print ("The threshold closest to the FDR is")
+      print (small_FDR[idx, 1])
+      print("Which has a median FDR of")
+      print(small_FDR[idx, 2])
+    }
   } else {
     print ("Your FDR is not reachable, check the results table to choose your threshold.")
   }
-
   colnames(results) = c("patient", "threshold", "FDR", "TPR")
   return(results)
 }
@@ -307,11 +314,18 @@ choose_quantile = function(ctrl_data, simulation, FDR_goal, factor = 1.4, quanti
 
   small_FDR = results[results[,2] <= FDR_goal & !is.na(results[,2]) ,]
   if(length(small_FDR) !=0){
-    idx = which(small_FDR[,2] == max(small_FDR[,2]))
-    print ("The quantile closest to the FDR for this factor is")
-    print (small_FDR[idx, 1])
-    print("Which has a FDR for the naive method of")
-    print(small_FDR[idx, 2])
+    if (is.vector(small_FDR)){
+      print ("The quantile closest to the FDR for this factor is")
+      print (small_FDR[1])
+      print("Which has a FDR for the naive method of")
+      print(small_FDR[2])
+    } else {
+      idx = which(small_FDR[,2] == max(small_FDR[,2]))
+      print ("The quantile closest to the FDR for this factor is")
+      print (small_FDR[idx, 1])
+      print("Which has a FDR for the naive method of")
+      print(small_FDR[idx, 2])
+    }
   } else {
     print ("Your FDR is not reachable, check the results table to choose your quantile.")
   }
