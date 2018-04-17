@@ -10,20 +10,112 @@ output:
     number_sections: true
 ---
 
----
-title: "Presentation of Penda"
-author: "Clémentine Decamps"
-date: "`r Sys.Date()`"
-output: html_document
----
+```{r, echo=FALSE}
+draw_penda = function(){
+  library(ggplot2)
+  tetey = c(4, 5, 5.8, 5.8, 5.4, 5, 4, 3, 1.5, 1.3, 1.5, 2.5, 4)
+  tetex = c(1, 1.75, 2.9, 4, 4.8, 5.2, 5.8, 6, 5, 3.8, 2.3, 1.2, 1)
+  orgy = c(4.5, 5.2, 6, 6.2, 5.8, 5, 4.5)
+  orgx = c(1.35, 1, 1.2, 2.3, 2.9, 1.75, 1.35)
+  ordy = c(5.8, 6.2, 6, 5.6, 4.8, 4.2, 5, 5.4, 5.8)
+  ordx = c(4, 4.8, 5.3, 5.9, 6, 5.7, 5.2, 4.8, 4)
 
+  ydx = c(3.9, 4.2, 4.8, 5, 4.8, 4.2, 3.8, 3.9)
+  ydy = c(4, 4.4, 4.2, 4, 3.3, 3.2, 3.5, 4)
 
-```{r setup, include=FALSE}
-source("~/projects/penda/R/simu.R")
-source("~/projects/penda/R/ranking.R")
-source("~/projects/penda/R/testing.R")
+  ygx = c(2.5, 2.2, 2.5, 3.2, 3.5, 3.2, 2.5)
+  ygy = c(3.2, 4, 4.3, 4.3, 4, 3.3, 3.2 )
 
+  points = data.frame(x = c(2.8, 3.5, 4.3)
+                    ,y = c(3.8, 2.8, 3.8))
+
+  graph = ggplot() + geom_path(aes(tetex, tetey)) + geom_path(aes(orgx, orgy, size = 3)) + geom_path(aes(ordx, ordy, size = 3)) + geom_path(aes(ydx, ydy, size = 3)) + geom_path(aes(ygx, ygy, size = 3)) + geom_point(data = points, aes(x = x, y = y, size = 3)) +
+    theme_bw() +
+    theme(legend.position="none") +
+    theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()) +
+     ggtitle("penda",subtitle = "PErsoNalized Data Analysis" ) +
+  theme(plot.title = element_text(lineheight=10, face="bold", hjust = 0.5), plot.subtitle = element_text(lineheight=.8, face="italic", hjust = 0.5)) 
+  
+  return(graph)
+}
+draw_penda()
 ```
+
+
+# Introduction
+
+`penda` (**PE**rso**N**alized **D**ifferential **A**nalysis ) is an open-access analysis software (R package). The purpose of this tutorial is to present a general method allowing to detect variation in gene expression for each tested sample compared to a reference panel.  
+
+# Dataset
+
+The dataset used for this example correspond to the transcriptomes (normalized count, using DESeq2 method) of 44 patients with lung adenocarcinoma (PMID:25079552), including control and pathological samples. 
+
+`data_ctrl` is a data matrix containing normalized counts for each control sample. 
+The rownames of the matrix correspond the gene_symbol , the colnames indicate the sample ID.
+
+```{r, results="verbatim"}
+data_ctrl = penda::data_ctrl
+head(data_ctrl[,1:5])
+is.matrix(data_ctrl)
+dim(data_ctrl)
+```
+
+`data_case` is a data matrix containing normalized counts for each tumor sample. 
+The rownames of the matrix correspond the gene_symbol , the colnames indicate the sample ID.
+
+```{r, results="verbatim"}
+data_case = penda::data_case
+head(data_case[,1:5])
+is.matrix(data_case)
+dim(data_case)
+```
+
+
+# Method
+
+## Data filtering
+
+## Gene ranking
+
+## Differential expression testing
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -32,7 +124,7 @@ source("~/projects/penda/R/testing.R")
 We import the control data, and we take 1000 genes for the 98 patients.
 The five last patients are used to  make the dataset of simulations.
 The function "detect_zero_value" was used before to eliminates genes with more than 99% of expression value under 10.
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), eval=FALSE}
 ctrl_data = readRDS('~/projects/perso_DA/data_ctrl_process.rds')[1:1000,]
 simu_data = ctrl_data[,94:98]
 colnames(simu_data) = c("P1","P2","P3","P4","P5")
@@ -50,7 +142,7 @@ The function "check_D_U" checks if not exists genes both up and down expressed, 
 - if the minimal up gene is more expressed in 99 % of controls.
 
 
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), eval=FALSE}
 
 D_U_ctrl = find_D_U_ctrl(ctrl_data, 0.001, 4, 0.99)
 table(D_U_ctrl$D)
@@ -66,7 +158,7 @@ We want to dysregul genes of 3 control patients in "simu_data" to simulate a can
 The function "simplified_simulation" randomly dysreguls a given proportion of genes expressions. Here, we choose 30% of genes.
 We do the simulation on 3 patients, and then we concatenate the results.
 
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), eval=FALSE}
 
 simup1 = simplified_simulation(simu_data[,1], 0.3)
 simup2 = simplified_simulation(simu_data[,2], 0.3)
@@ -91,7 +183,7 @@ The quantile of l0 is 0.03, it means that genes at the extremities of expression
 
 Please be careful to have gene names as row names in your datas. 
 
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), eval=FALSE}
 
 D_matrix = simulation$simulated_data
 U_matrix = simulation$simulated_data
@@ -115,7 +207,7 @@ colSums(U_matrix)
 The function "results_simulation" computes the number of false positive, true positive, false negative and false positive results from the test and the original datas.
 The function "draw_results" make an histogram with these results.
 
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), eval=FALSE}
 
 results = results_simulation(D_matrix, U_matrix, simulation)
 
@@ -129,7 +221,7 @@ draw_results(results)
 Complex_simulation used the real distribution of dyresgulation in our cancers to makes the simulation.
 We do the simulation on 3 patients, and then we concatenate the results.
 
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), eval=FALSE}
 
 csimup1 = complex_simulation(simu_data[,1])
 csimup2 = complex_simulation(simu_data[,2])
@@ -149,7 +241,7 @@ table(csimulation$initial_data != csimulation$simulated_data)
 We make the test for the 3 patients with a complex simulation. 
 
 Please be careful to have gene names as row names in your datas. 
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), eval=FALSE}
 
 D_matrixc = csimulation$simulated_data
 U_matrixc = csimulation$simulated_data
@@ -171,7 +263,7 @@ colSums(U_matrixc)
 The function "results_simulation" computes the number of false positive, true positive, false negative and false positive results from the test and the original datas.
 The function "draw_results" make an histogram with these results.
 
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), eval=FALSE}
 
 resultsc = results_simulation(D_matrixc, U_matrixc, csimulation)
 
