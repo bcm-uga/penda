@@ -329,11 +329,11 @@ patient_test_sansl0 = function (ctrl_data, patient_genes, iterations, D_U_ctrl, 
 
 naive_test = function(ctrl_data, cancer_data, quant, factor){
 
-  quantile_gene = quantile(ctrl_data, c(quant,(1-quant)))
-  quantile_gene[1] = quantile_gene[1] / factor
-  quantile_gene[2] = quantile_gene[2] * factor
+  quantile_gene = apply(ctrl_data, 1, quantile, c(quant,(1-quant)))
+  quantile_gene[1,] = quantile_gene[1,] / factor
+  quantile_gene[2,] = quantile_gene[2,] * factor
 
-  D_matrix = cancer_data < quantile_gene[1]
-  U_matrix = cancer_data > quantile_gene[2]
+  D_matrix = cancer_data < quantile_gene[1,]
+  U_matrix = cancer_data > quantile_gene[2,]
   return(list(D = D_matrix, U = U_matrix))
 }

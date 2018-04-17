@@ -173,13 +173,15 @@ complex_simulation = function(data){
     #If expression < 100, 30% chance of dysregulation
     } else if (runif(1) <= 0.30) {
       #50% chance of down-regulation, 50% chance of up-regulation. While expression < 0, retry.
-      while(g < 0){
+      gmod = -1
+      while(gmod < 0){
         if (runif(1) <= 0.50){
-          g = g - (get_random_variable(p3, seq(0, 500, 0.5), 1))
+          gmod = g - (get_random_variable(p3, seq(0, 500, 0.5), 1))
         } else {
-          g = g + (get_random_variable(p3, seq(0, 500, 0.5), 1))
+          gmod = g + (get_random_variable(p3, seq(0, 500, 0.5), 1))
         }
       }
+      g = gmod
     }
     return(g)
   })

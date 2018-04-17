@@ -303,13 +303,16 @@ choose_threshold = function(ctrl_data, D_U_ctrl, iterations, simulation, thresho
 
 choose_quantile = function(ctrl_data, simulation, FDR_goal, factor = 1.4, quantile_values = c(0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.2)){
   results = c()
+
   print ("Computing results")
   for (q in 1:length(quantile_values)){
     test = naive_test(ctrl_data, simulation$simulated_data, quantile_values[q], factor)
     results_simu = results_simulation(test$D, test$U, simulation)
+
     FDR = results_simu$FP / (results_simu$TP + results_simu$FP)
     TPR  = results_simu$TP / (results_simu$TP + results_simu$FN)
-    results = rbind(results, c(quantile_values[q], FDR, TPR))
+    FPR = results_simu$FP / (results_simu$TN + results$simu$FP)
+    results = rbind(results, c(quantile_values[q], FDR, TPR, FPR))
   }
 
   small_FDR = results[results[,2] <= FDR_goal & !is.na(results[,2]) ,]
@@ -329,7 +332,7 @@ choose_quantile = function(ctrl_data, simulation, FDR_goal, factor = 1.4, quanti
   } else {
     print ("Your FDR is not reachable, check the results table to choose your quantile.")
   }
-  colnames(results) = c("quantile", "FDR", "TPR")
+  colnames(results) = c("quantile", "FDR", "TPR", "FPR")
   return(results)
 }
 
