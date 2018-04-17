@@ -9,10 +9,7 @@
 #'
 #'@return This function returns a true false vector with true for the values to exclude.
 #'
-#'@examples
-#'null_values = detect_zero_value(ctrl_data, simu_data, threshold = 0.8, min = 10)
-#'ctrl_data = ctrl_data[!null_values,]
-#'simu_data = simu_data[!null_values,]
+#'@example examples/ex_detect_zero_value.R
 #'
 #'@export
 
@@ -49,8 +46,7 @@ detect_zero_value = function(ctrl_data, cancer_data, threshold, min = 0) {
 #'the D matrix, with TRUE if the row gene has a lower expression than the column gene,
 #'and the U Matrix with TRUE if the row gene has a higher expression than the column gene.
 #'
-#'@example
-#'find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
+#'@example find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
 #'
 #'@export
 
@@ -102,8 +98,7 @@ find_D_U_ctrl = function (ctrl_data, quant, factor, threshold){
 #'the D matrix, with TRUE if the row gene has a lower expression than the column gene,
 #'and the U Matrix with TRUE if the row gene has a higher expression than the column gene.
 #'
-#'@example
-#'find_D_U_ctrl_size(ctrl_data, threshold = 0.99, s_max = 50)
+#'@example find_D_U_ctrl_size(ctrl_data, threshold = 0.99, s_max = 50)
 #'
 #'@export
 
@@ -167,8 +162,7 @@ find_D_U_ctrl_size = function (ctrl_data, threshold, s_max = 50){
 #'the D matrix, with TRUE if the row gene has a lower expression than the column gene,
 #'and the U Matrix with TRUE if the row gene has a higher expression than the column gene.
 #'
-#'@example
-#'find_D_U_ctrl_size_rcpp(ctrl_data, threshold = 0.99, s_max = 50)
+#'@example find_D_U_ctrl_size_rcpp(ctrl_data, threshold = 0.99, s_max = 50)
 #'
 #'@export
 
@@ -221,9 +215,7 @@ find_D_U_ctrl_size_rcpp = function (ctrl_data, threshold, s_max = 50){
 #'
 #'@return This function returns an error message if D or U list doesn't meet the conditions. In normal case, the function returns an "OK" message.
 #'
-#'@example
-#' D_U = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
-#' check_D_U(D_U_ctrl = D_U, ctrl_data, threshold = 0.9)
+#'@example examples/ex_check_D_U.R
 #'
 #'@export
 
