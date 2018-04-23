@@ -4,9 +4,18 @@
 \alias{complex_simulation}
 \title{complex_simulation}
 \usage{
-complex_simulation(data)
+complex_simulation(ctrl_data, cancer_data, size_grp = 100, quant = 0.05,
+  simu_data)
 }
 \arguments{
+\item{ctrl_data}{A matrix with genes expressions in controls for all the patients.}
+
+\item{cancer_data}{A matrix with dysregulated genes expressions for all the patients.}
+
+\item{size_grp}{The size of each group of genes for the grouping.}
+
+\item{quant}{The quantile of gene expression for the grouping.}
+
 \item{data}{vector or matrix of original data to edit.}
 }
 \value{
@@ -16,6 +25,6 @@ simulated_data, datas with up and down modifications
 changes_idx, index of datas with modifications
 }
 \description{
-This function simulates the dysregulation (up and down) of datas, using the distribution of
-dysregulation in real cancer datas.
+This function simulated the dysregulation of datas, using the real distribution of genes, proportion of
+dysregulation and difference between control and cancer.
 }

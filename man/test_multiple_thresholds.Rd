@@ -5,7 +5,7 @@
 \title{test_multiple_thresholds}
 \usage{
 test_multiple_thresholds(ctrl_data, D_U_ctrl, simulation, threshold_values,
-  iterations, quantile, quant_test = 0, factor_test = 1)
+  iterations, quant_test = 0, factor_test = 1)
 }
 \arguments{
 \item{ctrl_data}{A matrix with genes expressions in controls for all the patients.}
@@ -18,8 +18,6 @@ test_multiple_thresholds(ctrl_data, D_U_ctrl, simulation, threshold_values,
 
 \item{iterations}{The maximal number of iterations for the test. If the dysregulation list
 no longer changes, iterations are stop before.}
-
-\item{quantile}{The quantile of the expression distribution for the step_0.}
 
 \item{quant_test}{The quantile for the test. When D and U lists are void, we use the naive method.}
 
@@ -36,6 +34,6 @@ This function makes patient_test for different values of the threshold.
 D_U = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
 simulation = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
 multiple_values = c(0.01, 0.02, 0.03)
-test_threshold = test_multiple_thresholds(ctrl_data, D_U, simulation, threshold_values = multiple_values, iterations = 10, quantile = 0.03)
+test_threshold = test_multiple_thresholds(ctrl_data, D_U, simulation, threshold_values = multiple_values, iterations = 10, quant_test = 0, factor_test = 1)
 
 }
