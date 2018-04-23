@@ -4,15 +4,13 @@
 \alias{patient_test}
 \title{patient_test}
 \usage{
-patient_test(ctrl_data, patient_genes, quant_0, iterations, D_U_ctrl, threshold,
+patient_test(ctrl_data, patient_genes, iterations, D_U_ctrl, threshold,
   quant_test = 0, factor_test = 1)
 }
 \arguments{
 \item{ctrl_data}{A matrix with genes expressions in controls for all the patients.}
 
 \item{patient_genes}{A vector with all the genes expressions for one patient.}
-
-\item{quant_0}{The quantile of the expression distribution for the step_0.}
 
 \item{iterations}{The maximal number of iterations for the test. If the dysregulation list
 no longer changes, iterations are stop before.}
@@ -38,6 +36,6 @@ simulation = ctrl_data[,ncol(ctrl_data)-3 : ncol(ctrl_data)]
 simulation = simplified_simulation(simulation, fraction = 0.3, threshold = 60)
 ctrl_data = ctrl_data[,-ncol(ctrl_data)-3:ncol(ctrl_data)]
 D_U_ctrl = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
-test_patient1 = patient_test(ctrl_data, simulation$simulated_data[,1], quant_0 = 0.03, iterations = 10, D_U_ctrl, threshold = 0.2)
+test_patient1 = patient_test(ctrl_data, simulation$simulated_data[,1], iterations = 10, D_U_ctrl, threshold = 0.2)
 
 }

@@ -48,7 +48,6 @@ DU_rearrangement = function(multiple_tests, simu_data, multiple_values){
 #'@param threshold_values The vector of values of the threshold for regulation_test.
 #'@param iterations The maximal number of iterations for the test. If the dysregulation list
 #'no longer changes, iterations are stop before.
-#'@param quantile The quantile of the expression distribution for the step_0.
 #'@param quant_test The quantile for the test. When D and U lists are void, we use the naive method.
 #'@param factor_test The factor for the test. The limit D will be quant(gene)/factor, and the limit U quant(gene)*factor.
 #'
@@ -59,45 +58,11 @@ DU_rearrangement = function(multiple_tests, simu_data, multiple_values){
 #'D_U = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
 #'simulation = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
 #'multiple_values = c(0.01, 0.02, 0.03)
-#'test_threshold = test_multiple_thresholds(ctrl_data, D_U, simulation, threshold_values = multiple_values, iterations = 10, quantile = 0.03)
+#'test_threshold = test_multiple_thresholds(ctrl_data, D_U, simulation, threshold_values = multiple_values, iterations = 10, quant_test = 0, factor_test = 1)
 #'
 #'@export
 
-test_multiple_thresholds = function(ctrl_data, D_U_ctrl, simulation, threshold_values, iterations, quantile, quant_test = 0, factor_test = 1){
-  #Test for all threshold values
-  multiple_test = sapply(threshold_values, function(t){
-    print(c("Threshold",t))
-    patient_test(ctrl_data, simulation$simulated_data, quantile, iterations, D_U_ctrl, t, quant_test, factor_test)
-  })
-  sorted_test = DU_rearrangement(multiple_test, simulation$initial_data, threshold_values )
-  return (sorted_test)
-}
-
-#'test_multiple_thresholds_sl0
-#'
-#' This function makes patient_test_sl0 for different values of the threshold.
-#'
-#'@param ctrl_data A matrix with genes expressions in controls for all the patients.
-#'@param D_U_ctrl The list of Down and Up-expressed genes matrices in the control.
-#'@param simulation The list of initial data $initial_data and modified data in $simulated_data
-#'@param threshold_values The vector of values of the threshold for regulation_test.
-#'@param iterations The maximal number of iterations for the test. If the dysregulation list
-#'no longer changes, iterations are stop before.
-#'@param quant_test The quantile for the test. When D and U lists are void, we use the naive method.
-#'@param factor_test The factor for the test. The limit D will be quant(gene)/factor, and the limit U quant(gene)*factor.
-#'
-#'@return This function returns a list of two logical matrices. The D matrix with for each threshold
-#'TRUE for genes down-regulated, and the U matrix with TRUE for genes up-regulated.
-#'
-#'@examples
-#'D_U = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
-#'simulation = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
-#'multiple_values = c(0.01, 0.02, 0.03)
-#'test_threshold = test_multiple_thresholds_sl0(ctrl_data, D_U, simulation, threshold_values = multiple_values, iterations = 10, quant_test = 0, factor_test = 1)
-#'
-#'@export
-
-test_multiple_thresholds_sl0 = function(ctrl_data, D_U_ctrl, simulation, threshold_values, iterations, quant_test = 0, factor_test = 1){
+test_multiple_thresholds = function(ctrl_data, D_U_ctrl, simulation, threshold_values, iterations, quant_test = 0, factor_test = 1){
   #Test for all threshold values
   multiple_test = sapply(threshold_values, function(t){
     print(c("Threshold",t))
@@ -107,101 +72,6 @@ test_multiple_thresholds_sl0 = function(ctrl_data, D_U_ctrl, simulation, thresho
   return (sorted_test)
 }
 
-
-#'test_multiple_quantiles
-#'
-#' This function makes patient_test for different values of the quantile.
-#'
-#'@param ctrl_data A matrix with genes expressions in controls for all the patients.
-#'@param D_U_ctrl The list of Down and Up-expressed genes matrices in the control.
-#'@param simulation The list of initial data $initial_data and modified data in $simulated_data
-#'@param threshold The value of the threshold for regulation_test.
-#'@param iterations The maximal number of iterations for the test. If the dysregulation list
-#'no longer changes, iterations are stop before.
-#'@param quantile_values A vector of values for the quantile of the expression distribution for the step_0.
-#'@param quant_test The quantile for the test. When D and U lists are void, we use the naive method.
-#'@param factor_test The factor for the test. The limit D will be quant(gene)/factor, and the limit U quant(gene)*factor.
-#'
-#'@return This function returns a list of two logical matrices. The D matrix with for each quantile value
-#'TRUE for genes down-regulated, and the U matrix with TRUE for genes up-regulated.
-#'
-#'@examples
-#'D_U = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
-#'simulation = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
-#'multiple_values = c(0.01, 0.02, 0.03)
-#'test_quantile = test_multiple_quantiles(ctrl_data, D_U, simulation, threshold = 0.2, iterations = 10, quantile_values = multiple_values)
-#'
-#'@export
-
-test_multiple_quantiles = function(ctrl_data, D_U_ctrl, simulation, threshold, iterations, quantile_values, quant_test = 0, factor_test = 1){
-  multiple_test = sapply(quantile_values, function(q){
-    print(c("Quantile",q))
-    patient_test(ctrl_data, simulation$simulated_data, q, iterations, D_U_ctrl, threshold, quant_test, factor_test)
-  })
-  sorted_test = DU_rearrangement(multiple_test, simulation$initial_data, quantile_values )
-  return (sorted_test)
-}
-
-
-#'multiple_tests
-#'
-#' This function makes for each patient the test with multiple values for the treshold or the quantile.
-#' After that, it computes FDR and TPR.
-#'
-#'@param ctrl_data A matrix with genes expressions in controls for all the patients.
-#'@param D_U_ctrl The list of Down and Up-expressed genes matrices in the control.
-#'@param iterations The maximal number of iterations for the test. If the dysregulation list
-#'no longer changes, iterations are stop before.
-#'@param simulation The list of initial data $initial_data and modified data in $simulated_data
-#'@param multiple_values A vector with different values to test for the chosen parameter (threshold or quantile).
-#'@param unique_value The value of the parameter that does not vary.
-#'@param threshold_change TRUE if you want to vary the threshold, FALSE if you want to vary the quantile.
-#'@param quant_test The quantile for the test. When D and U lists are void, we use the naive method.
-#'@param factor_test The factor for the test. The limit D will be quant(gene)/factor, and the limit U quant(gene)*factor.
-#'
-#'@return This function returns a matrix with 4 columns : the patient number, the value of the changing parameter,
-#'the FDR and the TPR of the test.
-#'
-#'@examples
-#'D_U = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
-#'simulation = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
-#'multiple_values = c(0.01, 0.02, 0.03)
-#'multiple_tests = multiple_tests(ctrl_data, D_U, iterations = 10, simulation, multiple_values, unique_value = 0.3, threshold_change = FALSE)
-#'
-#'@export
-
-multiple_tests = function(ctrl_data, D_U_ctrl, iterations, simulation, multiple_values, unique_value, threshold_change = TRUE, quant_test = 0, factor_test = 1){
-
-  results = c()
-  #For each patient
-  for(p in 1:ncol(simulation$initial_data)){
-    print(c("Patient number",p))
-    simulation_p = list(initial_data = simulation$initial_data[,p], simulated_data = simulation$simulated_data[,p])
-
-    #The test is made for all the values, of threshold if threshold_change = TRUE or of quantile
-    if (threshold_change == TRUE){
-      test = test_multiple_thresholds(ctrl_data, D_U_ctrl, simulation_p, multiple_values, iterations, unique_value)
-    } else {
-      test = test_multiple_quantiles(ctrl_data, D_U_ctrl, simulation_p, unique_value, iterations, multiple_values)
-    }
-
-    #For each value,
-    for(value in 1:ncol(test$D)){
-      #Computing of FP, TP, FN, TN
-      results_simu = results_simulation(test$D[,value], test$U[,value], simulation_p)
-      #Computing of FDR and TPR
-      FDR = results_simu$FP / (results_simu$TP + results_simu$FP)
-      TPR  = results_simu$TP / (results_simu$TP + results_simu$FN)
-      results = rbind(results, c(p, colnames(test$D)[value], FDR, TPR))
-    }
-  }
-  if (threshold_change == TRUE){
-    colnames(results) = c("patient", "threshold", "FDR", "TPR")
-  } else {
-    colnames(results) = c("patient", "quantile", "FDR", "TPR")
-  }
-  return(results)
-}
 
 #'choose_threshold
 #'
@@ -237,7 +107,7 @@ choose_threshold = function(ctrl_data, D_U_ctrl, iterations, simulation, thresho
     simulation_p = list(initial_data = simulation$initial_data[,p], simulated_data = simulation$simulated_data[,p])
 
     #The test is made for all the values of threshold
-    test = test_multiple_thresholds_sl0(ctrl_data, D_U_ctrl, simulation_p, threshold_values, iterations, quant_test, factor_test)
+    test = test_multiple_thresholds(ctrl_data, D_U_ctrl, simulation_p, threshold_values, iterations, quant_test, factor_test)
 
     #For each value,
     for(value in 1:ncol(test$D)){
@@ -246,7 +116,8 @@ choose_threshold = function(ctrl_data, D_U_ctrl, iterations, simulation, thresho
       #Computing of FDR and TPR
       FDR = results_simu$FP / (results_simu$TP + results_simu$FP)
       TPR  = results_simu$TP / (results_simu$TP + results_simu$FN)
-      results = rbind(results, c(p, colnames(test$D)[value], FDR, TPR))
+      FPR = results_simu$FP / (results_simu$TN + results$simu$FP)
+      results = rbind(results, c(p, colnames(test$D)[value], FDR, TPR, FPR))
     }
   }
 
@@ -276,7 +147,7 @@ choose_threshold = function(ctrl_data, D_U_ctrl, iterations, simulation, thresho
   } else {
     print ("Your FDR is not reachable, check the results table to choose your threshold.")
   }
-  colnames(results) = c("patient", "threshold", "FDR", "TPR")
+  colnames(results) = c("patient", "threshold", "FDR", "TPR", "FPR")
   return(results)
 }
 
@@ -335,4 +206,106 @@ choose_quantile = function(ctrl_data, simulation, FDR_goal, factor = 1.4, quanti
   colnames(results) = c("quantile", "FDR", "TPR", "FPR")
   return(results)
 }
+
+
+
+choose_threshold_or = function(ctrl_data, D_U_ctrl, iterations, simulation, threshold_values, FDR_goal = 0.06){
+  results = c()
+  #For each patient
+  for(p in 1:ncol(simulation$initial_data)){
+    print(c("Patient number",p))
+    simulation_p = list(initial_data = simulation$initial_data[,p], simulated_data = simulation$simulated_data[,p])
+
+    #The test is made for all the values of threshold
+    test = test_multiple_thresholds_or(ctrl_data, D_U_ctrl, simulation_p, threshold_values, iterations)
+
+    #For each value,
+    for(value in 1:ncol(test$D)){
+      #Computing of FP, TP, FN, TN
+      results_simu = results_simulation(test$D[,value], test$U[,value], simulation_p)
+      #Computing of FDR and TPR
+      FDR = results_simu$FP / (results_simu$TP + results_simu$FP)
+      TPR  = results_simu$TP / (results_simu$TP + results_simu$FN)
+      results = rbind(results, c(p, colnames(test$D)[value], FDR, TPR))
+    }
+  }
+
+  #Search the FDR goal
+  median_t = c()
+  for (value in 1:length(threshold_values)){
+    threshold = threshold_values[value]
+    FDRt = as.numeric(results[results[,2] == threshold & !is.na(results[,3]), 3])
+    median_t = rbind(median_t, c(threshold, median(FDRt)))
+  }
+  small_FDR = median_t[median_t[,2] <= FDR_goal,]
+  if(length(small_FDR) !=0){
+    #If only one FDR under the FDR goal
+    if (is.vector(small_FDR)){
+      print ("The threshold closest to the FDR is")
+      print (small_FDR[1])
+      print("Which has a median FDR of")
+      print(small_FDR[2])
+      #If more than one FDR under the FDR goal
+    } else {
+      idx = which(small_FDR[,2] == max(small_FDR[,2]))
+      print ("The threshold closest to the FDR is")
+      print (small_FDR[idx, 1])
+      print("Which has a median FDR of")
+      print(small_FDR[idx, 2])
+    }
+  } else {
+    print ("Your FDR is not reachable, check the results table to choose your threshold.")
+  }
+  colnames(results) = c("patient", "threshold", "FDR", "TPR")
+  return(results)
+}
+
+test_multiple_thresholds_or = function(ctrl_data, D_U_ctrl, simulation, threshold_values, iterations){
+  #Test for all threshold values
+  multiple_test = sapply(threshold_values, function(t){
+    print(c("Threshold",t))
+    patient_test_or(ctrl_data, simulation$simulated_data, iterations, D_U_ctrl, t)
+  })
+  sorted_test = DU_rearrangement(multiple_test, simulation$initial_data, threshold_values )
+  return (sorted_test)
+}
+
+
+
+
+patient_test_or = function (ctrl_data, patient_genes, iterations, D_U_ctrl, threshold){
+
+  print ("Original test")
+  l1 = rep(FALSE, nrow(ctrl_data))
+  l1n1 = rep(FALSE, nrow(ctrl_data))
+  l1n2 = rep(FALSE, nrow(ctrl_data))
+  print("Begining of iterations")
+  #For each iteration
+  for (i in 1:iterations){
+    print(i)
+    #Genes dysregulated at the previous iteration are removed of D_U.
+    D_U_ctrl_tmp = list()
+    D_U_ctrl_tmp$D = D_U_ctrl$D * !abs(l1)
+    D_U_ctrl_tmp$U = D_U_ctrl$U * !abs(l1)
+    #The dysregulation of each genes is compute.
+    l1 = sapply(names(patient_genes), function(gene){
+      expression = original_test(gene, D_U_ctrl_tmp, patient_genes, threshold, ctrl_data)
+      return(expression)
+    })
+    if((sum(l1 == l1n1) == length(l1)) | (sum(l1 == l1n2) == length(l1))){
+      print ("Stabilization of the dysregulated genes list")
+      break
+    } else if (i == iterations) {
+      print ("Maximum iterations without stabilization")
+    } else {
+      l1n2 = l1n1
+      l1n1 = l1
+    }
+  }
+  U_genes = (l1 == 1 | l1n1 == 1)
+  D_genes = (l1 == -1 | l1n1 == -1)
+  return(list(D = D_genes, U = U_genes))
+  gc()
+}
+
 

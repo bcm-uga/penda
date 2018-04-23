@@ -16,8 +16,7 @@
 #'simulated_data, datas with up and down modifications
 #'changes_idx, index of datas with modifications
 #'
-#'@example
-#'simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
+#'@example simu = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
 #'
 #'@export
 
@@ -45,102 +44,78 @@ simplified_simulation = function(data, fraction, threshold = 60, modifier = 30, 
 }
 
 
-#'get_random_variable
+#'group_genes
 #'
-#' This function gives a random values following a given density function.
+#' This function makes group of genes with similar expression. For each group, the function computes the
+#' proportion of dysregulated genes in cancer and the difference delta.
 #'
-#'@param F The density function.
-#'@param x A vector with the definition area of the function.
-#'@param nb_r The number of random values wanted
+#'@param ctrl_data A matrix with genes expressions in controls for all the patients.
+#'@param cancer_data A matrix with dysregulated genes expressions for all the patients.
+#'@param size_grp The size of each group of genes.
+#'@param quant The quantile of gene expression in control. Cancer genes outside this limit are considerd dysregulated.
 #'
-#'@return This function returns a vector with nb_r values of F.
+#'@return This function returns a matrix of four columns :
+#'Limit min, the first value of the group,
+#'Limit max, the last value of the group,
+#'Proportion of dysregulation, the proportion of cancer genes outside the quantile limit.
+#'Deltas dysregul, a list with all the value of cancer genes - control genes.
 #'
-#'@examples
-#'x = seq(-20, 20, 0.05)
-#'F = function(x, u, a){
-#'  (1 / (a * sqrt(2 * pi))) * exp(-(((x - u)^2) / (2 * a^2)))
-#'}
-#'get_random_variable(F, x, nb_r = 10000, u = 0, a = 1)
+#'@example group = group_genes(ctrl_data, cancer_data)
+#'
 
-get_random_variable = function (F, x, nb_r,...){
-  y = F(x,...)
-  cumul = cumsum(y) * diff(x)[1]
-  qf = approxfun(cumul, x) #quantile function
-  rf = function(n) qf(runif(n)) #random variable
-  return(rf(nb_r))
-}
+group_genes = function(ctrl_data, cancer_data, size_grp = 100, quant = 0.05){
 
+  results = c()
+  #Vector with all the control genes sorted
+  all_ctrl = as.vector(ctrl_data)
+  names(all_ctrl) = rep(rownames(ctrl_data), times = ncol(ctrl_data))
+  all_ctrl = sort(all_ctrl)
+  nb_grp = floor(length(all_ctrl) / size_grp)
 
-#'Heaviside
-#'
-#' The heaviside function value is zero for argument under the step, and one for argument above.
-#'
-#'@param x The number to evaluate
-#'@param step The limit between heaviside = 0 and heaviside = 1
-#'
-#'@return This function returns 0 if the argument is under the step, 1 if not.
-#'
-#'@example
-#'Heaviside(1+98-103, step = 0)
+  #For each group
+  for (grp in 1:nb_grp){
+    #We define limits and genes of the group
+    if (grp < nb_grp){
+      limits = c(1 + (grp - 1) * size_grp, grp * size_grp)
+    } else {
+      limits = c(1 + (grp - 1) * size_grp, length(all_ctrl))
+    }
+    genes_grp = all_ctrl[limits[1] : limits[2]]
+    delta_gen = c()
+    delta_cancer = c()
 
-Heaviside = function(x, step = 0){
-  return((sign(x - step) + 1) / 2)
-}
+    #For all genes of the group
+    for (g in 1:length(genes_grp)){
+      gene_name = names(genes_grp)[g]
+      #Difference between the gene expression in control and this gene
+      delta = ctrl_data[gene_name, ] - rep(genes_grp[g], times = ncol(ctrl_data))
+      delta = delta[-which(delta==0)[1]]
+      delta_gen = rbind(delta_gen, delta)
+      #Difference between the gene expression in cancer and this gene
+      delta = cancer_data[gene_name, ] - rep(genes_grp[g], times = ncol(cancer_data))
+      delta_cancer = rbind(delta_cancer, delta)
+    }
 
-
-#'P1
-#'
-#' P1 models the density function of the expression multiplicative factor for the
-#' up-regulation of a gene with an expression above 100.
-#'
-#'@param x vector of input values
-#'
-#'@return This function returns the value of p1 for x (between 0 and 1).
-
-p1 = function(x){
-  p1 = Heaviside(x - 0.63) * (1 + tanh((x - 1.4) / 0.4)) * exp(-x / 0.9)
-  p1 = p1 / (sum(p1) * diff(x)[1])
-  return(p1)
-}
-
-
-#'P2
-#'
-#' P2 models the density function of the expression divisor for the
-#' down-regulation of a gene with an expression above 100.
-#'
-#'@param x vector of input values
-#'
-#'@return This function returns the value of p2 for x (between 0 and 1).
-
-p2 = function(x){
-  p2 = Heaviside(x - 0.63) * (1 + tanh((x - 1.4) / 0.5)) * exp(-x / 1.3)
-  p2 = p2 / (sum(p2) * diff(x)[1])
-  return(p2)
-}
-
-
-#'P3
-#'
-#' P2 models the density function of the expression modifier (to add or substract) for the
-#' dysregulation of a gene with an expression under 100.
-#'
-#'@param x vector of input values
-#'
-#'@return This function returns the value of p3 for x (between 0 and 1).
-
-p3 = function(x){
-  p3 = Heaviside(x - 20) * (exp(-x * 0.007)) * exp((x - 20) * exp(-x * 0.07))
-  p3 = p3 / (sum(p3) * diff(x)[1])
-  return(p3)
+    #We compute the proportion of genes outside of limits
+    q = quantile(delta_gen, c(quant,(1-quant)))
+    prop = length(which(delta_cancer < q[1] | delta_cancer > q[2])) / length(delta_cancer)
+    delta_deregul = delta_cancer[which(delta_cancer < q[1] | delta_cancer > q[2])]
+    results = rbind(results, c(all_ctrl[limits[1]], all_ctrl[limits[2]], prop, list(delta_deregul)))
+  }
+  colnames(results) = c("Limit min", "Limit max", "Proportion of dysregul", "Deltas dysregul")
+  return(results)
 }
 
 
 #'complex_simulation
 #'
-#' This function simulates the dysregulation (up and down) of datas, using the distribution of
-#' dysregulation in real cancer datas.
+#' This function simulated the dysregulation of datas, using the real distribution of genes, proportion of
+#' dysregulation and difference between control and cancer.
 #'
+#'@param ctrl_data A matrix with genes expressions in controls for all the patients.
+#'@param cancer_data A matrix with dysregulated genes expressions for all the patients.
+#'@param size_grp The size of each group of genes for the grouping.
+#'@param quant The quantile of gene expression for the grouping.
 #'@param data vector or matrix of original data to edit.
 #'
 #'@return This function returns a list of three vectors or matrices :
@@ -148,43 +123,30 @@ p3 = function(x){
 #'simulated_data, datas with up and down modifications
 #'changes_idx, index of datas with modifications
 #'
-#'@example
-#'complex_simulation(simu_data)
+#'@example simu = complex_simulation(ctrl_data, cancer_data, simu_data)
 #'
 #'@export
 
-complex_simulation = function(data){
-
+complex_simulation = function(ctrl_data, cancer_data, size_grp = 100, quant = 0.05, simu_data){
   simu_data = data
-  simu_data = sapply(simu_data, function(g){
-    #If the expression is > 100
-    if (g > 100){
-      #22% chance of dysregulation
-      if (runif(1) <= 0.22) {
-        #30% chance of up-regulation
-        if (runif(1) <= 0.30) {
-          g = g * 2^(get_random_variable(p1, seq(0,100,0.1), 1))
-        }
-        #else, down-regulation
-        else {
-          g = g / 2^(get_random_variable(p2, seq(0,100,0.1), 1))
-        }
+  print("Computing genes groups")
+  group = group_genes(ctrl_data, cancer_data, size_grp, quant)
+  limits = rbind(as.numeric(unlist(group[,1])), as.numeric(unlist(group[,2])))
+  prop = unlist(group[,3])
+
+  print ("Simulating dysregulation")
+  for (p in 1: ncol(simu_data)){
+    for (g in 1:nrow(simu_data)){
+      gene = simu_data[g, p]
+      group_gene = max(which(gene >= limits[1,]))
+      prop_gene = prop[group_gene]
+      if (runif(1) <= prop_gene) {
+        all_delta = unlist(group[,4][group_gene])
+        delta = sample(all_delta, 1)
+        simu_data[g, p] = simu_data[g,p] + delta
       }
-    #If expression < 100, 30% chance of dysregulation
-    } else if (runif(1) <= 0.30) {
-      #50% chance of down-regulation, 50% chance of up-regulation. While expression < 0, retry.
-      gmod = -1
-      while(gmod < 0){
-        if (runif(1) <= 0.50){
-          gmod = g - (get_random_variable(p3, seq(0, 500, 0.5), 1))
-        } else {
-          gmod = g + (get_random_variable(p3, seq(0, 500, 0.5), 1))
-        }
-      }
-      g = gmod
     }
-    return(g)
-  })
+  }
   return(list(initial_data = data, simulated_data = simu_data, changes_idx = which(data != simu_data)))
 }
 
@@ -205,9 +167,9 @@ complex_simulation = function(data){
 #'TN, the numbler of true negative results
 #'
 #'@examples
-#'D_U = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
-#'simulation = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
-#'results_simulation(D_matrix = D_U$D, U_matrix = D_U$U, initial_data = simulation$initial_data, simulated_data = simulation$simulated_data)
+#' D_U = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
+#' simulation = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
+#' results_simulation(D_matrix = D_U$D, U_matrix = D_U$U, initial_data = simulation$initial_data, simulated_data = simulation$simulated_data)
 #'
 #'@export
 
