@@ -74,7 +74,6 @@ group_genes = function(ctrl_data, cancer_data, size_grp = 100, quant = 0.05){
 
   #For each group
   for (grp in 1:nb_grp){
-    print(grp)
     #We define limits and genes of the group
     if (grp < nb_grp){
       limits = c(1 + (grp - 1) * size_grp, grp * size_grp)
