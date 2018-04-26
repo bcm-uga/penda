@@ -202,6 +202,8 @@ patient_test = function (ctrl_data, patient_genes, iterations, D_U_ctrl, thresho
     if((sum(l1 == l1n1) == length(l1)) | (sum(l1 == l1n2) == length(l1))){
       print ("Stabilisation of the dysregulated genes list")
       break
+    } else if (i == iterations) {
+      print ("Maximum iterations without stabilization")
     } else {
       l1n2 = l1n1
       l1n1 = l1

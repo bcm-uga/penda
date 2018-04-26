@@ -31,6 +31,7 @@ detect_zero_value = function(ctrl_data, cancer_data, threshold, min = 0) {
     }
   })
   print(paste0(sum(values0), " genes have less than ", min, " counts in ", threshold*100, " % of the samples."))
+  return(values0)
 }
 
 
