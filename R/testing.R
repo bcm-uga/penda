@@ -129,6 +129,8 @@ sample_test = function (sample, controls, iterations, D_U_list, threshold, quant
     if((sum(l1 == l1n1) == length(l1)) | (sum(l1 == l1n2) == length(l1))){
       print ("Stabilisation of the dysregulated genes list")
       break
+    } else if (i == iterations) {
+      print ("Maximum iterations without stabilization")
     } else {
       l1n2 = l1n1
       l1n1 = l1
