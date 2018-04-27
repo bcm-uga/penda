@@ -4,19 +4,19 @@
 \alias{complex_simulation}
 \title{complex_simulation}
 \usage{
-complex_simulation(ctrl_data, cancer_data, size_grp = 100, quant = 0.05,
-  simu_data)
+complex_simulation(ctrl_data, cancer_data, data, size_grp = 100,
+  quant = 0.05)
 }
 \arguments{
 \item{ctrl_data}{A matrix with genes expressions in controls for all the patients.}
 
 \item{cancer_data}{A matrix with dysregulated genes expressions for all the patients.}
 
+\item{data}{vector or matrix of original data to edit.}
+
 \item{size_grp}{The size of each group of genes for the grouping.}
 
 \item{quant}{The quantile of gene expression for the grouping.}
-
-\item{data}{vector or matrix of original data to edit.}
 }
 \value{
 This function returns a list of three vectors or matrices :

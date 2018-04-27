@@ -4,10 +4,10 @@
 \alias{detect_zero_value}
 \title{detect_zero_value}
 \usage{
-detect_zero_value(ctrl_data, cancer_data, threshold, min = 0)
+detect_zero_value(controls, cancer_data, threshold, min = 0)
 }
 \arguments{
-\item{ctrl_data}{A matrix with datas to analyze.}
+\item{controls}{A matrix with datas to analyze.}
 
 \item{cancer_data}{A matrix with other conditions datas to analyze.}
 
@@ -26,6 +26,6 @@ This function detects genes with more than threshold percent of expression value
 data_ctrl = penda::data_ctrl
 data_case = penda::data_case
 null_values = detect_zero_value(data_ctrl, data_case, threshold = 0.99, min = 10)
-data_ctrl_filtered = data_case[!null_values,]
-data_case_filtered = data_case[!null_values,]
+data_ctrl_f = data_case[!null_values,]
+data_case_f = data_case[!null_values,]
 }

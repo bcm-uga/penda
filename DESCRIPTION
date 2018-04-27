@@ -11,7 +11,12 @@ Author: c(
 Maintainer: The package maintainer <magali.richard@univ-grenoble-alpes.fr>
 Description: The `penda` package provides different method to perform personalized differential analysis.
 Depends: R(>= 2.10.0)
+Imports:
+    ggplot2,
+    Rcpp
 License: CeCILL
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
+LinkingTo: 
+    Rcpp

@@ -78,200 +78,104 @@ dim(data_case)
 
 # Method
 
+`penda` performs a 3-steps analysis: 
+
+1. Data filtering
+
+2. Gene ranking
+
+3. Differential expression testing
+
+This is a tutorial describing how to use `penda` package.
+
 ## Data filtering
 
+First we filter the data to remove genes with very low expression.
+
+```{r}
+null_values = penda::detect_zero_value(data_ctrl, data_case, threshold = 0.99, min = 10)
+data_ctrl_f = data_ctrl[!null_values,] #filtered matrix
+data_case_f = data_case[!null_values,] #filtered matrix
+dim(data_ctrl_f)
+dim(data_case_f)
+```
+
 ## Gene ranking
+
+Second, we rank the gene expression using normal tissue sample (i.e. `the data_ctrl_f matrix`)
+
+We used the function `compute_down_and_up_list` which a list of two matrices. 
+
+The matrix **D** corresponds to the list (i.e true) of downregulated genes for each considered genes (columns).
+The matrix **U** corresponds to the list (i.e true) of upregulated genes for each considered genes (columns).
+
+For each, the list of **D** genes (resp. **U** genes) corresponds to the closest genes (up to `s_max` genes) that are down (resp. up) regulated in at least `threshold` % of the control samples. 
+
+
+
+```{r, results="verbatim"}
+if (!file.exists("tmp/D_U_list.rds")){
+  controls = data_ctrl_f
+  D_U_list = penda::compute_down_and_up_list(controls, threshold = 0.99, s_max = 50)
+  saveRDS(D_U_list , "tmp/D_U_list.rds")
+}
+D_U_list = readRDS("tmp/D_U_list.rds")
+hist(colSums(D_U_list$D))
+```
 
 ## Differential expression testing
 
 
 
+```{r, results="verbatim"}
+controls =  data_ctrl_f
+samples = data_case_f[,1:2] 
+threshold = 0.03 
+iterations =  20 
+D_U_list=  D_U_list 
+quant_test =  0.2
+factor_test = 1
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-##Data processing
-
-We import the control data, and we take 1000 genes for the 98 patients.
-The five last patients are used to  make the dataset of simulations.
-The function "detect_zero_value" was used before to eliminates genes with more than 99% of expression value under 10.
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), eval=FALSE}
-ctrl_data = readRDS('~/projects/perso_DA/data_ctrl_process.rds')[1:1000,]
-simu_data = ctrl_data[,94:98]
-colnames(simu_data) = c("P1","P2","P3","P4","P5")
-
-ctrl_data = ctrl_data[,-(94:98)]
-```
-
-
-##Ranking in control
-
-We used the function "find_D_U_ctrl" which returns two matrix. For each gene in columns, the row gene is "TRUE" if is **D**own-expresed or **U**p-expressed.
-The limit is between the quantile 0.001/4 and the quantile 0.999*4. 99% of patients must be in the conditions.
-The function "check_D_U" checks if not exists genes both up and down expressed, and for each gene :
-- if the maximal down gene is less expressed in 99% of controls.
-- if the minimal up gene is more expressed in 99 % of controls.
-
-
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), eval=FALSE}
-
-D_U_ctrl = find_D_U_ctrl(ctrl_data, 0.001, 4, 0.99)
-table(D_U_ctrl$D)
-table(D_U_ctrl$U)
-
-check_D_U (D_U_ctrl, ctrl_data, 0.99)
-
-```
-
-##Simulation of dysregulation of gene expression
-
-We want to dysregul genes of 3 control patients in "simu_data" to simulate a cancer dysregulation.
-The function "simplified_simulation" randomly dysreguls a given proportion of genes expressions. Here, we choose 30% of genes.
-We do the simulation on 3 patients, and then we concatenate the results.
-
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), eval=FALSE}
-
-simup1 = simplified_simulation(simu_data[,1], 0.3)
-simup2 = simplified_simulation(simu_data[,2], 0.3)
-simup3 = simplified_simulation(simu_data[,3], 0.3)
-simulation = list()
-
-simulation$simulated_data = matrix(c(simup1$simulated_data, simup2$simulated_data, simup3$simulated_data), ncol=3, dimnames = list(rownames(simu_data)))
-simulation$initial_data = matrix(c(simup1$initial_data, simup2$initial_data, simup3$initial_data), ncol=3, dimnames = list(rownames(simu_data)))
-simulation$changes_idx = matrix(c(simup1$changes_idx, simup2$changes_idx, simup3$changes_idx), ncol=3)
-
-table(simulation$initial_data != simulation$simulated_data)
-length(simulation$changes_idx)
-```
-
-
-#Test of the dysregulation
-
-We make the test for the 3 dysregulated patients. 
-The quantile of l0 is 0.03, it means that genes at the extremities of expression distribution (under 3% or above 97%) are not used in the control list.
-0.2 is the threshold to test if genes has changed.
-20 is the maximum number of iterations allowed to stabilize the results.
-
-Please be careful to have gene names as row names in your datas. 
-
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), eval=FALSE}
-
-D_matrix = simulation$simulated_data
-U_matrix = simulation$simulated_data
-t12 = Sys.time()
-for(p in 1:3){
-  print(c("Patient number",p))
-  D_U = patient_test(ctrl_data, simulation$simulated_data[,p], 0.03, 20, D_U_ctrl, 0.2)
-  D_matrix[,p] = unlist(D_U[1])
-  U_matrix[,p] = unlist(D_U[2])
+if (!file.exists("tmp/penda_res.rds")){
+  penda_res = penda::penda_test(samples = samples, 
+                        controls = controls,
+                   threshold = threshold, 
+                   iterations =  iterations, 
+                   D_U_list =  D_U_list, 
+                   quant_test =  quant_test,
+                   factor_test = factor_test)
+  saveRDS(penda_res , "tmp/penda_res.rds")
 }
-t22 = Sys.time()
-
-#Number of predicted down-regulated genes
-colSums(D_matrix)
-#Number of predicted up-regulated genes
-colSums(U_matrix)
-```
-
-#Representation
-
-The function "results_simulation" computes the number of false positive, true positive, false negative and false positive results from the test and the original datas.
-The function "draw_results" make an histogram with these results.
-
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), eval=FALSE}
-
-results = results_simulation(D_matrix, U_matrix, simulation)
-
-draw_results(results)
+penda_res = readRDS("tmp/penda_res.rds")
+colSums(penda_res$down_genes)
+colSums(penda_res$up_genes)
 ```
 
 
 
-##Complex simulation 
 
-Complex_simulation used the real distribution of dyresgulation in our cancers to makes the simulation.
-We do the simulation on 3 patients, and then we concatenate the results.
 
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), eval=FALSE}
 
-csimup1 = complex_simulation(simu_data[,1])
-csimup2 = complex_simulation(simu_data[,2])
-csimup3 = complex_simulation(simu_data[,3])
-csimulation = list()
 
-csimulation$simulated_data = matrix(c(csimup1$simulated_data, csimup2$simulated_data, csimup3$simulated_data), ncol=3, dimnames = list(rownames(simu_data)))
-csimulation$initial_data = matrix(c(csimup1$initial_data, csimup2$initial_data, csimup3$initial_data), ncol=3, dimnames = list(rownames(simu_data)))
-csimulation$changes_idx = list(csimup1$changes_idx, csimup2$changes_idx, csimup3$changes_idx)
 
-table(csimulation$initial_data != csimulation$simulated_data)
 
-```
 
-#Test of the dysregulation
 
-We make the test for the 3 patients with a complex simulation. 
 
-Please be careful to have gene names as row names in your datas. 
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), eval=FALSE}
 
-D_matrixc = csimulation$simulated_data
-U_matrixc = csimulation$simulated_data
-for(p in 1:3){
-  print(c("Patient number",p))
-  D_U = patient_test(ctrl_data, csimulation$simulated_data[,p], 0.03, 20, D_U_ctrl, 0.2)
-  D_matrixc[,p] = unlist(D_U[1])
-  U_matrixc[,p] = unlist(D_U[2])
-}
 
-#Number of predicted down-regulated genes
-colSums(D_matrixc)
-#Number of predicted up-regulated genes
-colSums(U_matrixc)
-```
 
-#Representation
 
-The function "results_simulation" computes the number of false positive, true positive, false negative and false positive results from the test and the original datas.
-The function "draw_results" make an histogram with these results.
 
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), eval=FALSE}
 
-resultsc = results_simulation(D_matrixc, U_matrixc, csimulation)
 
-draw_results(resultsc)
-```
-cl <- makeCluster(8)
-t1 = Sys.time()
-p=patient_test(ctrl_data, simuv1$simulated_data[,1], 0.03, 20, D_U_ctrl, 0.1)
-t2 = Sys.time()
+
+
+
+
+
+
+
+
 
 
