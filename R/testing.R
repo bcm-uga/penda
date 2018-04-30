@@ -54,7 +54,7 @@ regulation_test = function(gene, D_U_list, sample, threshold, controls, quant_te
   else if (sum(down_ctrl) == 0 & sum(up_ctrl) != 0){
     if ((Ud / sum(up_ctrl) < threshold) & (sample[gene] >= quantile_gene[1])){
       changement = 0
-    } else if (Ud / sum(up_ctrl) > threshold){
+    } else if (Ud / sum(up_ctrl) >= threshold){
       changement = 1
     } else {
       changement = -1
@@ -65,7 +65,7 @@ regulation_test = function(gene, D_U_list, sample, threshold, controls, quant_te
   else if (sum(down_ctrl) != 0 & sum(up_ctrl) == 0){
     if ((Du / sum(down_ctrl) < threshold) & (sample[gene] < quantile_gene[2])){
       changement = 0
-    } else if (Du / sum(down_ctrl) > threshold){
+    } else if (Du / sum(down_ctrl) >= threshold){
       changement = -1
     } else {
       changement = 1
@@ -169,22 +169,22 @@ sample_test = function (sample, controls, iterations, D_U_list, threshold, quant
 penda_test = function(samples, controls, iterations, D_U_list, threshold, quant_test = 0, factor_test = 1){
 if (is.null(dim(samples)[2])){
   print("compute DE list for one sample")
-  res = penda::sample_test(sample = samples, 
+  res = penda::sample_test(sample = samples,
                             controls = controls,
-                            threshold = threshold, 
-                            iterations =  iterations, 
-                            D_U_list =  D_U_list, 
+                            threshold = threshold,
+                            iterations =  iterations,
+                            D_U_list =  D_U_list,
                             quant_test =  quant_test,
                            factor_test = factor_test)
   down_genes = res$D
   up_genes = res$U
 } else if (dim(samples)[2] > 1){
   print(paste0("compute DE list for ", dim(samples)[2], " samples"))
-  res = apply(samples, 2, penda::sample_test, 
+  res = apply(samples, 2, penda::sample_test,
               controls = controls,
-              threshold = threshold, 
-              iterations =  iterations, 
-              D_U_list =  D_U_list, 
+              threshold = threshold,
+              iterations =  iterations,
+              D_U_list =  D_U_list,
               quant_test =  quant_test,
               factor_test = factor_test)
   down_genes = sapply(res, "[[", "D")
