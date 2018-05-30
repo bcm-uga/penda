@@ -64,7 +64,7 @@ compute_down_and_up_list = function (controls, threshold, s_max = 50){
 
   print("Computing down and up-expressed genes")
   #Using DU_rcpp to compute down and up-expressed genes.
-  DU = penda::compute_DU_cpp(controls, 0.99)
+  DU = penda::compute_DU_cpp(controls, threshold)
   genes_U = unlist(DU$U)
   dimnames(genes_U) = list(DU$n, DU$n)
   genes_D = unlist(DU$D)
