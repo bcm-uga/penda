@@ -26,7 +26,7 @@ D_U = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
 simulation = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
 multiple_values = c(0.01, 0.02, 0.03)
 multiple_test = sapply(multiple_values, function(value){
- patient_test(ctrl_data, simulated_data, quant_0 = 0.03, iterations = 10, D_U, threshold = value)
+ sample_test(ctrl_data, simulated_data, quant_0 = 0.03, iterations = 10, D_U, threshold = value)
 })
 sorted_matrix = DU_rearrangement(multiple_test, simulation$initial_data, multiple_values)
 }

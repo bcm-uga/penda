@@ -196,3 +196,74 @@ if (is.null(dim(samples)[2])){
 }
 return(list(down_genes = down_genes, up_genes = up_genes))
 }
+
+
+
+
+par_penda_test = function(cluster, samples, controls, iterations, D_U_list, threshold, quant_test = 0, factor_test = 1){
+  if (is.null(dim(samples)[2])){
+    print("compute DE list for one sample")
+    res = penda::sample_test(sample = samples,
+                             controls = controls,
+                             threshold = threshold,
+                             iterations =  iterations,
+                             D_U_list =  D_U_list,
+                             quant_test =  quant_test,
+                             factor_test = factor_test)
+    down_genes = res$D
+    up_genes = res$U
+  } else if (dim(samples)[2] > 1){
+    print(paste0("compute DE list for ", dim(samples)[2], " samples"))
+    res = parCapply(cluster, samples, penda::sample_test,
+                    controls = controls,
+                    threshold = threshold,
+                    iterations =  iterations,
+                    D_U_list =  D_U_list,
+                    quant_test =  quant_test,
+                    factor_test = factor_test)
+    down_genes = sapply(res, "[[", "D")
+    up_genes = sapply(res, "[[", "U")
+  } else {
+    print("Error, samples should correspond to a matrix or a vector")
+    down_genes = NULL
+    up_genes = NULL
+  }
+  return(list(down_genes = down_genes, up_genes = up_genes))
+}
+
+
+
+
+#'naive_test
+#'
+#' This function makes the test of the dysregulation with a naive method based on the quantiles of
+#' the normal distribution of each gene.
+#'
+#'@param ctrl_data A matrix with genes expressions in controls for all the patients.
+#'@param cancer_data A matrix with dysregulated genes expressions for all the patients.
+#'@param quant The quantile of the control genes expression, quantile(c(quant, 1-quant)).
+#'@param factor The factor for the quantile. The D limit will be quantmin/factor, and the U limit quantmax*factor.
+#'
+#'@return This function return a list with two vectors :
+#'D, with TRUE for genes down-regulated
+#'U, with TRUE for genes up-regulated.
+#'
+#'@examples
+#'simulation = ctrl_data[,ncol(ctrl_data)-3 : ncol(ctrl_data)]
+#'simulation = simplified_simulation(simulation, fraction = 0.3, threshold = 60)
+#'ctrl_data = ctrl_data[,-ncol(ctrl_data)-3:ncol(ctrl_data)]
+#'quantile_gene(ctrl_data, simulation$simulated_data, quant = 0.03, factor = 1.4)
+#'
+#'@export
+
+naive_test = function(ctrl_data, cancer_data, quant, factor){
+
+  quantile_gene = apply(ctrl_data, 1, quantile, c(quant,(1-quant)))
+  quantile_gene[1,] = quantile_gene[1,] / factor
+  quantile_gene[2,] = quantile_gene[2,] * factor
+
+  D_matrix = cancer_data < quantile_gene[1,]
+  U_matrix = cancer_data > quantile_gene[2,]
+  return(list(D = D_matrix, U = U_matrix))
+}
+

@@ -142,7 +142,6 @@ complex_simulation = function(ctrl_data, cancer_data, data, size_grp = 100, quan
       prop_gene = prop[group_gene]
       if (runif(1) <= prop_gene) {
         all_delta = unlist(group[,4][group_gene])
-        all_delta = all_delta > ()
         delta = sample(all_delta, 1)
         while((simu_data[g,p] + delta) < 0){
           delta = sample(all_delta, 1)
