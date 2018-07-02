@@ -216,13 +216,37 @@ generate_data_bygene = function(D_list, U_list){
   pc_up = (up / dim(D_list)[2]) * 100
   pc_tot = (total /  dim(D_list)[2]) * 100
   #density = get_density(x = pc_up, y = pc_tot)
+  
+   #Compute zscore test
+  
+  #get_z_score = function(vec){
+ # z = mean(vec)/sd(vec)
+ # return(z)
+ # }
+  
+ # z = apply(U_list,1, get_z_score)
+#  z_f = z[!is.na(z)]
+#  fdr_up = fdrtool::fdrtool(z_f, cutoff.method = "pct0", pct0 = 0.99, plot = FALSE)
+#  pval_up = rep(NA, dim(D_list)[1])
+#  names(pval_up) = rownames(D_list)
+#  pval_up[names(fdr_up$pval)] = fdr_up$pval
+  
+#  z = apply(D_list,1, get_z_score)
+ # z_f = z[!is.na(z)]
+  #fdr_dw = fdrtool::fdrtool(z_f, cutoff.method = "pct0", pct0 = 0.99, plot = FALSE)
+  #pval_dw = rep(NA, dim(D_list)[1])
+  #names(pval_dw) = rownames(D_list)
+  #pval_dw[names(fdr_dw$pval)] = fdr_dw$pval
+  
   return(data.frame(gene_name = gene_name,
                     up = up,
                     down = down,
                     total = total,
                     pc_up = pc_up,
-                   # density = density,
                     pc_tot = pc_tot))
+                    #density = density,
+                   # pval_up = pval_up,
+                   # pval_dw = pval_dw))
 }
 
 data_bypatient = generate_data_bypatient(D_list = penda_res$down_genes,
