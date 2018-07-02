@@ -152,10 +152,93 @@ colSums(penda_res$up_genes)
 ```
 
 
+## Plot results
+
+Summarize the results
+
+```{r}
+generate_data_bypatient = function(D_list, U_list){
+  down = colSums(D_list)
+  up = colSums(U_list)
+  total = down + up
+  patient_names = colnames(D_list)
+  patients = rep(factor(patient_names , levels = patient_names [order(total)]), 3)
+  variable = c(rep("down", length(patient_names)),
+               rep("up", length(patient_names)),
+               rep("total", length(patient_names)))
+  value = c(down, up, total)
+  return(data.frame(patients = patients,
+                    variable = variable,
+                    value = value))
+}
+
+generate_data_bygene = function(D_list, U_list){
+  
+  #get_density <- function(x, y, n = 100) {
+ # dens <- MASS::kde2d(x = x, y = y, n = n)
+ # ix <- findInterval(x, dens$x)
+ # iy <- findInterval(y, dens$y)
+ # ii <- cbind(ix, iy)
+ # return(dens$z[ii])
+ # }
+  
+  down = rowSums(D_list)
+  up = rowSums(U_list)
+  total = down + up
+  gene_name = rownames(D_list)
+  pc_up = (up / dim(D_list)[2]) * 100
+  pc_tot = (total /  dim(D_list)[2]) * 100
+  #density = get_density(x = pc_up, y = pc_tot)
+  return(data.frame(gene_name = gene_name,
+                    up = up,
+                    down = down,
+                    total = total,
+                    pc_up = pc_up,
+                   # density = density,
+                    pc_tot = pc_tot))
+}
+
+data_bypatient = generate_data_bypatient(D_list = penda_res$down_genes,
+                                         U_list = penda_res$up_genes)
 
 
+data_bygene = generate_data_bygene(D_list = penda_res$down_genes,
+                                   U_list = penda_res$up_genes)
+```
 
 
+```{r}
+plot_figure = function(data_patients, data_genes){
+  
+mytheme <- theme(panel.background = element_blank(),
+  panel.grid.major = element_line(colour="black", size = (0.1)),
+                 panel.grid.minor = element_blank())
+
+p1 = ggplot(data_patients, aes(x = patients, y = value)) + 
+    geom_line(aes(group = variable), colour = "grey80") + # theme_minimal(base_size = 20) +
+    mytheme + ylim(0, 10000) + ylab("Number of  genes") + xlab("Patients") +
+theme(axis.text.x = element_blank()) + geom_point(aes(colour = variable), 
+    size = 0.5) + ggtitle("Degree of deregulation per patient") +  
+scale_y_continuous(breaks = seq(0, 10000, 2000)) + scale_x_discrete(breaks = NULL) +
+   scale_colour_manual(name  ="Gene deregulation", 
+                      values = c("green", "darkblue", "red"), 
+                       labels=c("DOWN", "UP & DOWN", "UP")) 
+ 
+
+p2 = ggplot(data_genes, aes(x = pc_up,   y = pc_tot)) + geom_point(size = 0.2, alpha = 0.1) +# scale_color_viridis() + 
+  ylab("% of patients DEregulated") + 
+  xlab("% of patients UPregulated") +
+ # geom_density2d(colour="black") + 
+  ggtitle("Degree of deregulation per genes") + 
+    theme_minimal()
+
+return(gridExtra::grid.arrange(p1,p2))
+}
+
+plot_figure(data_patients = data_bypatient, 
+            data_genes = data_bygene)
+
+```
 
 
 
