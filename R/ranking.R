@@ -5,6 +5,7 @@
 #'detect_zero_value
 #'
 #' This function detects genes with more than threshold percent of expression values under the min value.
+#' NA expression values are not considered.
 #'
 #'@param controls A matrix with datas to analyze.
 #'@param cancer_data A matrix with other conditions datas to analyze.
@@ -21,21 +22,67 @@ detect_zero_value = function(controls, cancer_data, threshold, min = 0) {
 
   binded_data = cbind(controls, cancer_data)
   idx_ctrl = 1:ncol(controls)
-  idx_lusc = 1:ncol(cancer_data) + ncol(controls)
+  idx_cancer = 1:ncol(cancer_data) + ncol(controls)
 
-  values0 = apply(binded_data, 1, function(l) {
-    #Computing the proportion of genes values  < min
-    percentLUSC = sum(l[idx_lusc] <= min) / length(idx_lusc)
-    percentCtrl = sum(l[idx_ctrl] <= min) / length(idx_ctrl)
-    #If the proportion is above the threshold, we return true
-    if (percentLUSC >= threshold & percentCtrl >= threshold){
-      return(TRUE)
-    } else {
-      return(FALSE)
-    }
-  })
+  #If any NA, we don't consider these values
+  if(anyNA(controls)){
+    values0 = apply(binded_data, 1, function(l) {
+      idx_cancer_sans_na = idx_cancer[!is.na(l[idx_cancer])]
+      idx_ctrl_sans_na = idx_ctrl[!is.na(l[idx_ctrl])]
+      #Computing the proportion of genes values  < min
+      percentCancer = sum(l[idx_cancer_sans_na] <= min) / length(idx_cancer_sans_na)
+      percentCtrl = sum(l[idx_ctrl_sans_na] <= min) / length(idx_ctrl_sans_na)
+      #If the proportion is above the threshold, we return true
+      if (percentCancer >= threshold & percentCtrl >= threshold){
+        return(TRUE)
+      } else {
+        return(FALSE)
+      }
+    })
+  } else {
+    values0 = apply(binded_data, 1, function(l) {
+      #Computing the proportion of genes values  < min
+      percentCancer = sum(l[idx_cancer] <= min)/length(idx_cancer)
+      percentCtrl = sum(l[idx_ctrl] <= min)/length(idx_ctrl)
+      #If the proportion is above the threshold, we return true
+      if (percentCancer >= threshold & percentCtrl >= threshold) {
+        return(TRUE)
+      }
+      else {
+        return(FALSE)
+      }
+    })
+  }
   print(paste0(sum(values0), " genes have less than ", min, " counts in ", threshold*100, " % of the samples."))
   return(values0)
+}
+
+
+# Authors: Clémentine Decamps, UGA
+# clementine.decamps@univ-grenoble-alpes.fr
+#
+#---------------------------------------------
+#'detect_na_value
+#'
+#' This function detects probes with more than threshold percent of value undefined (NA).
+#'
+#'@param controls A matrix with datas to analyze.
+#'@param cancer_data A matrix with other conditions datas to analyze.
+#'@param threshold The maximum proportion of NA tolerated for each probe.
+#'
+#'@return This function returns a true false vector with true for the values to exclude.
+#'
+#'@example
+#'
+#'@export
+
+detect_na_value = function(controls, cancer_data, threshold) {
+
+  nactrl = rowSums(is.na(controls))
+  nacancer = rowSums(is.na(cancer_data))
+  sans_na = (nactrl >= threshold*ncol(controls) & nacancer >= threshold*ncol(cancer_data))
+  print(paste0(sum(sans_na), " probes are NA in at least ", threshold*100, " % of the samples."))
+  return(sans_na)
 }
 
 

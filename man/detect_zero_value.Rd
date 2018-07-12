@@ -20,6 +20,7 @@ This function returns a true false vector with true for the values to exclude.
 }
 \description{
 This function detects genes with more than threshold percent of expression values under the min value.
+NA expression values are not considered.
 }
 \examples{
 # Example for detect_zero_value function
