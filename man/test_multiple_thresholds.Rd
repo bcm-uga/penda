@@ -2,19 +2,19 @@
 % Please edit documentation in R/choose_param.R
 \name{test_multiple_thresholds}
 \alias{test_multiple_thresholds}
-\title{test_multiple_thresholds}
+\title{Test gene expression variations for multiple thresholds}
 \usage{
-test_multiple_thresholds(ctrl_data, D_U_ctrl, simulation, threshold_values,
+test_multiple_thresholds(controls, D_U_list, simulation, threshold_values,
   iterations, quant_test = 0, factor_test = 1)
 }
 \arguments{
-\item{ctrl_data}{A matrix with genes expressions in controls for all the patients.}
+\item{controls}{A matrix with genes expressions in controls for all the patients.}
 
-\item{D_U_ctrl}{The list of Down and Up-expressed genes matrices in the control.}
+\item{D_U_list}{The list of Down and Up-expressed genes matrices in the control.}
 
-\item{simulation}{The list of initial data $initial_data and modified data in $simulated_data}
+\item{simulation}{The simulation with the list of initial data $initial_data and modified data in $simulated_data.}
 
-\item{threshold_values}{The vector of values of the threshold for regulation_test.}
+\item{threshold_values}{The vector of values of the threshold for the regulation test.}
 
 \item{iterations}{The maximal number of iterations for the test. If the dysregulation list
 no longer changes, iterations are stop before.}
@@ -28,12 +28,9 @@ This function returns a list of two logical matrices. The D matrix with for each
 TRUE for genes down-regulated, and the U matrix with TRUE for genes up-regulated.
 }
 \description{
-This function makes patient_test for different values of the threshold.
+This function makes the Penda dysregulation test for different values of the threshold.
 }
 \examples{
-D_U = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
-simulation = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
-multiple_values = c(0.01, 0.02, 0.03)
-test_threshold = test_multiple_thresholds(ctrl_data, D_U, simulation, threshold_values = multiple_values, iterations = 10, quant_test = 0, factor_test = 1)
+examples/ex_test_multiple_thresholds.R
 
 }

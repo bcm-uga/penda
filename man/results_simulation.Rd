@@ -2,7 +2,7 @@
 % Please edit documentation in R/simu.R
 \name{results_simulation}
 \alias{results_simulation}
-\title{results_simulation}
+\title{Compare the results of the test on the simulation to the reality.}
 \usage{
 results_simulation(D_matrix, U_matrix, simulation)
 }
@@ -25,8 +25,23 @@ This function computes the number of false positive, true positive, false negati
 and false positive results after the test on a simulation.
 }
 \examples{
-D_U = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
-simulation = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
-results_simulation(D_matrix = D_U$D, U_matrix = D_U$U, initial_data = simulation$initial_data, simulated_data = simulation$simulated_data)
+# First, load and define the data, make the simulation
+controls = penda::data_ctrl[1:10, 1:10]
+simu_data = penda::data_ctrl[1:10,11:16]
+simulation = penda::simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
+# Second, down and up list are computed
+D_U_list = penda::compute_down_and_up_list(controls, threshold = 0.99, s_max = 50)
+# Third, test is the expression is deregulated for each gene of a sample
+res_penda = penda::penda_test(samples,
+                              controls,
+                              iterations = 20,
+                              D_U_list,
+                              threshold = 0.03,
+                              quant_test = 0,
+                              factor_test = 1)
+# Fourth, compare the result of the simulation to the reality
+results = penda::results_simulation(res_penda$D,
+                                    res_penda$U,
+                                    simulation)
 
 }

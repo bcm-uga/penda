@@ -17,7 +17,7 @@ no longer changes, iterations are stop before.}
 
 \item{D_U_list}{The list of Down and Up-expressed genes matrices in the control.}
 
-\item{threshold}{The threshold for regulation_test}
+\item{threshold}{The threshold for regulation_test.}
 
 \item{quant_test}{The quantile for the test. When D and U lists are void, we use the naive method.}
 
@@ -27,7 +27,7 @@ no longer changes, iterations are stop before.}
 This function return a list of two matrices (down_genes and up_genes)
 }
 \description{
-This function applies the function sample_test to a serie of samples
+This function applies the function sample_test to a serie of samples.
 }
 \examples{
 # First, load and define the data

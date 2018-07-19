@@ -2,7 +2,7 @@
 % Please edit documentation in R/choose_param.R
 \name{DU_rearrangement}
 \alias{DU_rearrangement}
-\title{DU_rearrangement}
+\title{Reorganization of results matrix after the multiple test.}
 \usage{
 DU_rearrangement(multiple_tests, simu_data, multiple_values)
 }
@@ -20,13 +20,4 @@ for genes down-regulated, and the U matrix with TRUE for genes up-regulated.
 \description{
 This function reorganizes matrices resulting from the multiple test. It takes a
 "DUDUDUDU" matrix and make two independant D and U matrices.
-}
-\examples{
-D_U = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
-simulation = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
-multiple_values = c(0.01, 0.02, 0.03)
-multiple_test = sapply(multiple_values, function(value){
- sample_test(ctrl_data, simulated_data, quant_0 = 0.03, iterations = 10, D_U, threshold = value)
-})
-sorted_matrix = DU_rearrangement(multiple_test, simulation$initial_data, multiple_values)
 }

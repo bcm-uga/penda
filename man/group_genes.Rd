@@ -2,12 +2,12 @@
 % Please edit documentation in R/simu.R
 \name{group_genes}
 \alias{group_genes}
-\title{group_genes}
+\title{Group genes with similar expression}
 \usage{
-group_genes(ctrl_data, cancer_data, size_grp = 100, quant = 0.05)
+group_genes(controls, cancer_data, size_grp = 100, quant = 0.05)
 }
 \arguments{
-\item{ctrl_data}{A matrix with genes expressions in controls for all the patients.}
+\item{controls}{A matrix with genes expressions in controls for all the patients.}
 
 \item{cancer_data}{A matrix with dysregulated genes expressions for all the patients.}
 

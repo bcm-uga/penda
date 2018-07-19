@@ -2,7 +2,7 @@
 % Please edit documentation in R/choose_param.R
 \name{choose_quantile}
 \alias{choose_quantile}
-\title{choose_quantile}
+\title{Test gene expression variations with the quantile test for multiple quantil values in a serie of samples}
 \usage{
 choose_quantile(ctrl_data, simulation, FDR_goal, factor = 1.4,
   quantile_values = c(0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08,
@@ -24,11 +24,20 @@ This function returns a matrix with 3 columns : the value of the quantile tested
 the FDR and the TPR of the test.
 }
 \description{
-This function makes for each patient the naive test with multiple values for the quantile.
-After that, it computes FDR and TPR, and print the quantile closest of your goal FDR.
+This function makes for each patient the quantile test with different values for the quantil.
+After that, it computes FDR and TPR, and print the quantil closest of your goal FDR.
 }
 \examples{
-simulation = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
-which_quantile = choose_quantile(ctrl_data, simulation, FDR_goal = 0.06)
-
+# First, load and define the data, make the simulation
+controls = penda::data_ctrl[1:10, 1:10]
+simu_data = penda::data_ctrl[1:10,11:16]
+simulation = penda::simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
+# Second, choose the vector of quantiles to test
+quantile_values = c(0, 0.02, 0.04, 0.06, 0.08, 0.1, 0.15, 0.2, 0.25, 0.30, 0.35, 0.4, 0.45)
+# Third, make the test on simulation for different quantiles
+which_quantile = penda::choose_quantile(controls,
+                                simulation,
+                                FDR_goal = 0.05,
+                                factor = 1.2,
+                                quantile_values)
 }

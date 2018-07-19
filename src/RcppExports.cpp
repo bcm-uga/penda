@@ -17,9 +17,37 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// compute_DU_cppNA
+List compute_DU_cppNA(NumericMatrix data_ctrl, double threshold, NumericVector nbNA);
+RcppExport SEXP _penda_compute_DU_cppNA(SEXP data_ctrlSEXP, SEXP thresholdSEXP, SEXP nbNASEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type data_ctrl(data_ctrlSEXP);
+    Rcpp::traits::input_parameter< double >::type threshold(thresholdSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type nbNA(nbNASEXP);
+    rcpp_result_gen = Rcpp::wrap(compute_DU_cppNA(data_ctrl, threshold, nbNA));
+    return rcpp_result_gen;
+END_RCPP
+}
+// compute_DU_cpp_size
+List compute_DU_cpp_size(NumericVector data_gene, NumericMatrix data_ctrl, double threshold);
+RcppExport SEXP _penda_compute_DU_cpp_size(SEXP data_geneSEXP, SEXP data_ctrlSEXP, SEXP thresholdSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type data_gene(data_geneSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type data_ctrl(data_ctrlSEXP);
+    Rcpp::traits::input_parameter< double >::type threshold(thresholdSEXP);
+    rcpp_result_gen = Rcpp::wrap(compute_DU_cpp_size(data_gene, data_ctrl, threshold));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_penda_compute_DU_cpp", (DL_FUNC) &_penda_compute_DU_cpp, 2},
+    {"_penda_compute_DU_cppNA", (DL_FUNC) &_penda_compute_DU_cppNA, 3},
+    {"_penda_compute_DU_cpp_size", (DL_FUNC) &_penda_compute_DU_cpp_size, 3},
     {NULL, NULL, 0}
 };
 

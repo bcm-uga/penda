@@ -17,7 +17,7 @@ no longer changes, iterations are stop before.}
 
 \item{D_U_list}{The list of Down and Up-expressed genes matrices in the control.}
 
-\item{threshold}{The threshold for regulation_test}
+\item{threshold}{The threshold for regulation_test.}
 
 \item{quant_test}{The quantile for the test. When D and U lists are void, we use the naive method.}
 

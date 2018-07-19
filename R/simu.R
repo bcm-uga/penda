@@ -1,4 +1,8 @@
-#'simplified_simulation
+# Authors: Clémentine Decamps, UGA
+# clementine.decamps@univ-grenoble-alpes.fr
+#
+#---------------------------------------------
+#'Simplified simulation of data dysregulation.
 #'
 #' This function simulates the dysregulation (up and down) of datas.
 #'
@@ -16,7 +20,7 @@
 #'simulated_data, datas with up and down modifications
 #'changes_idx, index of datas with modifications
 #'
-#'@example simu = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
+#'@example examples/ex_simplified_simulation.R
 #'
 #'@export
 
@@ -43,13 +47,16 @@ simplified_simulation = function(data, fraction, threshold = 60, modifier = 30, 
   return(list(initial_data = data, simulated_data = simu_data, changes_idx = perturb))
 }
 
-
-#'group_genes
+# Authors: Clémentine Decamps, UGA
+# clementine.decamps@univ-grenoble-alpes.fr
+#
+#---------------------------------------------
+#' Group genes with similar expression
 #'
 #' This function makes group of genes with similar expression. For each group, the function computes the
 #' proportion of dysregulated genes in cancer and the difference delta.
 #'
-#'@param ctrl_data A matrix with genes expressions in controls for all the patients.
+#'@param controls A matrix with genes expressions in controls for all the patients.
 #'@param cancer_data A matrix with dysregulated genes expressions for all the patients.
 #'@param size_grp The size of each group of genes.
 #'@param quant The quantile of gene expression in control. Cancer genes outside this limit are considerd dysregulated.
@@ -59,22 +66,19 @@ simplified_simulation = function(data, fraction, threshold = 60, modifier = 30, 
 #'Limit max, the last value of the group,
 #'Proportion of dysregulation, the proportion of cancer genes outside the quantile limit.
 #'Deltas dysregul, a list with all the value of cancer genes - control genes.
-#'
-#'@example group = group_genes(ctrl_data, cancer_data)
-#'
 
-group_genes = function(ctrl_data, cancer_data, size_grp = 100, quant = 0.05){
+group_genes = function(controls, cancer_data, size_grp = 100, quant = 0.05){
 
   results = c()
-  #Vector with all the control genes sorted
-  all_ctrl = as.vector(ctrl_data)
-  names(all_ctrl) = rep(rownames(ctrl_data), times = ncol(ctrl_data))
+  #Sorting all controls in a vector.
+  all_ctrl = as.vector(controls)
+  names(all_ctrl) = rep(rownames(controls), times = ncol(controls))
   all_ctrl = sort(all_ctrl)
   nb_grp = floor(length(all_ctrl) / size_grp)
 
-  #For each group
+  #For each group,
   for (grp in 1:nb_grp){
-    #We define limits and genes of the group
+    #We define limits and genes of the group.
     if (grp < nb_grp){
       limits = c(1 + (grp - 1) * size_grp, grp * size_grp)
     } else {
@@ -84,19 +88,19 @@ group_genes = function(ctrl_data, cancer_data, size_grp = 100, quant = 0.05){
     delta_gen = c()
     delta_cancer = c()
 
-    #For all genes of the group
+    #For all genes of the group,
     for (g in 1:length(genes_grp)){
       gene_name = names(genes_grp)[g]
-      #Difference between the gene expression in control and this gene
-      delta = ctrl_data[gene_name, ] - rep(genes_grp[g], times = ncol(ctrl_data))
+      #Computing differences between the gene expression in control and this gene.
+      delta = controls[gene_name, ] - rep(genes_grp[g], times = ncol(controls))
       delta = delta[-which(delta==0)[1]]
       delta_gen = rbind(delta_gen, delta)
-      #Difference between the gene expression in cancer and this gene
+      #Computing differences between the gene expression in cancer and this gene.
       delta = cancer_data[gene_name, ] - rep(genes_grp[g], times = ncol(cancer_data))
       delta_cancer = rbind(delta_cancer, delta)
     }
 
-    #We compute the proportion of genes outside of limits
+    #Computing the proportion of genes outside of limits.
     q = quantile(delta_gen, c(quant,(1-quant)))
     prop = length(which(delta_cancer < q[1] | delta_cancer > q[2])) / length(delta_cancer)
     delta_deregul = delta_cancer[which(delta_cancer < q[1] | delta_cancer > q[2])]
@@ -107,12 +111,16 @@ group_genes = function(ctrl_data, cancer_data, size_grp = 100, quant = 0.05){
 }
 
 
-#'complex_simulation
+# Authors: Clémentine Decamps, UGA
+# clementine.decamps@univ-grenoble-alpes.fr
+#
+#---------------------------------------------
+#'Simulation of dysregulation that takes in account real datas
 #'
 #' This function simulated the dysregulation of datas, using the real distribution of genes, proportion of
 #' dysregulation and difference between control and cancer.
 #'
-#'@param ctrl_data A matrix with genes expressions in controls for all the patients.
+#'@param controls A matrix with genes expressions in controls for all the patients.
 #'@param cancer_data A matrix with dysregulated genes expressions for all the patients.
 #'@param data vector or matrix of original data to edit.
 #'@param size_grp The size of each group of genes for the grouping.
@@ -123,14 +131,14 @@ group_genes = function(ctrl_data, cancer_data, size_grp = 100, quant = 0.05){
 #'simulated_data, datas with up and down modifications
 #'changes_idx, index of datas with modifications
 #'
-#'@example simu = complex_simulation(ctrl_data, cancer_data, simu_data)
+#'@example examples/ex_complex_simulation.R
 #'
 #'@export
 
-complex_simulation = function(ctrl_data, cancer_data, data, size_grp = 100, quant = 0.05){
+complex_simulation = function(controls, cancer_data, data, size_grp = 100, quant = 0.05){
   simu_data = data
   print("Computing genes groups")
-  group = group_genes(ctrl_data, cancer_data, size_grp, quant)
+  group = group_genes(controls, cancer_data, size_grp, quant)
   limits = rbind(as.numeric(unlist(group[,1])), as.numeric(unlist(group[,2])))
   prop = unlist(group[,3])
 
@@ -155,7 +163,11 @@ complex_simulation = function(ctrl_data, cancer_data, data, size_grp = 100, quan
 }
 
 
-#'results_simulation
+# Authors: Clémentine Decamps, UGA
+# clementine.decamps@univ-grenoble-alpes.fr
+#
+#---------------------------------------------
+#'Compare the results of the test on the simulation to the reality.
 #'
 #' This function computes the number of false positive, true positive, false negative
 #' and false positive results after the test on a simulation.
@@ -170,10 +182,7 @@ complex_simulation = function(ctrl_data, cancer_data, data, size_grp = 100, quan
 #'FN, the numbler of false negative results
 #'TN, the numbler of true negative results
 #'
-#'@examples
-#' D_U = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
-#' simulation = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
-#' results_simulation(D_matrix = D_U$D, U_matrix = D_U$U, initial_data = simulation$initial_data, simulated_data = simulation$simulated_data)
+#'@example examples/ex_results_simulation.R
 #'
 #'@export
 
@@ -184,25 +193,29 @@ results_simulation = function(D_matrix, U_matrix, simulation){
   down = initial_data > simu_data
   up = initial_data < simu_data
 
-  #True positive = real down results and real up results
+  #True positive = real down results and real up results.
   TP = (length (which(down == TRUE & D_matrix == TRUE))
         + length (which(up == TRUE & U_matrix == TRUE)))
 
-  #False positive = down or up results, but not changed in reality
+  #False positive = down or up results, but not changed in reality.
   FP = (length (which(down == 0 & D_matrix == 1))
         + length (which(up == 0 & U_matrix == 1)))
 
-  #False negative = not changed results, but down or up in reality
+  #False negative = not changed results, but down or up in reality.
   FN = (length (which((up == 1 | down == 1) & D_matrix == 0 & U_matrix == 0)))
 
-  #TN = real not changed results
+  #TN = real not changed results.
   TN = (length (which(down == 0 & up == 0 & D_matrix == 0 & U_matrix == 0)))
 
   return(list(TP = TP, FP = FP, FN = FN, TN = TN ))
 }
 
 
-#'draw_results
+# Authors: Clémentine Decamps, UGA
+# clementine.decamps@univ-grenoble-alpes.fr
+#
+#---------------------------------------------
+#' Graphic representation of the simulation results
 #'
 #' This function computes the the FDR and the TPR and makes a ggplot of the results.
 #'
@@ -210,11 +223,7 @@ results_simulation = function(D_matrix, U_matrix, simulation){
 #'
 #'@return This function returns a barplot of results, FDR and TPR.
 #'
-#'@examples
-#'D_U = find_D_U_ctrl(ctrl_data, quant = 0.001, factor = 4, threshold = 0.99)
-#'simulation = simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
-#'res = results_simulation(D_matrix = D_U$D, U_matrix = D_U$U, initial_data = simulation$initial_data, simulated_data = simulation$simulated_data)
-#'draw_results(res)
+#'@example examples/ex_draw_results.R
 #'
 #'@export
 
@@ -224,4 +233,3 @@ draw_results = function(results){
   library(ggplot2)
   ggplot(df, aes(x=type, y=results, fill=type)) + geom_bar(stat="identity") + geom_text(aes(label=results), vjust=1)
 }
-

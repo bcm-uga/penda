@@ -14,7 +14,7 @@ regulation_test(gene, D_U_list, sample, threshold, controls, quant_test = 0,
 
 \item{sample}{The vector of genes expressions for one patient.}
 
-\item{threshold}{If Dd/Du and Uu/ud are under this threshold, the expression not change}
+\item{threshold}{If Dd/Du and Uu/ud are under this threshold, the expression not change.}
 
 \item{controls}{The matrix with genes expressions in controls for all the patients.}
 

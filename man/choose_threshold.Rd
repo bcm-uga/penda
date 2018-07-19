@@ -2,20 +2,20 @@
 % Please edit documentation in R/choose_param.R
 \name{choose_threshold}
 \alias{choose_threshold}
-\title{choose_threshold}
+\title{Test gene expression variations for multiple thresholds in a serie of samples}
 \usage{
-choose_threshold(ctrl_data, D_U_ctrl, iterations, simulation, threshold_values,
+choose_threshold(controls, D_U_list, iterations, simulation, threshold_values,
   FDR_goal = 0.06, quant_test = 0, factor_test = 1)
 }
 \arguments{
-\item{ctrl_data}{A matrix with genes expressions in controls for all the patients.}
+\item{controls}{A matrix with genes expressions in controls for all the patients.}
 
-\item{D_U_ctrl}{The list of Down and Up-expressed genes matrices in the control.}
+\item{D_U_list}{The list of Down and Up-expressed genes matrices in the control.}
 
 \item{iterations}{The maximal number of iterations for the test. If the dysregulation list
 no longer changes, iterations are stop before.}
 
-\item{simulation}{The list of initial data $initial_data and modified data in $simulated_data}
+\item{simulation}{The simulation with the list of initial data $initial_data and modified data in $simulated_data.}
 
 \item{threshold_values}{A vector with different values to test for the threshold.}
 
@@ -30,6 +30,25 @@ This function returns a matrix with 4 columns : the patient number, the value of
 the FDR and the TPR of the test.
 }
 \description{
-This function makes for each patient the test with multiple values for the treshold.
+This function makes for each patient the Penda test with different values for the treshold.
 After that, it computes FDR and TPR, and print the threshold closest of your goal FDR.
+}
+\examples{
+# First, load and define the data, make the simulation
+controls = penda::data_ctrl[1:10, 1:10]
+simu_data = penda::data_ctrl[1:10,11:16]
+simulation = penda::simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
+# Second, down and up list are computed
+D_U_list = penda::compute_down_and_up_list(controls, threshold = 0.99, s_max = 50)
+# Third, choose the vector of threshold to test
+threshold_values = c(0.1, 0.2, 0.3, 0.4, 0.5)
+# Fourth, make the test on simulation for different thresholds
+which_threshold = penda::choose_threshold(controls,
+                                D_U_list,
+                                iterations = 20,
+                                simulation,
+                                threshold_values,
+                                FDR_goal = 0.05,
+                                quant_test = 0,
+                                factor_test = 1)
 }

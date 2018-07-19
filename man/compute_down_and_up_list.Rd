@@ -2,7 +2,7 @@
 % Please edit documentation in R/ranking.R
 \name{compute_down_and_up_list}
 \alias{compute_down_and_up_list}
-\title{compute_down_and_up_list}
+\title{Compute D and U list in control samples.}
 \usage{
 compute_down_and_up_list(controls, threshold, s_max = 50)
 }
@@ -15,12 +15,13 @@ compute_down_and_up_list(controls, threshold, s_max = 50)
 }
 \value{
 This function returns a list of two logical matrices :
-the D matrix, with TRUE if the row gene has a lower expression than the column gene,
-and the U Matrix with TRUE if the row gene has a higher expression than the column gene.
+- the D matrix, with TRUE if the row gene has a lower expression than the column gene,
+- the U Matrix with TRUE if the row gene has a higher expression than the column gene.
 }
 \description{
-This function ranks each gene and finds the genes which are more or less exprimed.
-It's the same than "find_D_U_ctrl_size" but faster because uses rcpp to rank.
+For each gene, this function computes two lists. The D list, with genes less expressed in threshold% of controls,
+and the U list with genes more expressed in threshold% of controls. These lists can be used in Penda test to compare
+the gene rank in samples.
 }
 \examples{
 # First, data are filtering to remove low expression values

@@ -18,3 +18,38 @@ compute_DU_cpp <- function(data_ctrl, threshold) {
     .Call(`_penda_compute_DU_cpp`, data_ctrl, threshold)
 }
 
+#' compute_DU_cppNA
+#'
+#' This function makes the matrix D and U for all the genes without count NA values.
+#'
+#' @param data_ctrl A numeric matrix with the genes expressions for each patient.
+#' @param threshold The proportion of genes that must be under or above the gene.
+#' @param nbNA The number of NA for each gene.
+#'
+#' @return This function returns a list of two logical matrices :
+#' the D matrix, with TRUE if the row gene has a lower expression than the column gene,
+#' and the U Matrix with TRUE if the row gene has a higher expression than the column gene.
+#' And a string vector with the genes names.
+#'
+#' @export
+compute_DU_cppNA <- function(data_ctrl, threshold, nbNA) {
+    .Call(`_penda_compute_DU_cppNA`, data_ctrl, threshold, nbNA)
+}
+
+#' compute_DU_cpp_size
+#'
+#' This function makes the matrix D and U for all the genes.
+#'
+#' @param data_ctrl A numeric matrix with the genes expressions for each patient.
+#' @param threshold The proportion of genes that must be under or above the gene.
+#'
+#' @return This function returns a list of two logical matrices :
+#' the D matrix, with TRUE if the row gene has a lower expression than the column gene,
+#' and the U Matrix with TRUE if the row gene has a higher expression than the column gene.
+#' And a string vector with the genes names.
+#'
+#' @export
+compute_DU_cpp_size <- function(data_gene, data_ctrl, threshold) {
+    .Call(`_penda_compute_DU_cpp_size`, data_gene, data_ctrl, threshold)
+}
+

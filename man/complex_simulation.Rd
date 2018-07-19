@@ -2,13 +2,13 @@
 % Please edit documentation in R/simu.R
 \name{complex_simulation}
 \alias{complex_simulation}
-\title{complex_simulation}
+\title{Simulation of dysregulation that takes in account real datas}
 \usage{
-complex_simulation(ctrl_data, cancer_data, data, size_grp = 100,
+complex_simulation(controls, cancer_data, data, size_grp = 100,
   quant = 0.05)
 }
 \arguments{
-\item{ctrl_data}{A matrix with genes expressions in controls for all the patients.}
+\item{controls}{A matrix with genes expressions in controls for all the patients.}
 
 \item{cancer_data}{A matrix with dysregulated genes expressions for all the patients.}
 
@@ -27,4 +27,16 @@ changes_idx, index of datas with modifications
 \description{
 This function simulated the dysregulation of datas, using the real distribution of genes, proportion of
 dysregulation and difference between control and cancer.
+}
+\examples{
+# First, load and define the data
+controls = penda::data_ctrl[1:1000, 1:10]
+samples = penda::data_case[1:1000, 1:3]
+simu_data = penda::data_ctrl[1:1000,11:16]
+# Second, make the simulation
+simulation = penda::complex_simulation(controls,
+                                       samples,
+                                       simu_data,
+                                       size_grp = 80,
+                                       quant = 0.05)
 }
