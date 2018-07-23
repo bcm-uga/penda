@@ -234,7 +234,7 @@ return(list(down_genes = down_genes, up_genes = up_genes))
 
 quantile_test = function(controls, samples, quant, factor){
 
-  quantile_gene = apply(controls, 1, quantile, c(quant,(1-quant)))
+  quantile_gene = apply(controls, 1, quantile, c(quant,(1-quant)), na.rm = TRUE)
   quantile_gene[1,] = quantile_gene[1,] / factor
   quantile_gene[2,] = quantile_gene[2,] * factor
 

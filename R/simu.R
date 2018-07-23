@@ -101,7 +101,7 @@ group_genes = function(controls, cancer_data, size_grp = 100, quant = 0.05){
     }
 
     #Computing the proportion of genes outside of limits.
-    q = quantile(delta_gen, c(quant,(1-quant)))
+    q = quantile(delta_gen, c(quant,(1-quant)), na.rm = TRUE)
     prop = length(which(delta_cancer < q[1] | delta_cancer > q[2])) / length(delta_cancer)
     delta_deregul = delta_cancer[which(delta_cancer < q[1] | delta_cancer > q[2])]
     results = rbind(results, c(all_ctrl[limits[1]], all_ctrl[limits[2]], prop, list(delta_deregul)))
@@ -146,16 +146,18 @@ complex_simulation = function(controls, cancer_data, data, size_grp = 100, quant
   for (p in 1:ncol(simu_data)){
     for (g in 1:nrow(simu_data)){
       gene = simu_data[g, p]
+      if (is.na(gene) == FALSE){
       group_gene = max(which(gene >= limits[1,]))
       prop_gene = prop[group_gene]
-      if (runif(1) <= prop_gene) {
-        all_delta = unlist(group[,4][group_gene])
-        delta = sample(all_delta, 1)
-        while((simu_data[g,p] + delta) < 0){
+        if (runif(1) <= prop_gene) {
+          all_delta = unlist(group[,4][group_gene])
           delta = sample(all_delta, 1)
-        }
-        simu_data[g, p] = simu_data[g,p] + delta
+          while((simu_data[g,p] + delta) < 0){
+            delta = sample(all_delta, 1)
+          }
+          simu_data[g, p] = simu_data[g,p] + delta
 
+        }
       }
     }
   }

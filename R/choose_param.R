@@ -151,12 +151,12 @@ choose_threshold = function(controls, D_U_list, iterations, simulation, threshol
 # clementine.decamps@univ-grenoble-alpes.fr
 #
 #---------------------------------------------
-#'Test gene expression variations with the quantile test for multiple quantil values in a serie of samples
+#'Test gene expression variations with the quantile test for multiple quantile values in a serie of samples
 #'
 #' This function makes for each patient the quantile test with different values for the quantil.
-#' After that, it computes FDR and TPR, and print the quantil closest of your goal FDR.
+#' After that, it computes FDR and TPR, and print the quantile closest of your goal FDR.
 #'
-#'@param ctrl_data A matrix with genes expressions in controls for all the patients.
+#'@param controls A matrix with genes expressions in controls for all the patients.
 #'@param simulation The list of initial data $initial_data and modified data in $simulated_data
 #'@param FDR_goal The FDR you would like for this test.
 #'@param factor The factor for the test The D limit will be quantmin/factor, and the U limit quantmax*factor.
@@ -169,12 +169,12 @@ choose_threshold = function(controls, D_U_list, iterations, simulation, threshol
 #'
 #'@export
 
-choose_quantile = function(ctrl_data, simulation, FDR_goal, factor = 1.4, quantile_values = c(0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.2)){
+choose_quantile = function(controls, simulation, FDR_goal, factor = 1.4, quantile_values = c(0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.2)){
 
   results = c()
   print ("Computing results")
   for (q in 1:length(quantile_values)){
-    test = quantile_test(ctrl_data, simulation$simulated_data, quantile_values[q], factor)
+    test = quantile_test(controls, simulation$simulated_data, quantile_values[q], factor)
     results_simu = results_simulation(test$D, test$U, simulation)
     FDR = results_simu$FP / (results_simu$TP + results_simu$FP)
     TPR  = results_simu$TP / (results_simu$TP + results_simu$FN)
