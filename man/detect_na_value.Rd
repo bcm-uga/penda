@@ -4,7 +4,7 @@
 \alias{detect_na_value}
 \title{Find NA values}
 \usage{
-detect_na_value(controls, cancer_data, threshold)
+detect_na_value(controls, cancer_data, threshold, probes = TRUE)
 }
 \arguments{
 \item{controls}{A matrix with datas to analyze.}
@@ -12,6 +12,8 @@ detect_na_value(controls, cancer_data, threshold)
 \item{cancer_data}{A matrix with other conditions datas to analyze.}
 
 \item{threshold}{The maximum proportion of NA tolerated for each probe.}
+
+\item{probes}{TRUE if you want to sort for probes, FALSE to sort for patients.}
 }
 \value{
 This function returns a true false vector with true for the values to exclude.

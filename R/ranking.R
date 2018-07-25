@@ -70,6 +70,7 @@ detect_zero_value = function(controls, cancer_data, threshold, min = 0) {
 #'@param controls A matrix with datas to analyze.
 #'@param cancer_data A matrix with other conditions datas to analyze.
 #'@param threshold The maximum proportion of NA tolerated for each probe.
+#'@param probes TRUE if you want to sort for probes, FALSE to sort for patients.
 #'
 #'@return This function returns a true false vector with true for the values to exclude.
 #'
@@ -77,15 +78,25 @@ detect_zero_value = function(controls, cancer_data, threshold, min = 0) {
 #'
 #'@export
 
-detect_na_value = function(controls, cancer_data, threshold) {
+detect_na_value = function(controls, cancer_data, threshold, probes = TRUE) {
 
-  nactrl = rowSums(is.na(controls))
-  nacancer = rowSums(is.na(cancer_data))
-  low_na = nactrl >= threshold*ncol(controls) &
-              nacancer >= threshold*ncol(cancer_data)
-  print(paste0(sum(low_na), " probes are NA in at least ", threshold*100, " % of the samples."))
+  if (probes == TRUE){
 
-  return(low_na)
+    nactrl = rowSums(is.na(controls))
+    nacancer = rowSums(is.na(cancer_data))
+    low_na = nactrl >= threshold*ncol(controls) & nacancer >= threshold*ncol(cancer_data)
+    print(paste0(sum(low_na), " probes are NA in at least ", threshold*100, " % of the samples."))
+    return(low_na)
+
+  } else {
+
+    nactrl = colSums(is.na(controls))
+    nacancer = colSums(is.na(cancer_data))
+    low_na = c(nactrl >= threshold*nrow(controls), nacancer >= threshold*nrow(cancer_data))
+    print(paste0(sum(low_na), " patients have NA for at least ", threshold*100, " % of the probes."))
+    return(low_na)
+
+  }
 }
 
 
