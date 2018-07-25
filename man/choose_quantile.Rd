@@ -2,14 +2,14 @@
 % Please edit documentation in R/choose_param.R
 \name{choose_quantile}
 \alias{choose_quantile}
-\title{Test gene expression variations with the quantile test for multiple quantil values in a serie of samples}
+\title{Test gene expression variations with the quantile test for multiple quantile values in a serie of samples}
 \usage{
-choose_quantile(ctrl_data, simulation, FDR_goal, factor = 1.4,
+choose_quantile(controls, simulation, FDR_goal, factor = 1.4,
   quantile_values = c(0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08,
   0.09, 0.1, 0.2))
 }
 \arguments{
-\item{ctrl_data}{A matrix with genes expressions in controls for all the patients.}
+\item{controls}{A matrix with genes expressions in controls for all the patients.}
 
 \item{simulation}{The list of initial data $initial_data and modified data in $simulated_data}
 
@@ -25,7 +25,7 @@ the FDR and the TPR of the test.
 }
 \description{
 This function makes for each patient the quantile test with different values for the quantil.
-After that, it computes FDR and TPR, and print the quantil closest of your goal FDR.
+After that, it computes FDR and TPR, and print the quantile closest of your goal FDR.
 }
 \examples{
 # First, load and define the data, make the simulation
