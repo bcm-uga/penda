@@ -96,23 +96,37 @@ test_multiple_thresholds = function(controls, D_U_list, simulation, threshold_va
 
 choose_threshold = function(controls, D_U_list, iterations, simulation, threshold_values, FDR_goal = 0.06, quant_test = 0, factor_test = 1){
   results = c()
-  #For each patient,
-  for(p in 1:ncol(simulation$initial_data)){
-    print(c("Patient number",p))
-    simulation_p = list(initial_data = simulation$initial_data[,p], simulated_data = simulation$simulated_data[,p])
+  #If simulation is a matrix, we do the test and compute errors for each patient
+  if (is.matrix(simulation$initial_data)) {
+    for(p in 1:ncol(simulation$initial_data)){
+      print(c("Patient number",p))
+      simulation_p = list(initial_data = simulation$initial_data[,p], simulated_data = simulation$simulated_data[,p])
 
-    #The test is made for all the values of threshold.
-    test = test_multiple_thresholds(controls, D_U_list, simulation_p, threshold_values, iterations, quant_test, factor_test)
+      #The test is made for all the values of threshold.
+      test = test_multiple_thresholds(controls, D_U_list, simulation_p, threshold_values, iterations, quant_test, factor_test)
 
-    #For each value,
+      #For each value,
+      for(value in 1:ncol(test$D)){
+        #Computing of FP, TP, FN, TN
+        results_simu = results_simulation(test$D[,value], test$U[,value], simulation_p)
+        #Computing of FDR and TPR
+        FDR = results_simu$FP / (results_simu$TP + results_simu$FP)
+        TPR  = results_simu$TP / (results_simu$TP + results_simu$FN)
+        FPR = results_simu$FP / (results_simu$TN + results_simu$FP)
+        results = rbind(results, c(p, colnames(test$D)[value], FDR, TPR, FPR))
+      }
+    }
+
+  } else {
+    test = test_multiple_thresholds(controls, D_U_list, simulation, threshold_values, iterations, quant_test, factor_test)
     for(value in 1:ncol(test$D)){
       #Computing of FP, TP, FN, TN
-      results_simu = results_simulation(test$D[,value], test$U[,value], simulation_p)
+      results_simu = results_simulation(test$D[,value], test$U[,value], simulation)
       #Computing of FDR and TPR
       FDR = results_simu$FP / (results_simu$TP + results_simu$FP)
       TPR  = results_simu$TP / (results_simu$TP + results_simu$FN)
       FPR = results_simu$FP / (results_simu$TN + results_simu$FP)
-      results = rbind(results, c(p, colnames(test$D)[value], FDR, TPR, FPR))
+      results = rbind(results, c(1, colnames(test$D)[value], FDR, TPR, FPR))
     }
   }
 
