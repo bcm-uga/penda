@@ -5,8 +5,8 @@
 \title{Test gene expression variations with the quantile test for multiple quantile values in a serie of samples}
 \usage{
 choose_quantile(controls, simulation, FDR_goal, factor = 1.4,
-  quantile_values = c(0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08,
-  0.09, 0.1, 0.2))
+  quantile_values = c(0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07,
+  0.08, 0.09, 0.1, 0.2))
 }
 \arguments{
 \item{controls}{A matrix with genes expressions in controls for all the patients.}

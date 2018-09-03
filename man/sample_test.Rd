@@ -4,8 +4,8 @@
 \alias{sample_test}
 \title{Test gene expression variations for a given sample}
 \usage{
-sample_test(sample, controls, iterations, D_U_list, threshold, quant_test = 0,
-  factor_test = 1)
+sample_test(sample, controls, iterations, D_U_list, threshold,
+  quant_test = 0, factor_test = 1)
 }
 \arguments{
 \item{sample}{A vector with all the genes expressions for one patient.}

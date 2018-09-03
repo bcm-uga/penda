@@ -4,8 +4,8 @@
 \alias{regulation_test}
 \title{Test gene expression variation for a given gene}
 \usage{
-regulation_test(gene, D_U_list, sample, threshold, controls, quant_test = 0,
-  factor_test = 1)
+regulation_test(gene, D_U_list, sample, threshold, controls,
+  quant_test = 0, factor_test = 1)
 }
 \arguments{
 \item{gene}{The name of the gene to analyze.}

@@ -1,5 +1,5 @@
 ---
-title: "Advancer User - Performing PErsoNalized Data Analysis with `penda`"
+title: "Advanced User - Performing PErsoNalized Data Analysis with `penda`"
 author: "Magali Richard, Florent Chuffart, Clémentine Decamps, Daniel Jost"
 date: "`r Sys.Date()`"
 output: 
@@ -46,199 +46,150 @@ draw_penda = function(){
 draw_penda()
 ```
 
+# Introduction
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-source("~/projects/penda/R/simu.R")
-source("~/projects/penda/R/ranking.R")
-source("~/projects/penda/R/testing.R")
-source('~/projects/penda/R/choose_param.R')
-Rcpp::sourceCpp('~/projects/penda/R/ranking_rcpp.cpp')
+`penda` (**PE**rso**N**alized **D**ifferential **A**nalysis ) is an open-access analysis software (R package). The purpose of this tutorial is to explain how choose different parameters according to your data for an advanced user.  
+
+
+# Dataset
+
+The dataset used for this example correspond to the transcriptomes (normalized count, using DESeq2 method) of 44 patients with lung adenocarcinoma (PMID:25079552), including control and pathological samples. 
+
+`data_ctrl` is a data matrix containing normalized counts for each control sample. 
+The rownames of the matrix correspond the gene_symbol , the colnames indicate the sample ID.
+
+```{r, results="verbatim"}
+data_ctrl = penda::data_ctrl
+head(data_ctrl[,1:5])
+is.matrix(data_ctrl)
+dim(data_ctrl)
+```
+
+`data_case` is a data matrix containing normalized counts for each tumor sample. 
+The rownames of the matrix correspond the gene_symbol , the colnames indicate the sample ID.
+
+```{r, results="verbatim"}
+data_case = penda::data_case
+head(data_case[,1:5])
+is.matrix(data_case)
+dim(data_case)
+```
+
+You can use the function `detect_zero_value` to remove genes with very low expression, or the function `detect_na_value` to remove those with high rate of NA.
+
+We need control samples to do simulations and be able to compute the error rate. Here, we extract the five last patients of data_ctrl in `data_simu`.
+
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+data_simu = data_ctrl[, (ncol(data_ctrl)-4):ncol(data_ctrl)]
+colnames(data_simu) = c("P1","P2","P3","P4","P5")
+
+data_ctrl = data_ctrl[, -((ncol(data_ctrl)-4):ncol(data_ctrl))]
+```
+
+
+#Simulation of dysregulation
+
+To compute the real error rate, we need to use simulations. 
+The function `complex_simulation` uses the real distribution of difference between data_case and data_ctrl to simulate the proportion and the value of the dysregulation. 
+
+The simulation returns the vector of initial data, the vector of datas with modifications and the index of modified data. 
+
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+
+if (!file.exists("tmp/simulation.rds")){
+  simulation = penda::complex_simulation(data_ctrl, data_case, data_simu)
+  saveRDS(simulation , "tmp/simulation.rds")
+}
+
+simulation = readRDS("tmp/simulation.rds")
+
+```
+
+#Gene ranking in control
+
+Now, we have to rank gene expression in normal tissue to use the Penda method.
+
+We used the function `compute_down_and_up_list` which a list of two matrices. 
+
+The matrix **D** corresponds to the list (i.e true) of downregulated genes for each considered genes (columns).
+The matrix **U** corresponds to the list (i.e true) of upregulated genes for each considered genes (columns).
+
+For each, the list of **D** genes (resp. **U** genes) corresponds to the closest genes (up to `s_max` genes) that are down (resp. up) regulated in at least `threshold` % of the control samples. 
+
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+
+if (!file.exists("tmp/D_U_list_simu.rds")){
+  D_U_list = penda::compute_down_and_up_list(data_ctrl, threshold = 0.99, s_max = 50)
+  saveRDS(D_U_list, "tmp/D_U_list_simu.rds")
+}
+D_U_list = readRDS("tmp/D_U_list_simu.rds")
 
 ```
 
 
-#Data processing
+#Parameters of the quantile method
 
-Import your control datas, the bigger they are, the longer the analysis takes.
-You can use the function "detect_zero_value" to eliminates genes with more than "threshold" % of expression value under "min" in control or cancer datas. For example : 
+First parameters to test are those of the quantile method. This method is used in the Penda method when we don't have **D** or **U** list. There are two parameters, the `quantile` of the gene expression distribution in the control, and the `factor` which modulate this quantile value.
 
-null_values = detect_zero_value(your_data, your_cancer_data, threshold = 0.99, min = 10)
-your_data = your_data[!null_values,]
-your_cancer_data = your_cancer_data[!null_values,]
+To vary these parameters, we use the function `choose_quantile` which, for one patient, vary the quantile value for a fixed factor. This function compute then, for each quantile, three error rates.
+The **FDR**, False Discovery Rate, the proportion of false positive in all the positive results.
+The **TPR**, True Positive Rate, the proportion of true positives detected in results.
+The **FPR**, False Positive Rate, the proportion of false positive in all the negative results. 
 
-The five last patients are used to makes "simu_data" and simulates the dysregulation. They are substracte of "ctrl_data" for not distort the next steps.
-
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
-ctrl_data = readRDS('~/projects/perso_DA/data_ctrl_process.rds')
-LUSC_data = readRDS('~/projects/perso_DA/data_LUSC_process.rds')
-
-simu_data = ctrl_data[, (ncol(ctrl_data)-4):ncol(ctrl_data)]
-colnames(simu_data) = c("P1","P2","P3","P4","P5")
-
-ctrl_data = ctrl_data[, -((ncol(ctrl_data)-4):ncol(ctrl_data))]
-```
-
-
-#Making simulations
-
-##Simplified simulation
-The function "simplified_simulation" allows to simulate the dysregulation in our 5 test patients. You can choose several parameters, the first is the "fraction" of datas to dysregulate. The dysregulation is +- "modifier" if the gene expression is under the "threshold", or * / "factor" if the gene expression is above. 
-You must adapt your parameters at the expected dysregulation in your real dysregulated datas.
-The simulation returns the vector of initial data, the vector of datas with modifications and the index of modified data. We gather these vectors in matrices in the list "simulation".
+With these values, we can make a curve and choose the better quantile and the better factor to fit the experimental requirements (low FDR and high TPR).
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
-simup1 = simplified_simulation(simu_data[,1], fraction = 0.3)
-simup2 = simplified_simulation(simu_data[,2], fraction = 0.3)
-simup3 = simplified_simulation(simu_data[,3], fraction = 0.3)
-simup4 = simplified_simulation(simu_data[,4], fraction = 0.3)
-simup5 = simplified_simulation(simu_data[,5], fraction = 0.3)
+quantile_values = c(0, 0.01, 0.02, 0.03, 0.05, 0.06, 0.08, 0.1, 0.13, 0.15, 0.2, 0.25, 0.30, 0.35, 0.4, 0.45)
 
-simulation = list()
+simup1 = list(initial_data = simulation$initial_data[,1], simulated_data = simulation$simulated_data[,1])
 
-simulation$initial_data = cbind(simup1$initial_data, simup2$initial_data, simup3$initial_data, simup4$initial_data, simup5$initial_data)
-simulation$simulated_data = cbind(simup1$simulated_data, simup2$simulated_data, simup3$simulated_data, simup4$simulated_data, simup5$simulated_data)
-simulation$changes_idx = cbind(simup1$changes_idx, simup2$changes_idx, simup3$changes_idx, simup4$changes_idx, simup5$changes_idx)
+qf1 = penda::choose_quantile(data_ctrl, simup1, FDR_goal = 0.06, factor = 1, quantile_values = quantile_values)
+qf15 = penda::choose_quantile(data_ctrl, simup1, FDR_goal = 0.06, factor = 1.5, quantile_values = quantile_values)
+qf2 = penda::choose_quantile(data_ctrl, simup1, FDR_goal = 0.06, factor = 2, quantile_values = quantile_values)
+qf25 = penda::choose_quantile(data_ctrl, simup1, FDR_goal = 0.06, factor = 2.5, quantile_values = quantile_values)
+qf3 = penda::choose_quantile(data_ctrl, simup1, FDR_goal = 0.06, factor = 3, quantile_values = quantile_values)
 
-```
-
-
-##Complex Simulation
-
-Instead of the simplified simulation, you can use "complex_simulation" which use the real distribution of modifications in a sample of cancer data. 
-
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
-
-simuc1 = complex_simulation(simu_data[,1])
-simuc2 = complex_simulation(simu_data[,1])
-simuc3 = complex_simulation(simu_data[,3])
-
-simulationc = list()
-
-simulationc$initial_data = cbind(simuc1$initial_data, simuc2$initial_data, simuc3$initial_data)
-simulationc$simulated_data = cbind(simuc1$simulated_data, simuc2$simulated_data, simuc3$simulated_data)
-simulationc$changes_idx = list(simuc1$changes_idx, simuc2$changes_idx, simuc3$changes_idx)
-
-```
-
-
-#Ranking in control
-
-The function "find_D_U_ctrl" search for each genes what are genes more and less expressed in most of the cases. You can choose the limit distribution of genes studied with parameters "quant" and "factor." For one gene g, we consider only genes between (the quantile quant of g distribution / factor) and (the quantile (1-quant) of g distribution * factor).
-The bigger your limits are, the more up and down-expressed genes you will have for each gene.
-The last parameter of "find_D_U_ctrl" is the "threshold", the proportion of patients that must be in the conditions (differential expression and between the limits). A higher threshold increase the robustness of the lists, but decrease the number of genes differentially expressed.
-"find_D_U_ctrl_rcpp" is faster but need rcpp package.
-
-The new function "find_D_U_ctrl_size" replaces the limit based on quantile with a limit on number of genes in each list. The parameter "s_max" is the maximum number of D and U genes for each gene. A little numbler of D and U genes, center on the gene expression, seems more signifiant.
-"find_D_U_ctrl_size_rcpp" is the same faster, which need rcpp package.
-
-These functions return two matrix. For each gene in columns, the row gene is "TRUE" if is **D**own-expresed or **U**p-expressed.
-
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
-
-# D_U_ctrl = find_D_U_ctrl(ctrl_data, quantile = 0.001, factor = 4, threshold = 0.99)
-# saveRDS(D_U_ctrl, "D_U_93p.rds")
-D_U_ctrl = readRDS("D_U_93p.rds")
-
-#D_U_ctrl = find_D_U_ctrl_rcpp(ctrl_data, quantile = 0.001, factor = 4, threshold = 0.99)
-#D_U_ctrl = find_D_U_ctrl_size(ctrl_data, threshold = 0.99, s_max = 100)
-#D_U_ctrl = find_D_U_ctrl_size_rcpp(ctrl_data, threshold = 0.99, s_max = 100)
-
-```
-
-
-#Test the dysregulation
-
-The next step is to compare your control dataset and your dysregulate datas to detect genes with an up or down regulation. For that, it's the function "patient_test" which makes the dysregulation test for each genes of one patient.
-
-Inside patient_test, "regulation_test" is made the number of "iterations" requested until the stabilisation. This test checks for each gene if down-genes "D" or up-genes "U" have changed. "Du" are D genes become up, and "Ud" are U genes become down. The test need a threshold, if (Ud/U) and (Du/D) are under this threshold, we consider that this gene is not dysregulated. If you choose a threshold too high, you will have lots of false-positive, but if you choose a threshold too low you increase your number of false-negative. A small threshold can also increase the number of iterations before the stabilisation, and so the time of the test.
-
-##With step 0, better for large D and U lists
-
-"patient_test" use a firt step called "step0". We look at the normal distribution of each gene, if the patient gene is at the extremities of this distribution, it's suspect and we remove it of the D_U_ctrl. It's the parameter "quant_0" which allows to determine the accepted distribution, between the quantile quant_0(gene distribution) and the quantile 1-quant_0(gene distribution). A higher quantile is supposed to improve the FDR and to make the test faster, but it also decrease the TPR.
-
-After that, "regulation_test" is made the number of "iterations" requested until the stabilisation. T
-
-To help your choose of the threshold for the test, and the quantile for the step0, you can use the function "multiple_test".
-This function allows to vary quantile or threshold values, with a vector of multiple value, an unique value for the other parameter, and TRUE or FALSE for the "threshold_change".
-
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
-
-threshold_values = c(0.003, 0.1, 0.2, 0.3, 0.5)
-quantile_values = c(0, 0.005, 0.01, 0.03, 0.05, 0.1)
-
-#test_threshold = multiple_tests(ctrl_data, D_U_ctrl, iterations = 10, simulation, threshold_values, 0.03)
-# saveRDS(test_threshold, "test_threshold.rds")
-test_threshold = readRDS("test_threshold.rds")
-
-#test_quantile = multiple_tests(ctrl_data, D_U_ctrl, iterations = 10, simulation, quantile_values, 0.2, threshold_change = FALSE)
-# saveRDS(test_quantile, "test_quantile.rds")
-test_quantile = readRDS("test_quantile.rds")
-
-
-#Data frame FDR and TPR for the two simulations
-df_thres = data.frame(patient = test_threshold[,1], threshold = test_threshold[,2], FDR = as.numeric(test_threshold[,3]), TPR = as.numeric(test_threshold[,4])) 
-
-df_quant = data.frame(patient = test_quantile[,1], quantile = test_quantile[,2], FDR = as.numeric(test_quantile[,3]), TPR = as.numeric(test_quantile[,4])) 
-
-#Graphic representation
-library(ggplot2)
-graph_thres = ggplot(df_thres, aes(x = TPR, y = FDR, color = threshold, group = patient, shape = patient)) + geom_point() + geom_line()
-graph_quant = ggplot(df_quant, aes(x = TPR, y = FDR, color = quantile, group = patient, shape = patient)) + geom_point() + geom_line()
-
-#Threshold : 
-graph_thres
-
-#Quantile : 
-graph_quant
-
-```
-
-##Without step 0, with an hybrid method
-
-In this method, "regulation_test" use a naive method in case a gene don't have D or U list. The extremity quantiles of normal gene distribution is compute, and the D gene is then under quantilemin/factor, the U gene above quantilemax*factor.
-
-The first step is to choose the quantile and the factor for the naive test. It's the function "choose_quantile", you set a factor and the test is made for different quantiles. By default, quantiles tested are : 0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1 and 0.2. You can make the function several times to test different factors. 
-If you "FDR_goal" is not reachable, the graph representation can help you to choose the better.
-
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
-
-qf1 = choose_quantile(ctrl_data, simulation, FDR_goal = 0.06, factor = 1)
-qf12 = choose_quantile(ctrl_data, simulation, FDR_goal = 0.06, factor = 1.2)
-qf14 = choose_quantile(ctrl_data, simulation, FDR_goal = 0.06, factor = 1.4)
-qf16 = choose_quantile(ctrl_data, simulation, FDR_goal = 0.06, factor = 1.6)
-qf2 = choose_quantile(ctrl_data, simulation, FDR_goal = 0.06, factor = 2)
-
-#Graphic representation
-
-df_quant = data.frame(quantile = factor(c(qf1[,1], qf12[,1], qf14[,1], qf16[,1], qf2[,1]))
-                       , FDR = as.numeric(c(qf1[,2], qf12[,2], qf14[,2], qf16[,2], qf2[,2]))
-                       , TPR = as.numeric(c(qf1[,3], qf12[,3], qf14[,3], qf16[,3], qf2[,3]))
-                       , facteur = factor(c(rep(c(1,1.2,1.4,1.6, 2), each = 12)))
+df_quant = data.frame(quantile = factor(c(qf1[,1], qf15[,1], qf2[,1], qf25[,1], qf3[,1]))
+                      , FDR = as.numeric(c(qf1[,2], qf15[,2], qf2[,2], qf25[,2], qf3[,2]))
+                      , TPR = as.numeric(c(qf1[,3], qf15[,3], qf2[,3], qf25[,3], qf3[,3]))
+                      , facteur = factor(c(rep(c(1,1.5, 2, 2.5, 3), each = 16)))
 )
 
-
 library(ggplot2)
-ggplot(df_quant, aes(x = TPR, y = FDR, color = quantile, group = facteur, shape = facteur)) + geom_point() + geom_line()  + ggtitle("Naive test for different quantiles and factors")
+ggplot(df_quant, aes(x = TPR, y = FDR, color = quantile, group = facteur, shape = facteur)) + geom_point() + geom_line()
+
 
 ```
 
-When you have choose your factor and your quantile, you must choose a threshold for your test.
-The function "choose_threshold" allows to vary threshold values, it prints the threshold with the higher FDR under your FDR goal, and returns a matrix with all the FDR and TPR. 
+#Threshold of the Penda test
+
+The last important parameter to choose is the `threshold` of the test. This threshold is the importance of the change of rank necessary to assert the deregulation of a gene. 
+The function `choose_threshold` make the Penda test to different threshold values and compute the FDR, TPR and FPR. 
+
+With these values, we can make a curve and choose the better parameter to fit the experimental requirements (low FDR and high TPR).
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
-threshold_values = c(0.003, 0.1, 0.2, 0.3, 0.5)
 
-which_threshold = choose_threshold(ctrl_data, D_U_ctrl, 20, simulation, threshold_values, FDR_goal = 0.06, quant_test = 0, factor_test = 1)
+if (!file.exists("tmp/which_threshold.rds")){
+  threshold_values = c(0, 0.05, 0.1, 0.3, 0.5, 0.6, 0.7, 0.8, 0.9)
+  simup1 = list(initial_data = simulation$initial_data[,1], simulated_data = simulation$simulated_data[,1])
+  which_threshold = penda::choose_threshold(data_ctrl, D_U_list, 30, simup1, threshold_values, quant_test = 0.03, factor_test = 1)
+  saveRDS(which_threshold, "tmp/which_threshold.rds")
+}
 
-dft = as.data.frame(which_threshold)
-dft$FDR = as.numeric(which_threshold[,3])
-dft$TPR = as.numeric(which_threshold[,4])
+which_threshold = readRDS("tmp/which_threshold.rds")
 
 library(ggplot2)
-ggplot(dft, aes(x = TPR, y = FDR, color = threshold, group = patient, shape = patient)) + geom_point() + geom_line()
+df = data.frame(patient = which_threshold[,1],
+                threshold = which_threshold[,2],
+                FDR = as.numeric(which_threshold[,3]),
+                TPR = as.numeric(which_threshold[,4]))
 
 
+ggplot(df, aes(x = TPR, y = FDR, color = threshold, group = patient)) +
+  geom_point() + geom_line()+ theme_minimal()
 
 ```
+
+With these paramaters, you can now start your analysis on all the datas. 

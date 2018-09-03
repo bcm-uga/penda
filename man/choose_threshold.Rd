@@ -4,8 +4,8 @@
 \alias{choose_threshold}
 \title{Test gene expression variations for multiple thresholds in a serie of samples}
 \usage{
-choose_threshold(controls, D_U_list, iterations, simulation, threshold_values,
-  FDR_goal = 0.06, quant_test = 0, factor_test = 1)
+choose_threshold(controls, D_U_list, iterations, simulation,
+  threshold_values, FDR_goal = 0.06, quant_test = 0, factor_test = 1)
 }
 \arguments{
 \item{controls}{A matrix with genes expressions in controls for all the patients.}
