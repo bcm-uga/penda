@@ -50,6 +50,7 @@ draw_penda()
 
 `penda` (**PE**rso**N**alized **D**ifferential **A**nalysis ) is an open-access analysis software (R package). The purpose of this tutorial is to explain how choose different parameters according to your data for an advanced user.  
 
+<span style="color:red">Mag_com: Je pense qu'il faut expliquer un peu plus ici à quoi sert la vignette puis diviser le plan en 2 : (i) generate your simulated dataset avec (ia) simple simulation et (ib) simulation inspired by real dataset puis (ii) define optimal parameters for your dataset. Pour ecrire ce paragraphe, imagine que tu es un nouvel utilisateur qui découvre la vignette. </span>
 
 # Dataset
 
@@ -107,6 +108,9 @@ simulation = readRDS("tmp/simulation.rds")
 
 #Gene ranking in control
 
+<span style="color:red">Mag_com: Il faut etre plus clair sur les parametres qu'on peut faire varier et l'impact de ces variations </span>
+
+
 Now, we have to rank gene expression in normal tissue to use the Penda method.
 
 We used the function `compute_down_and_up_list` which a list of two matrices. 
@@ -129,6 +133,8 @@ D_U_list = readRDS("tmp/D_U_list_simu.rds")
 
 #Parameters of the quantile method
 
+<span style="color:red">Mag_com: peut etre qu'on pourrait inclure une figure ici pour un schéma, avec tous les parametres... </span>
+
 First parameters to test are those of the quantile method. This method is used in the Penda method when we don't have **D** or **U** list. There are two parameters, the `quantile` of the gene expression distribution in the control, and the `factor` which modulate this quantile value.
 
 To vary these parameters, we use the function `choose_quantile` which, for one patient, vary the quantile value for a fixed factor. This function compute then, for each quantile, three error rates.
@@ -136,7 +142,9 @@ The **FDR**, False Discovery Rate, the proportion of false positive in all the p
 The **TPR**, True Positive Rate, the proportion of true positives detected in results.
 The **FPR**, False Positive Rate, the proportion of false positive in all the negative results. 
 
-With these values, we can make a curve and choose the better quantile and the better factor to fit the experimental requirements (low FDR and high TPR).
+With these values, we can make a curve and choose the better quantile and the better factor to fit the experimental requirements (low FDR and high TPR). <span style="color:red">Mag_com: ce n'est pas très bien dit </span>
+
+<span style="color:red">Mag_com: pour le chunk suivant, tu peux également écrire un vecteur de facteur, et enrober tout cela dans une fonction qui prend en argument : quantile_values, factor et FDR_goal. Attention, il y a un probleme dans la legende de la figure. Tu peux egalement faire apparaitre de maniere claire sur la figure les parametres que tu choisis finalement. </span>
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
@@ -164,10 +172,14 @@ ggplot(df_quant, aes(x = TPR, y = FDR, color = quantile, group = facteur, shape 
 
 #Threshold of the Penda test
 
+<span style="color:red">Mag_com: on peut aussi mettre une figure ici. </span>
+
 The last important parameter to choose is the `threshold` of the test. This threshold is the importance of the change of rank necessary to assert the deregulation of a gene. 
 The function `choose_threshold` make the Penda test to different threshold values and compute the FDR, TPR and FPR. 
 
 With these values, we can make a curve and choose the better parameter to fit the experimental requirements (low FDR and high TPR).
+
+<span style="color:red">Mag_com: Le code est un peu trop dense pour une vignette, voit si tu peux simplifier... Tu peux aussi mettre en evidence sur la figure les parametres choisis. </span>
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
