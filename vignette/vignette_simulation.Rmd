@@ -100,6 +100,7 @@ Too many genes make next steps slower, but too few genes lead to errors.
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
+dir.create("tmp",showWarnings=FALSE)
 if (!file.exists("tmp/D_U_list_simu.rds")){
   D_U_list = penda::compute_down_and_up_list(data_ctrl, threshold = 0.99, s_max = 50)
   saveRDS(D_U_list, "tmp/D_U_list_simu.rds")
