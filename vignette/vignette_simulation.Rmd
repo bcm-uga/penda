@@ -96,7 +96,7 @@ The function `complex_simulation` uses the real distribution of difference betwe
 The simulation returns the vector of initial data, the vector of datas with modifications and the index of modified data. 
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
-
+dir.create("tmp",showWarnings=FALSE)
 if (!file.exists("tmp/simulation.rds")){
   simulation = penda::complex_simulation(data_ctrl, data_case, data_simu)
   saveRDS(simulation , "tmp/simulation.rds")
