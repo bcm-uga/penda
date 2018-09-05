@@ -52,6 +52,7 @@ draw_penda()
 To determine the variation in gene expression, Penda uses different parameters. 
 The purpose of this tutorial is to explain how choose these different parameters according to your data for an advanced user. Simulations are used to identify errors and their types.
 
+
 # Dataset
 
 The dataset used for this example correspond to the transcriptomes (normalized count, using DESeq2 method) of 44 patients with lung adenocarcinoma (PMID:25079552), including control and pathological samples. 
@@ -86,6 +87,7 @@ data_ctrl = data_ctrl[, -((ncol(data_ctrl)-4):ncol(data_ctrl))]
 ```
 
 
+
 #Gene ranking in control
 
 To use the Penda method, we also have to rank gene expression in normal tissue. 
@@ -110,6 +112,7 @@ D_U_list = readRDS("tmp/D_U_list_simu.rds")
 ```
 
 
+
 #Generation of simulated dataset
 
 To compute the real error rate, we need to use simulations. There are two methods of simulation, one simple and one more complex inspired by real dataset.
@@ -128,6 +131,8 @@ simple_simu = penda::simplified_simulation(data_simu, fraction = 0.3, threshold 
 head(simple_simu$initial_data)
 head(simple_simu$simulated_data)
 ```
+
+
 
 ##Simulation inspired by real dataset
 
@@ -152,9 +157,18 @@ We have to vary different parameters and compare the results to choose the ones 
 
 ##Parameters of the quantile method
 
-<span style="color:red">Mag_com: peut etre qu'on pourrait inclure une figure ici pour un schéma, avec tous les parametres... </span>
+```{r, echo=FALSE, out.width="500px"}
+df1 = data.frame(type = rep("ctrl", 39), expression = data_ctrl[202,])
+library(ggplot2)
+ggplot(df1, aes(expression)) + geom_density() +
+  geom_vline(xintercept = quantile(df1$expression, 0.03), linetype="dotted") +
+  geom_vline(xintercept = quantile(df1$expression, 0.97), linetype="dotted") +
+  geom_vline(xintercept = (quantile(df1$expression, 0.03))/1.2, color = "red") +
+  geom_vline(xintercept = (quantile(df1$expression, 0.97))*1.2, color = "red") +
+  theme_linedraw(base_size = 13)
+```
 
-First parameters to test are those of the quantile method. This method is used in the Penda method when we don't have **D** or **U** list. There are two parameters, the `quantile` of the gene expression distribution in the control, and the `factor` which modulate this quantile value.
+First parameters to test are those of the quantile method. This method is used in the Penda method when we don't have **D** or **U** list. There are two parameters, the `quantile` of the gene expression distribution in the control (dotted line), and the `factor` which modulate this quantile value (red line).
 
 To vary these parameters, we use the function `choose_quantile` which, for one patient, vary the quantile value for a fixed factor. This function compute then, for each quantile, three error rates.
 The **FDR**, False Discovery Rate, the proportion of false positive in all the positive results.
@@ -162,8 +176,6 @@ The **TPR**, True Positive Rate, the proportion of true positives detected in re
 The **FPR**, False Positive Rate, the proportion of false positive in all the negative results. 
 
 With these values, we can make a curve and choose the better quantile and the better factor, to minimize the FDR and maximize the TPR. 
-
-<span style="color:red">Mag_com: pour le chunk suivant, tu peux également écrire un vecteur de facteur, et enrober tout cela dans une fonction qui prend en argument : quantile_values, factor et FDR_goal. Attention, il y a un probleme dans la legende de la figure. Tu peux egalement faire apparaitre de maniere claire sur la figure les parametres que tu choisis finalement. </span>
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
@@ -178,16 +190,18 @@ qf25 = penda::choose_quantile(data_ctrl, simup1, FDR_goal = 0.06, factor = 2.5, 
 df_quant = data.frame(quantile = factor(c(qf1[,1], qf15[,1], qf25[,1]))
                       , FDR = as.numeric(c(qf1[,2], qf15[,2], qf25[,2]))
                       , TPR = as.numeric(c(qf1[,3], qf15[,3], qf25[,3]))
-                      , facteur = factor(c(rep(c(1, 1.5, 2.5), each = 12)))
+                      , factor = factor(c(rep(c(1, 1.5, 2.5), each = 12)))
 )
 
 library(ggplot2)
-ggplot(df_quant, aes(x = TPR, y = FDR, color = quantile, group = facteur, shape = facteur)) + geom_point() + geom_line()
-
+ggplot(df_quant, aes(x = TPR, y = FDR, color = quantile, group = factor, shape = factor)) + geom_point() + geom_line()
 
 ```
 
-#Threshold of the Penda test
+Here, we choose the factor 1 with the quantile 0.01. It allows to obtain a TPR > 0.8 with the lowest FDR.
+
+
+##Threshold of the Penda test
 
 <span style="color:red">Mag_com: on peut aussi mettre une figure ici. </span>
 
@@ -196,14 +210,12 @@ The function `choose_threshold` make the Penda test to different threshold value
 
 With these values, we can make a curve and choose the better parameter to fit the experimental requirements (low FDR and high TPR).
 
-<span style="color:red">Mag_com: Le code est un peu trop dense pour une vignette, voit si tu peux simplifier... Tu peux aussi mettre en evidence sur la figure les parametres choisis. </span>
-
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
 threshold_values = c(0, 0.05, 0.1, 0.3, 0.5, 0.6, 0.7, 0.8, 0.9)
 
 if (!file.exists("tmp/which_threshold.rds")){
-  which_threshold = penda::choose_threshold(data_ctrl, D_U_list, 30, simup1, threshold_values, quant_test = 0.03, factor_test = 1)
+  which_threshold = penda::choose_threshold(data_ctrl, D_U_list, 30, simup1, threshold_values, quant_test = 0.01, factor_test = 1)
   saveRDS(which_threshold, "tmp/which_threshold.rds")
 }
 
@@ -221,4 +233,6 @@ ggplot(df, aes(x = TPR, y = FDR, color = threshold, group = patient)) +
 
 ```
 
-With these paramaters, you can now start your analysis on all the datas. 
+Here, we can choose the threshold 0.7 which obtains a FDR < 0.1.
+With these paramaters, we can now start the analysis on all the datas. 
+
