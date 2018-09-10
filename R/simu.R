@@ -147,8 +147,13 @@ complex_simulation = function(controls, cancer_data, data, size_grp = 100, quant
     for (g in 1:nrow(simu_data)){
       gene = simu_data[g, p]
       if (is.na(gene) == FALSE){
-      group_gene = max(which(gene >= limits[1,]))
-      prop_gene = prop[group_gene]
+        sup_group = which(gene >= limits[1,])
+        if(length(sup_group) > 0){
+          group_gene = max(sup_group)
+        } else {
+          group_gene = 1
+        }
+        prop_gene = prop[group_gene]
         if (runif(1) <= prop_gene) {
           all_delta = unlist(group[,4][group_gene])
           delta = sample(all_delta, 1)
