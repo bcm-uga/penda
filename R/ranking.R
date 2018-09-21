@@ -136,9 +136,8 @@ compute_down_and_up_list = function (controls, threshold, s_max = 50){
   genes_D = unlist(DU$D)
   dimnames(genes_D) = list(DU$n, DU$n)
 
-  median_gene = apply(controls, 1, function(sonde){
-    median(sonde, na.rm = TRUE)
-  })
+  median_gene = apply(controls, 1, median, na.rm = TRUE)
+
   print("Size restriction")
 
   #For each gene, if D or U list are too big, we select the closer to g.

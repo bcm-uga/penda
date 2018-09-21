@@ -36,12 +36,31 @@ compute_DU_cppNA <- function(data_ctrl, threshold, nbNA) {
     .Call(`_penda_compute_DU_cppNA`, data_ctrl, threshold, nbNA)
 }
 
-#' compute_DU_cpp_size
+#' compute_DU_cpp_V2
 #'
-#' This function makes the matrix D and U for all the genes.
+#' This function makes the matrix D and U for all the genes with a new method.
+#'
+#' @param data_ctrl A numeric matrix with the genes expressions for each patient. Must be sort by the median.
+#' @param threshold The proportion of genes that must be under or above the gene.
+#' @param size_max The maximum number of down and up-expressed gene for each genes.
+#'
+#' @return This function returns a list of two logical matrices :
+#' the D matrix, with the id of closest genes with a lower expression,
+#' and the U Matrix with the id of closest genes with a higher expression.
+#' And a string vector with the genes names.
+#'
+#' @export
+compute_DU_cpp_V2 <- function(data_ctrl, threshold, size_max) {
+    .Call(`_penda_compute_DU_cpp_V2`, data_ctrl, threshold, size_max)
+}
+
+#' compute_DU_cppNA
+#'
+#' This function makes the matrix D and U for all the genes without count NA values.
 #'
 #' @param data_ctrl A numeric matrix with the genes expressions for each patient.
 #' @param threshold The proportion of genes that must be under or above the gene.
+#' @param nbNA The number of NA for each gene.
 #'
 #' @return This function returns a list of two logical matrices :
 #' the D matrix, with TRUE if the row gene has a lower expression than the column gene,
@@ -49,7 +68,7 @@ compute_DU_cppNA <- function(data_ctrl, threshold, nbNA) {
 #' And a string vector with the genes names.
 #'
 #' @export
-compute_DU_cpp_size <- function(data_gene, data_ctrl, threshold) {
-    .Call(`_penda_compute_DU_cpp_size`, data_gene, data_ctrl, threshold)
+compute_DU_cppNA_V2 <- function(data_ctrl, threshold, nbNA, size_max) {
+    .Call(`_penda_compute_DU_cppNA_V2`, data_ctrl, threshold, nbNA, size_max)
 }
 

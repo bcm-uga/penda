@@ -30,16 +30,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// compute_DU_cpp_size
-List compute_DU_cpp_size(NumericVector data_gene, NumericMatrix data_ctrl, double threshold);
-RcppExport SEXP _penda_compute_DU_cpp_size(SEXP data_geneSEXP, SEXP data_ctrlSEXP, SEXP thresholdSEXP) {
+// compute_DU_cpp_V2
+List compute_DU_cpp_V2(NumericMatrix data_ctrl, double threshold, double size_max);
+RcppExport SEXP _penda_compute_DU_cpp_V2(SEXP data_ctrlSEXP, SEXP thresholdSEXP, SEXP size_maxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type data_gene(data_geneSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type data_ctrl(data_ctrlSEXP);
     Rcpp::traits::input_parameter< double >::type threshold(thresholdSEXP);
-    rcpp_result_gen = Rcpp::wrap(compute_DU_cpp_size(data_gene, data_ctrl, threshold));
+    Rcpp::traits::input_parameter< double >::type size_max(size_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(compute_DU_cpp_V2(data_ctrl, threshold, size_max));
+    return rcpp_result_gen;
+END_RCPP
+}
+// compute_DU_cppNA_V2
+List compute_DU_cppNA_V2(NumericMatrix data_ctrl, double threshold, NumericVector nbNA, double size_max);
+RcppExport SEXP _penda_compute_DU_cppNA_V2(SEXP data_ctrlSEXP, SEXP thresholdSEXP, SEXP nbNASEXP, SEXP size_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type data_ctrl(data_ctrlSEXP);
+    Rcpp::traits::input_parameter< double >::type threshold(thresholdSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type nbNA(nbNASEXP);
+    Rcpp::traits::input_parameter< double >::type size_max(size_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(compute_DU_cppNA_V2(data_ctrl, threshold, nbNA, size_max));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -47,7 +61,8 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_penda_compute_DU_cpp", (DL_FUNC) &_penda_compute_DU_cpp, 2},
     {"_penda_compute_DU_cppNA", (DL_FUNC) &_penda_compute_DU_cppNA, 3},
-    {"_penda_compute_DU_cpp_size", (DL_FUNC) &_penda_compute_DU_cpp_size, 3},
+    {"_penda_compute_DU_cpp_V2", (DL_FUNC) &_penda_compute_DU_cpp_V2, 3},
+    {"_penda_compute_DU_cppNA_V2", (DL_FUNC) &_penda_compute_DU_cppNA_V2, 4},
     {NULL, NULL, 0}
 };
 
