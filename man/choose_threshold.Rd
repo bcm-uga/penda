@@ -5,7 +5,7 @@
 \title{Test gene expression variations for multiple thresholds in a serie of samples}
 \usage{
 choose_threshold(controls, D_U_list, iterations, simulation,
-  threshold_values, FDR_goal = 0.06, quant_test = 0, factor_test = 1)
+  threshold_values, quant_test = 0, factor_test = 1)
 }
 \arguments{
 \item{controls}{A matrix with genes expressions in controls for all the patients.}
@@ -19,19 +19,17 @@ no longer changes, iterations are stop before.}
 
 \item{threshold_values}{A vector with different values to test for the threshold.}
 
-\item{FDR_goal}{The FDR you would like for this test.}
-
 \item{quant_test}{The quantile for the test. When D and U lists are void, we use the naive method.}
 
 \item{factor_test}{The factor for the test. The limit D will be quant(gene)/factor, and the limit U quant(gene)*factor.}
 }
 \value{
-This function returns a matrix with 4 columns : the patient number, the value of the threshold tested,
-the FDR and the TPR of the test.
+This function returns a matrix with 5 columns : the patient number, the value of the threshold tested,
+the FDR, the TPR and the FPR of the test.
 }
 \description{
 This function makes for each patient the Penda test with different values for the treshold.
-After that, it computes FDR and TPR, and print the threshold closest of your goal FDR.
+It computes FDR, TPR and FPR for each patient and each threshold value.
 }
 \examples{
 # First, load and define the data, make the simulation
@@ -48,7 +46,6 @@ which_threshold = penda::choose_threshold(controls,
                                 iterations = 20,
                                 simulation,
                                 threshold_values,
-                                FDR_goal = 0.05,
                                 quant_test = 0,
                                 factor_test = 1)
 }

@@ -100,15 +100,21 @@ The matrix **U** corresponds to the list (i.e true) of upregulated genes for eac
 For each, the list of **D** genes (resp. **U** genes) corresponds to the closest genes (up to `s_max` genes) that are down (resp. up) regulated in at least `threshold` % of the control samples. 
 Too many genes make next steps slower, but too few genes lead to errors.
 
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 
+```{r, echo=FALSE, message = FALSE}
 dir.create("tmp",showWarnings=FALSE)
 if (!file.exists("tmp/D_U_list_simu.rds")){
   D_U_list = penda::compute_down_and_up_list(data_ctrl, threshold = 0.99, s_max = 50)
   saveRDS(D_U_list, "tmp/D_U_list_simu.rds")
 }
 D_U_list = readRDS("tmp/D_U_list_simu.rds")
+```
 
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+D_U_list = penda::compute_down_and_up_list(data_ctrl, threshold = 0.99, s_max = 50)
+
+D_U_list$D[1:5,1:5]
+D_U_list$U[1:5,1:5]
 ```
 
 
@@ -140,12 +146,16 @@ The function `complex_simulation` uses the real distribution of difference betwe
 
 The simulation returns the vector of initial data, the vector of datas with modifications and the index of modified data. 
 
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+```{r, echo=FALSE, message = FALSE}
 if (!file.exists("tmp/simulation.rds")){
   simulation = penda::complex_simulation(data_ctrl, data_case, data_simu)
   saveRDS(simulation , "tmp/simulation.rds")
 }
 simulation = readRDS("tmp/simulation.rds")
+```
+
+```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+#simulation = penda::complex_simulation(data_ctrl, data_case, data_simu)
 
 head(simulation$initial_data)
 head(simulation$simulated_data)
@@ -177,20 +187,20 @@ The **FPR**, False Positive Rate, the proportion of false positive in all the ne
 
 With these values, we can make a curve and choose the better quantile and the better factor, to minimize the FDR and maximize the TPR. 
 
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
-
+```{r, tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), message = FALSE}
 quantile_values = c(0, 0.01, 0.02, 0.03, 0.05, 0.06, 0.08, 0.1, 0.15, 0.2, 0.3, 0.4)
+factor_values = c(1, 1.2, 1.4, 1.6, 1.8, 2)
 
 simup1 = list(initial_data = simulation$initial_data[,1], simulated_data = simulation$simulated_data[,1])
 
-qf1 = penda::choose_quantile(data_ctrl, simup1, FDR_goal = 0.06, factor = 1, quantile_values = quantile_values)
-qf15 = penda::choose_quantile(data_ctrl, simup1, FDR_goal = 0.06, factor = 1.5, quantile_values = quantile_values)
-qf25 = penda::choose_quantile(data_ctrl, simup1, FDR_goal = 0.06, factor = 2.5, quantile_values = quantile_values)
+which_quantile = penda::choose_quantile(data_ctrl, simup1, factor = factor_values, quantile_values = quantile_values)
+```
 
-df_quant = data.frame(quantile = factor(c(qf1[,1], qf15[,1], qf25[,1]))
-                      , FDR = as.numeric(c(qf1[,2], qf15[,2], qf25[,2]))
-                      , TPR = as.numeric(c(qf1[,3], qf15[,3], qf25[,3]))
-                      , factor = factor(c(rep(c(1, 1.5, 2.5), each = 12)))
+```{r, echo = FALSE}
+df_quant = data.frame(factor = factor(which_quantile[,1])
+                      , quantile = factor(which_quantile[,2])
+                      , FDR = which_quantile[,3]
+                      , TPR = which_quantile[,4]
 )
 
 library(ggplot2)
@@ -198,7 +208,9 @@ ggplot(df_quant, aes(x = TPR, y = FDR, color = quantile, group = factor, shape =
 
 ```
 
-Here, we choose the factor 1 with the quantile 0.01. It allows to obtain a TPR > 0.8 with the lowest FDR.
+```{r, tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+best_quantile = penda::select_quantile_param(which_quantile, FDR_goal = 0.15)
+```
 
 
 ##Threshold of the Penda test
@@ -210,29 +222,43 @@ The function `choose_threshold` make the Penda test to different threshold value
 
 With these values, we can make a curve and choose the better parameter to fit the experimental requirements (low FDR and high TPR).
 
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
-
+```{r, tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), message = FALSE}
 threshold_values = c(0, 0.05, 0.1, 0.3, 0.5, 0.6, 0.7, 0.8, 0.9)
 
+#  which_threshold = penda::choose_threshold(data_ctrl, D_U_list, 30, simup1, threshold_values, quant_test = 0.01, factor_test = 1)
+```
+
+```{r, echo=FALSE, message = FALSE}
 if (!file.exists("tmp/which_threshold.rds")){
-  which_threshold = penda::choose_threshold(data_ctrl, D_U_list, 30, simup1, threshold_values, quant_test = 0.01, factor_test = 1)
+  which_threshold = penda::choose_threshold(data_ctrl, D_U_list, 30, simup1, threshold_values, quant_test = as.numeric(best_quantile$quantile), factor_test = as.numeric(best_quantile$factor))
   saveRDS(which_threshold, "tmp/which_threshold.rds")
 }
-
 which_threshold = readRDS("tmp/which_threshold.rds")
+```
 
+```{r, echo=FALSE}
 library(ggplot2)
 df = data.frame(patient = which_threshold[,1],
                 threshold = which_threshold[,2],
                 FDR = as.numeric(which_threshold[,3]),
                 TPR = as.numeric(which_threshold[,4]))
 
-
 ggplot(df, aes(x = TPR, y = FDR, color = threshold, group = patient)) +
   geom_point() + geom_line()+ theme_minimal()
-
 ```
 
-Here, we can choose the threshold 0.7 which obtains a FDR < 0.1.
-With these paramaters, we can now start the analysis on all the datas. 
+```{r, tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+best_threshold = penda::select_threshold_param(which_threshold, FDR_goal = 0.05)
+```
+
+#Next: analysis of your data
+
+With these simulation you can now perform analysis on your real data.
+You can define your own parameters with the graph visualisation, or use the recommanded parameters :
+
+threshold = `r best_threshold$threshold` 
+
+quantile = `r best_quantile$quantile`
+
+factor = `r best_quantile$factor`
 

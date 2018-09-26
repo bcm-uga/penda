@@ -4,40 +4,38 @@
 \alias{choose_quantile}
 \title{Test gene expression variations with the quantile test for multiple quantile values in a serie of samples}
 \usage{
-choose_quantile(controls, simulation, FDR_goal, factor = 1.4,
-  quantile_values = c(0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07,
-  0.08, 0.09, 0.1, 0.2))
+choose_quantile(controls, simulation, factor_values = c(1, 1.2, 1.4, 1.6,
+  1.8, 2), quantile_values = c(0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06,
+  0.07, 0.08, 0.09, 0.1, 0.2))
 }
 \arguments{
 \item{controls}{A matrix with genes expressions in controls for all the patients.}
 
 \item{simulation}{The list of initial data $initial_data and modified data in $simulated_data}
 
-\item{FDR_goal}{The FDR you would like for this test.}
-
-\item{factor}{The factor for the test The D limit will be quantmin/factor, and the U limit quantmax*factor.}
-
 \item{quantile_values}{A vector with different values to test for the quantile.}
+
+\item{factor}{A vector with different values of factor. The D limit will be quantmin/factor, and the U limit quantmax*factor.}
 }
 \value{
-This function returns a matrix with 3 columns : the value of the quantile tested,
-the FDR and the TPR of the test.
+This function returns a matrix with 5 columns : the value of the factor test,
+the value of the quantile tested, the FDR, the TPR and the FPR of the test.
 }
 \description{
-This function makes for each patient the quantile test with different values for the quantil.
-After that, it computes FDR and TPR, and print the quantile closest of your goal FDR.
+This function makes the quantile test for each patient with different values of quantile and factor.
+for each set of parameters, it computes FDR, TPR and FPR.
 }
 \examples{
 # First, load and define the data, make the simulation
 controls = penda::data_ctrl[1:10, 1:10]
 simu_data = penda::data_ctrl[1:10,11:16]
 simulation = penda::simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
-# Second, choose the vector of quantiles to test
+# Second, choose the vectors of quantiles and factors to test
 quantile_values = c(0, 0.02, 0.04, 0.06, 0.08, 0.1, 0.15, 0.2, 0.25, 0.30, 0.35, 0.4, 0.45)
+factor_values = c(1, 1.2, 1.4, 1.6, 1.8, 2)
 # Third, make the test on simulation for different quantiles
 which_quantile = penda::choose_quantile(controls,
                                 simulation,
-                                FDR_goal = 0.05,
-                                factor = 1.2,
+                                factor_values,
                                 quantile_values)
 }

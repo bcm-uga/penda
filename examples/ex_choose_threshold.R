@@ -12,6 +12,5 @@ which_threshold = penda::choose_threshold(controls,
                                 iterations = 20,
                                 simulation,
                                 threshold_values,
-                                FDR_goal = 0.05,
                                 quant_test = 0,
                                 factor_test = 1)
