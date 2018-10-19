@@ -4,12 +4,12 @@
 \alias{select_threshold_param}
 \title{Select the better threshold to reach a given FDR.}
 \usage{
-select_threshold_param(which_threshold, FDR_goal = 0.05)
+select_threshold_param(which_threshold, FDR_max = 0.05)
 }
 \arguments{
 \item{which_threshold}{The matrix result of choose_threshold, with patient, FDR and threshold.}
 
-\item{FDR_goal}{The maximum FDR wanted.}
+\item{FDR_max}{The maximum FDR wanted.}
 }
 \value{
 This function returns a list of 2 parameters : the best threshold and the associated FDR.

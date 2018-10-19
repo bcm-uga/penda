@@ -144,7 +144,7 @@ choose_threshold = function(controls, D_U_list, iterations, simulation, threshol
 #' the given FDR. If there are multiple patients, it uses the median
 #'
 #'@param which_threshold The matrix result of choose_threshold, with patient, FDR and threshold.
-#'@param FDR_goal The maximum FDR wanted.
+#'@param FDR_max The maximum FDR wanted.
 #'
 #'@return This function returns a list of 2 parameters : the best threshold and the associated FDR.
 #'
@@ -152,7 +152,7 @@ choose_threshold = function(controls, D_U_list, iterations, simulation, threshol
 #'
 #'@export
 
-select_threshold_param = function(which_threshold, FDR_goal = 0.05) {
+select_threshold_param = function(which_threshold, FDR_max = 0.05) {
   median_t = c()
   which_threshold = apply(which_threshold, 2, as.numeric)
   threshold_values = which_threshold[,"threshold"]
@@ -163,16 +163,16 @@ select_threshold_param = function(which_threshold, FDR_goal = 0.05) {
     median_t = rbind(median_t, c(threshold, median(FDRt)))
   }
 
-  small_FDR = median_t[median_t[,2] <= FDR_goal,]
+  small_FDR = median_t[median_t[,2] <= FDR_max,]
 
   if(length(small_FDR) != 0){
-    #If only one FDR under the FDR goal,
+    #If only one FDR under the FDR max,
     if (is.vector(small_FDR)){
       print (c("The threshold closest to the FDR is ", small_FDR[1], "which has a median FDR of",
                small_FDR[2]), quote = FALSE)
       return(list(threshold = small_FDR[1], FDR = small_FDR[2]))
 
-      #If more than one FDR under the FDR goal,
+      #If more than one FDR under the FDR max,
     } else {
       idx = which(small_FDR[,2] == max(small_FDR[,2]))
       print (c("The threshold closest to the FDR is ", small_FDR[idx, 1]
@@ -237,7 +237,7 @@ choose_quantile = function(controls, simulation, factor_values = c(1, 1.2, 1.4, 
 #' the given FDR with the best TPR.
 #'
 #'@param which_quantile The matrix result of choose_quantile, with factor, quantile, FDR and TPR.
-#'@param FDR_goal The maximum FDR wanted.
+#'@param FDR_max The maximum FDR wanted.
 #'
 #'@return This function returns a list of 4 parameters : the best factor, the best quantile,
 #' and the associated FDR and TPR.
@@ -246,10 +246,10 @@ choose_quantile = function(controls, simulation, factor_values = c(1, 1.2, 1.4, 
 #'
 #'@export
 
-select_quantile_param = function(which_quantile, FDR_goal = 0.15){
+select_quantile_param = function(which_quantile, FDR_max = 0.15){
 
 #Compute the small FDR.
-  small_FDR = which_quantile[which_quantile[,"FDR"] <= FDR_goal & !is.na(which_quantile[,"FDR"]) ,]
+  small_FDR = which_quantile[which_quantile[,"FDR"] <= FDR_max & !is.na(which_quantile[,"FDR"]) ,]
   if(length(small_FDR) !=0){
     if (is.vector(small_FDR)){
       print ("Best parameters are :", quote = FALSE)

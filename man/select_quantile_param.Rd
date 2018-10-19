@@ -4,12 +4,12 @@
 \alias{select_quantile_param}
 \title{Select the better factor and quantile to reach a given FDR.}
 \usage{
-select_quantile_param(which_quantile, FDR_goal = 0.15)
+select_quantile_param(which_quantile, FDR_max = 0.15)
 }
 \arguments{
 \item{which_quantile}{The matrix result of choose_quantile, with factor, quantile, FDR and TPR.}
 
-\item{FDR_goal}{The maximum FDR wanted.}
+\item{FDR_max}{The maximum FDR wanted.}
 }
 \value{
 This function returns a list of 4 parameters : the best factor, the best quantile,

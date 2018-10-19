@@ -81,10 +81,10 @@ You can use the function `detect_zero_value` to remove genes with very low expre
 We need control samples to do simulations and be able to compute the error rate. Here, we extract the five last patients of data_ctrl in `data_simu`.
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
-data_simu = data_ctrl[, (ncol(data_ctrl)-4):ncol(data_ctrl)]
+data_simu = data_ctrl[, (ncol(data_ctrl)-1):ncol(data_ctrl)]
 colnames(data_simu) = c("P1","P2","P3","P4","P5")
 
-data_ctrl = data_ctrl[, -((ncol(data_ctrl)-4):ncol(data_ctrl))]
+data_ctrl = data_ctrl[, -((ncol(data_ctrl)-1):ncol(data_ctrl))]
 ```
 
 
@@ -214,7 +214,7 @@ ggplot(df_quant, aes(x = TPR, y = FDR, color = quantile, group = factor, shape =
 ```
 
 ```{r, tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
-best_quantile = penda::select_quantile_param(which_quantile, FDR_goal = 0.15)
+best_quantile = penda::select_quantile_param(which_quantile, FDR_max = 0.15)
 ```
 <span style="color:red">Note : this vignette is just an example. For a real analysis, we recommend to simulate different patients (10 ideally) and to test more quantile and factor values.</span>
 
@@ -253,7 +253,7 @@ ggplot(df, aes(x = TPR, y = FDR, color = threshold, group = patient)) +
 ```
 
 ```{r, tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
-best_threshold = penda::select_threshold_param(which_threshold, FDR_goal = 0.05)
+best_threshold = penda::select_threshold_param(which_threshold, FDR_max = 0.05)
 ```
 <span style="color:red">Note : this vignette is just an example. For a real analysis, we recommend to simulate different patients (10 ideally) and to test more threshold values.</span>
 
