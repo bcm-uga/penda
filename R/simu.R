@@ -157,11 +157,15 @@ complex_simulation = function(controls, cancer_data, data, size_grp = 100, quant
         if (runif(1) <= prop_gene) {
           all_delta = unlist(group[,4][group_gene])
           delta = sample(all_delta, 1)
+          count = 0
           while((simu_data[g,p] + delta) < 0){
             delta = sample(all_delta, 1)
+            count = count + 1
+            if(count > 500){
+              break;
+            }
           }
           simu_data[g, p] = simu_data[g,p] + delta
-
         }
       }
     }
