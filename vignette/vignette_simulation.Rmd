@@ -81,10 +81,10 @@ You can use the function `detect_zero_value` to remove genes with very low expre
 We need control samples to do simulations and be able to compute the error rate. Here, we extract the five last patients of data_ctrl in `data_simu`.
 
 ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
-data_simu = data_ctrl[, (ncol(data_ctrl)-1):ncol(data_ctrl)]
+data_simu = data_ctrl[, (ncol(data_ctrl)-4):ncol(data_ctrl)]
 colnames(data_simu) = c("P1","P2","P3","P4","P5")
 
-data_ctrl = data_ctrl[, -((ncol(data_ctrl)-1):ncol(data_ctrl))]
+data_ctrl = data_ctrl[, -((ncol(data_ctrl)-4):ncol(data_ctrl))]
 ```
 
 

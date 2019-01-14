@@ -108,11 +108,12 @@ choose_threshold = function(controls, D_U_list, iterations, simulation, threshol
       for(value in 1:ncol(test$D)){
         #Computing of FP, TP, FN, TN
         results_simu = results_simulation(test$D[,value], test$U[,value], simulation_p)
-        #Computing of FDR, TPR and FPR
+        #Computing of FDR, TPR, FPR
         FDR = results_simu$FP / (results_simu$TP + results_simu$FP)
         TPR  = results_simu$TP / (results_simu$TP + results_simu$FN)
         FPR = results_simu$FP / (results_simu$TN + results_simu$FP)
-        results = rbind(results, c(p, colnames(test$D)[value], FDR, TPR, FPR))
+
+        results = rbind(results, c(p, colnames(test$D)[value], FDR, TPR, FPR, results_simu$TP, results_simu$FP, results_simu$TN, results_simu$FN))
       }
     }
 
@@ -121,15 +122,15 @@ choose_threshold = function(controls, D_U_list, iterations, simulation, threshol
     for(value in 1:ncol(test$D)){
       #Computing of FP, TP, FN, TN
       results_simu = results_simulation(test$D[,value], test$U[,value], simulation)
-      #Computing of FDR, TPR and FPR
+      #Computing of FDR, TPR, FPR
       FDR = results_simu$FP / (results_simu$TP + results_simu$FP)
       TPR  = results_simu$TP / (results_simu$TP + results_simu$FN)
       FPR = results_simu$FP / (results_simu$TN + results_simu$FP)
-      results = rbind(results, c(1, colnames(test$D)[value], FDR, TPR, FPR))
+      results = rbind(results, c(1, colnames(test$D)[value], FDR, TPR, FPR, results_simu$TP, results_simu$FP, results_simu$TN, results_simu$FN))
     }
   }
 
-  colnames(results) = c("patient", "threshold", "FDR", "TPR", "FPR")
+  colnames(results) = c("patient", "threshold", "FDR", "TPR", "FPR", "TP", "FP", "TN", "FN")
   return(results)
 }
 
