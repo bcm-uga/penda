@@ -25,69 +25,60 @@
 
 regulation_test = function(gene, D_U_list, sample, threshold, controls, quant_test = 0, factor_test = 1){
 
-  #If the gene is NA in the sample, we can't compute the dysregulation.
-  if (is.na(sample[gene])){
-    return(0)
-  } else {
-    #Compute the quantile for the quantile method, if D or U does not exist.
-    changement = numeric()
-    quantile_gene = quantile(controls[gene,], c(quant_test,(1-quant_test)), na.rm = TRUE)
-    quantile_gene[1] = quantile_gene[1] / factor_test
-    quantile_gene[2] = quantile_gene[2] * factor_test
+  down_ctrl = D_U_list$D[,gene]
+  up_ctrl = D_U_list$U[,gene]
+  changement = numeric()
+  quantile_gene = quantile(controls[gene,], c(quant_test,(1-quant_test)))
+  quantile_gene[1] = quantile_gene[1] / factor_test
+  quantile_gene[2] = quantile_gene[2] * factor_test
 
-    D = sample[D_U_list$D[,gene] == TRUE]
-    D = D[!is.na(D)]
-    U = sample[D_U_list$U[,gene] == TRUE]
-    U = U[!is.na(U)]
+  Du = (sample[down_ctrl == TRUE] > sample[gene])
+  Du = sum (Du)
+  Ud = (sample[up_ctrl == TRUE] < sample[gene])
+  Ud = sum (Ud)
+  Dd = sum(down_ctrl) - Du
+  Uu = sum(up_ctrl) - Ud
 
-    Du = (D > sample[gene])
-    Du = sum (Du)
-    Ud = (U < sample[gene])
-    Ud = sum (Ud)
-    Dd = length(D)-Du
-    Uu = length(U) - Ud
-
-    #If exists both up and down-regulated lists,
-    if (length(D) != 0 & length(U) != 0){
-      if ((Ud / length(U) < threshold) & ((Du / length(D) < threshold))){
-        changement = 0
-      } else if ((Dd + Ud) < length(D)){
-        changement = -1
-      } else {
-        changement = 1
-      }
-      return(changement)
+  #If exists both up and down-regulated lists
+  if (sum(down_ctrl) != 0 & sum(up_ctrl) != 0){
+    if ((Ud / sum(up_ctrl) < threshold) & ((Du / sum(down_ctrl) < threshold))){
+      changement = c(0, round(Du/sum(down_ctrl),2), round(Ud/sum(up_ctrl),2))
+    } else if ((Dd + Ud) < sum(down_ctrl)){
+      changement = c(-1, round(Du/sum(down_ctrl),2), round(Ud/sum(up_ctrl),2))
+    } else {
+      changement = c(1, round(Du/sum(down_ctrl),2), round(Ud/sum(up_ctrl),2))
     }
-    #If exists only up-regulated list,
-    else if (length(D) == 0 & length(U) != 0){
-      if ((Ud / length(U) < threshold) & (sample[gene] >= quantile_gene[1])){
-        changement = 0
-      } else if (Ud / length(U) >= threshold){
-        changement = 1
-      } else {
-        changement = -1
-      }
-      return(changement)
+    return(changement)
+  }
+  #If exists only up-regulated list
+  else if (sum(down_ctrl) == 0 & sum(up_ctrl) != 0){
+    if ((Ud / sum(up_ctrl) < threshold) & (sample[gene] >= quantile_gene[1])){
+      changement = c(0, round(Du/sum(down_ctrl),2), round(Ud/sum(up_ctrl),2))
+    } else if (Ud / sum(up_ctrl) >= threshold){
+      changement = c(1, round(Du/sum(down_ctrl),2), round(Ud/sum(up_ctrl),2))
+    } else {
+      changement = c(-1, round(Du/sum(down_ctrl),2), round(Ud/sum(up_ctrl),2))
     }
-    #If exists only down-regulated list,
-    else if (length(D) != 0 & length(U) == 0){
-      if ((Du / length(D) < threshold) & (sample[gene] < quantile_gene[2])){
-        changement = 0
-      } else if (Du / length(D)>= threshold){
-        changement = -1
-      } else {
-        changement = 1
-      }
-      return(changement)
+    return(changement)
+  }
+  #If exists only down-regulated list
+  else if (sum(down_ctrl) != 0 & sum(up_ctrl) == 0){
+    if ((Du / sum(down_ctrl) < threshold) & (sample[gene] < quantile_gene[2])){
+      changement = c(0, round(Du/sum(down_ctrl),2), round(Ud/sum(up_ctrl),2))
+    } else if (Du / sum(down_ctrl) >= threshold){
+      changement = c(-1, round(Du/sum(down_ctrl),2), round(Ud/sum(up_ctrl),2))
+    } else {
+      changement = c(1, round(Du/sum(down_ctrl),2), round(Ud/sum(up_ctrl),2))
     }
-    #If there is no regulation list,
-    else if (sample[gene] < quantile_gene[1]){
-      return(-1)
-    } else if (sample[gene] > quantile_gene[2]){
-      return(1)
-    }  else {
-      return(0)
-    }
+    return(changement)
+  }
+  #If there is no regulation list
+  else if (sample[gene] < quantile_gene[1]){
+    return(c(-1, round(Du/sum(down_ctrl),2), round(Ud/sum(up_ctrl),2)))
+  } else if (sample[gene] > quantile_gene[2]){
+    return(c(1, round(Du/sum(down_ctrl),2), round(Ud/sum(up_ctrl),2)))
+  }  else {
+    return(c(0, round(Du/sum(down_ctrl),2), round(Ud/sum(up_ctrl),2)))
   }
 }
 
@@ -120,36 +111,35 @@ regulation_test = function(gene, D_U_list, sample, threshold, controls, quant_te
 
 sample_test = function (sample, controls, iterations, D_U_list, threshold, quant_test = 0, factor_test = 1){
 
-  l1 = rep(FALSE, nrow(controls))
-  l1n1 = rep(FALSE, nrow(controls))
-  l1n2 = rep(FALSE, nrow(controls))
+  l1 = matrix(data = rep(FALSE, 2*nrow(controls)), nrow=2)
+  l1n1 = matrix(data = rep(FALSE, 2*nrow(controls)), nrow=2)
+  l1n2 = matrix(data = rep(FALSE, 2*nrow(controls)), nrow=2)
   print("Begining of iterations")
-
   #For each iteration
   for (i in 1:iterations){
     print(i)
     #Genes dysregulated at the previous iteration are removed of D_U.
     D_U_list_tmp = list()
-    D_U_list_tmp$D = D_U_list$D * !abs(l1)
-    D_U_list_tmp$U = D_U_list$U * !abs(l1)
-    #The dysregulation of each gene is compute.
+    D_U_list_tmp$D = D_U_list$D * !abs(l1[1,])
+    D_U_list_tmp$U = D_U_list$U * !abs(l1[1,])
+    #The dysregulation of each genes is compute.
     l1 = sapply(names(sample), function(gene){
       expression = regulation_test(gene, D_U_list_tmp, sample, threshold, controls, quant_test = quant_test, factor_test = factor_test)
       return(expression)
     })
-    #Stabilization is checked.
-    if((sum(l1 == l1n1) == length(l1)) | (sum(l1 == l1n2) == length(l1))){
-      print ("Stabilization of the dysregulated genes list.")
+    if((sum(l1[1,] == l1n1[1,]) == ncol(l1)) | (sum(l1[1,] == l1n2[1,]) == ncol(l1))){
+      print ("Stabilisation of the dysregulated genes list")
       break
     } else if (i == iterations) {
-      print ("Maximum iterations without stabilization.")
+      print ("Maximum iterations without stabilization")
     } else {
       l1n2 = l1n1
       l1n1 = l1
     }
   }
-  U_genes = (l1 == 1 | l1n1 == 1)
-  D_genes = (l1 == -1 | l1n1 == -1)
+  U_genes = l1[3,]
+  D_genes= l1[2,]
+
   return(list(D = D_genes, U = U_genes))
   gc()
 }
@@ -179,34 +169,34 @@ sample_test = function (sample, controls, iterations, D_U_list, threshold, quant
 #'@export
 
 penda_test = function(samples, controls, iterations, D_U_list, threshold, quant_test = 0, factor_test = 1){
-if (is.null(dim(samples)[2])){
-  print("compute DE list for one sample")
-  res = penda::sample_test(sample = samples,
-                            controls = controls,
-                            threshold = threshold,
-                            iterations =  iterations,
-                            D_U_list =  D_U_list,
-                            quant_test =  quant_test,
-                           factor_test = factor_test)
-  down_genes = res$D
-  up_genes = res$U
-} else if (dim(samples)[2] > 1){
-  print(paste0("compute DE list for ", dim(samples)[2], " samples"))
-  res = apply(samples, 2, penda::sample_test,
-              controls = controls,
-              threshold = threshold,
-              iterations =  iterations,
-              D_U_list =  D_U_list,
-              quant_test =  quant_test,
-              factor_test = factor_test)
-  down_genes = sapply(res, "[[", "D")
-  up_genes = sapply(res, "[[", "U")
-} else {
-  print("Error, samples should correspond to a matrix or a vector")
-  down_genes = NULL
-  up_genes = NULL
-}
-return(list(down_genes = down_genes, up_genes = up_genes))
+  if (is.null(dim(samples)[2])){
+    print("compute DE list for one sample")
+    res = penda::sample_test(sample = samples,
+                             controls = controls,
+                             threshold = threshold,
+                             iterations =  iterations,
+                             D_U_list =  D_U_list,
+                             quant_test =  quant_test,
+                             factor_test = factor_test)
+    down_genes = res$D
+    up_genes = res$U
+  } else if (dim(samples)[2] > 1){
+    print(paste0("compute DE list for ", dim(samples)[2], " samples"))
+    res = apply(samples, 2, penda::sample_test,
+                controls = controls,
+                threshold = threshold,
+                iterations =  iterations,
+                D_U_list =  D_U_list,
+                quant_test =  quant_test,
+                factor_test = factor_test)
+    down_genes = sapply(res, "[[", "D")
+    up_genes = sapply(res, "[[", "U")
+  } else {
+    print("Error, samples should correspond to a matrix or a vector")
+    down_genes = NULL
+    up_genes = NULL
+  }
+  return(list(down_genes = down_genes, up_genes = up_genes))
 }
 
 
