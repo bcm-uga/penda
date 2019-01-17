@@ -4,24 +4,15 @@
 \alias{test_multiple_thresholds}
 \title{Test gene expression variations for multiple thresholds}
 \usage{
-test_multiple_thresholds(controls, D_U_list, simulation, threshold_values,
-  iterations, quant_test = 0, factor_test = 1)
+test_multiple_thresholds(simulation, threshold_values, iterations)
 }
 \arguments{
-\item{controls}{A matrix with genes expressions in controls for all the patients.}
-
-\item{D_U_list}{The list of Down and Up-expressed genes matrices in the control.}
-
 \item{simulation}{The simulation with the list of initial data $initial_data and modified data in $simulated_data.}
 
 \item{threshold_values}{The vector of values of the threshold for the regulation test.}
 
 \item{iterations}{The maximal number of iterations for the test. If the dysregulation list
 no longer changes, iterations are stop before.}
-
-\item{quant_test}{The quantile for the test. When D and U lists are void, we use the naive method.}
-
-\item{factor_test}{The factor for the test. The limit D will be quant(gene)/factor, and the limit U quant(gene)*factor.}
 }
 \value{
 This function returns a list of two logical matrices. The D matrix with for each threshold

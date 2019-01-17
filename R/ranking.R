@@ -74,7 +74,7 @@ detect_zero_value = function(controls, cancer_data, threshold, min = 0) {
 #'
 #'@return This function returns a true false vector with true for the values to exclude.
 #'
-#'@example examples/ex_detect_zero_value.R
+#'@example examples/ex_detect_na_value.R
 #'
 #'@export
 
@@ -104,59 +104,40 @@ detect_na_value = function(controls, cancer_data, threshold, probes = TRUE) {
 # clementine.decamps@univ-grenoble-alpes.fr
 #
 #---------------------------------------------
-#' Compute D and U list in control samples.
+#' Compute L and H list in control samples.
 #'
-#' For each gene, this function computes two lists. The D list, with genes less expressed in threshold% of controls,
-#' and the U list with genes more expressed in threshold% of controls. These lists can be used in Penda test to compare
-#' the gene rank in samples.
+#' For each gene, this function computes two lists.
+#' The L list, with genes with a Lower expression in threshold% of controls,
+#' and the H list with genes with an Higher expression in threshold% of controls.
+#' These lists can be used in Penda test to compare the gene rank in samples.
 #'
 #'@param controls A matrix with the gene expressions for each patient.
 #'@param threshold The proportion of expression that must be in the conditions.
-#'@param s_max The maximum number of down and up-expressed gene for each genes.
+#'@param s_max The maximum number of L and H genes for each gene.
 #'
 #'@return This function returns a list of two logical matrices :
-#'- the D matrix, with TRUE if the row gene has a lower expression than the column gene,
-#'- the U Matrix with TRUE if the row gene has a higher expression than the column gene.
+#'- the L matrix, with TRUE if the row gene has a lower expression than the column gene,
+#'- the H Matrix with TRUE if the row gene has a higher expression than the column gene.
 #'
-#'@example examples/ex_compute_down_and_up_list.R
+#'@example examples/ex_compute_lower_and_higher_lists.R
 #'
 #'@export
 
-compute_down_and_up_list = function (controls, threshold, s_max = 50){
+compute_lower_and_higher_lists = function (controls, threshold, s_max = 50){
 
-  print("Computing down and up-expressed genes")
-  #Using DU_rcpp to compute down and up-expressed genes.
+  print("Computing genes with lower and higher expression")
+  #Using DU_rcpp to compute genes with lower and higher expression.
   if(anyNA(controls)){
-    DU = penda::compute_DU_cppNA(controls, threshold, rowSums(is.na(controls)))
+    LH = penda::compute_LH_cppNA(controls, threshold, rowSums(is.na(controls)), s_max)
   } else {
-    DU = penda::compute_DU_cpp(controls, threshold)
+    LH = penda::compute_LH_cpp(controls, threshold, s_max)
   }
-  genes_U = unlist(DU$U)
-  dimnames(genes_U) = list(DU$n, DU$n)
-  genes_D = unlist(DU$D)
-  dimnames(genes_D) = list(DU$n, DU$n)
+  genes_L = unlist(LH$L)
+  rownames(genes_L) = LH$n
+  genes_H = unlist(LH$H)
+  rownames(genes_H) = LH$n
 
-  median_gene = apply(controls, 1, median, na.rm = TRUE)
-
-  print("Size restriction")
-
-  #For each gene, if D or U list are too big, we select the closer to g.
-  for (i in 1:ncol(genes_D)){
-    d_genes = median_gene[genes_D[,i]==1]
-    u_genes = median_gene[genes_U[,i]==1]
-    if (length(d_genes) > s_max){
-      sort_median = sort(d_genes)
-      sort_median = sort_median[(length(d_genes) - (s_max-1)) : length(d_genes)]
-      genes_D[,i] = FALSE
-      genes_D[names(sort_median),i] = TRUE
-    }
-    if (length(u_genes) > s_max){
-      sort_median = sort(u_genes)
-      sort_median = sort_median[1 : s_max]
-      genes_U[,i] = FALSE
-      genes_U[names(sort_median),i] = TRUE
-    }
-  }
   gc()
-  return(list(D = genes_D, U = genes_U))
+  return(list(L = genes_L, H = genes_H))
 }
+

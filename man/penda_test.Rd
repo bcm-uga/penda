@@ -4,7 +4,7 @@
 \alias{penda_test}
 \title{Test gene expression variations in a serie of samples}
 \usage{
-penda_test(samples, controls, iterations, D_U_list, threshold,
+penda_test(samples, controls, iterations, L_H_list, threshold,
   quant_test = 0, factor_test = 1)
 }
 \arguments{
@@ -12,16 +12,15 @@ penda_test(samples, controls, iterations, D_U_list, threshold,
 
 \item{controls}{A matrix with genes expressions in controls for all the patients.}
 
-\item{iterations}{The maximal number of iterations for the test. If the dysregulation list
-no longer changes, iterations are stop before.}
+\item{iterations}{The maximal number of iterations for the test. If the dysregulation list no longer changes, iterations are stop before.}
 
-\item{D_U_list}{The list of Down and Up-expressed genes matrices in the control.}
+\item{L_H_list}{The list of lower and higher expressed genes matrices in the control.}
 
-\item{threshold}{The threshold for regulation_test.}
+\item{threshold}{If Ll/Lh and Hh/Hl are under this threshold, the expression not change.}
 
-\item{quant_test}{The quantile for the test. When D and U lists are void, we use the naive method.}
+\item{quant_test}{The quantile for the test. When L and H lists are void, we use the naive method.}
 
-\item{factor_test}{The factor for the test. The limit D will be quant(gene)/factor, and the limit U quant(gene)*factor.}
+\item{factor_test}{The factor for the test. The limit L will be quant(gene)/factor, and the limit H quant(gene)*factor.}
 }
 \value{
 This function return a list of two matrices (down_genes and up_genes)
@@ -33,14 +32,14 @@ This function applies the function sample_test to a serie of samples.
 # First, load and define the data
 controls = penda::data_ctrl[1:10, 1:10]
 samples = penda::data_case[1:10, 1:3]
-# Second, down and up list are computed
-D_U_list = penda::compute_down_and_up_list(controls, threshold = 0.99, s_max = 50)
+# Second, lower and higher lists are computed
+L_H_list = penda::compute_lower_and_higher_lists(controls, threshold = 0.99, s_max = 50)
 # Third, test is the expression is deregulated for each gene of a sample
 res_penda = penda::penda_test(samples,
-                                controls,
-                                iterations = 20,
-                                D_U_list, 
-                                    threshold = 0.03, 
-                                    quant_test = 0, 
-                                    factor_test = 1)
+                              controls,
+                              iterations = 20,
+                              L_H_list,
+                              threshold = 0.03,
+                              quant_test = 0,
+                              factor_test = 1)
 }

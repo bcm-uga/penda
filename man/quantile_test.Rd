@@ -13,7 +13,7 @@ quantile_test(controls, samples, quant, factor)
 
 \item{quant}{The quantile of the control genes expression, quantile(c(quant, 1-quant)).}
 
-\item{factor}{The factor for the quantile. The D limit will be quantmin/factor, and the U limit quantmax*factor.}
+\item{factor}{The factor for the quantile. The down-regulated limit will be quantmin/factor, and the up-regulated limit quantmax*factor.}
 }
 \value{
 This function return a list with two vectors or matrix :

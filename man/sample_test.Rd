@@ -4,24 +4,14 @@
 \alias{sample_test}
 \title{Test gene expression variations for a given sample}
 \usage{
-sample_test(sample, controls, iterations, D_U_list, threshold,
-  quant_test = 0, factor_test = 1)
+sample_test(sample, iterations, threshold)
 }
 \arguments{
 \item{sample}{A vector with all the genes expressions for one patient.}
 
-\item{controls}{A matrix with genes expressions in controls for all the patients.}
-
-\item{iterations}{The maximal number of iterations for the test. If the dysregulation list
-no longer changes, iterations are stop before.}
-
-\item{D_U_list}{The list of Down and Up-expressed genes matrices in the control.}
+\item{iterations}{The maximal number of iterations for the test. If the dysregulation list no longer changes, iterations are stop before.}
 
 \item{threshold}{The threshold for regulation_test.}
-
-\item{quant_test}{The quantile for the test. When D and U lists are void, we use the naive method.}
-
-\item{factor_test}{The factor for the test. The limit D will be quant(gene)/factor, and the limit U quant(gene)*factor.}
 }
 \value{
 This function return a list with two vectors :
@@ -33,16 +23,18 @@ This function makes the test of the dysregulation of all genes for one patient.
 }
 \examples{
 # First, load and define the data
-controls = penda::data_ctrl[1:10, 1:10]
+controls <<- penda::data_ctrl[1:10, 1:10]
 sample = penda::data_case[1:10, 1]
-# Second, down and up list are computed
-D_U_list = penda::compute_down_and_up_list(controls, threshold = 0.99, s_max = 50)
-# Third, test is the expression is deregulated for each gene of a sample
+# Second, lower and higher lists are computed
+L_H_list <<- penda::compute_lower_and_higher_lists(controls, threshold = 0.99, s_max = 50)
+# Third, test is the expression is deregulated for each gene of a sample. When this function is called, quantiles are already computed
+quant_test = 0
+factor_test = 1
+quantile_genes <<- apply(controls, 1, quantile, c(quant_test,(1-quant_test)), na.rm = TRUE)
+quantile_genes[1,] = quantile_genes[1,] / factor_test
+quantile_genes[2,] = quantile_genes[2,] * factor_test
+
 res_sample = penda::sample_test(sample,
-                                controls,
                                 iterations = 20,
-                                D_U_list, 
-                                    threshold = 0.03, 
-                                    quant_test = 0, 
-                                    factor_test = 1)
+                                threshold = 0.03)
 }

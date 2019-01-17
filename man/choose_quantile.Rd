@@ -15,7 +15,7 @@ choose_quantile(controls, simulation, factor_values = c(1, 1.2, 1.4, 1.6,
 
 \item{quantile_values}{A vector with different values to test for the quantile.}
 
-\item{factor}{A vector with different values of factor. The D limit will be quantmin/factor, and the U limit quantmax*factor.}
+\item{factor}{A vector with different values of factor. The down-regulated limit will be quantmin/factor, and the up-regulated limit quantmax*factor.}
 }
 \value{
 This function returns a matrix with 5 columns : the value of the factor test,
