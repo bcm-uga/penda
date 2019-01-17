@@ -4,24 +4,23 @@
 \alias{choose_threshold}
 \title{Test gene expression variations for multiple thresholds in a serie of samples}
 \usage{
-choose_threshold(controls, D_U_list, iterations, simulation,
+choose_threshold(controls, L_H_list, iterations, simulation,
   threshold_values, quant_test = 0, factor_test = 1)
 }
 \arguments{
 \item{controls}{A matrix with genes expressions in controls for all the patients.}
 
-\item{D_U_list}{The list of Down and Up-expressed genes matrices in the control.}
+\item{L_H_list}{The list of lower and higher expressed genes matrices in the control.}
 
-\item{iterations}{The maximal number of iterations for the test. If the dysregulation list
-no longer changes, iterations are stop before.}
+\item{iterations}{The maximal number of iterations for the test. If the dysregulation list no longer changes, iterations are stop before.}
 
 \item{simulation}{The simulation with the list of initial data $initial_data and modified data in $simulated_data.}
 
 \item{threshold_values}{A vector with different values to test for the threshold.}
 
-\item{quant_test}{The quantile for the test. When D and U lists are void, we use the naive method.}
+\item{quant_test}{The quantile for the test. When L and H lists are void, we use the naive method.}
 
-\item{factor_test}{The factor for the test. The limit D will be quant(gene)/factor, and the limit U quant(gene)*factor.}
+\item{factor_test}{The factor for the test. The limit L will be quant(gene)/factor, and the limit H quant(gene)*factor.}
 }
 \value{
 This function returns a matrix with 5 columns : the patient number, the value of the threshold tested,
@@ -33,19 +32,19 @@ It computes FDR, TPR and FPR for each patient and each threshold value.
 }
 \examples{
 # First, load and define the data, make the simulation
-controls = penda::data_ctrl[1:10, 1:10]
+controls <<- penda::data_ctrl[1:10, 1:10]
 simu_data = penda::data_ctrl[1:10,11:16]
-simulation = penda::simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
-# Second, down and up list are computed
-D_U_list = penda::compute_down_and_up_list(controls, threshold = 0.99, s_max = 50)
+simulation <<- penda::simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
+# Second, lower and higher lists are computed
+L_H_list <<- penda::compute_lower_and_higher_lists(controls, threshold = 0.99, s_max = 50)
 # Third, choose the vector of threshold to test
 threshold_values = c(0.1, 0.2, 0.3, 0.4, 0.5)
 # Fourth, make the test on simulation for different thresholds
 which_threshold = penda::choose_threshold(controls,
-                                D_U_list,
-                                iterations = 20,
-                                simulation,
-                                threshold_values,
-                                quant_test = 0,
-                                factor_test = 1)
+                                          L_H_list,
+                                          iterations = 20,
+                                          simulation,
+                                          threshold_values,
+                                          quant_test = 0,
+                                          factor_test = 1)
 }

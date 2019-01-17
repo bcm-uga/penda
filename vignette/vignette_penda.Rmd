@@ -11,39 +11,6 @@ output:
 ---
 
 ```{r, echo=FALSE}
-draw_penda = function(){
-  library(ggplot2)
-  tetey = c(4, 5, 5.8, 5.8, 5.4, 5, 4, 3, 1.5, 1.3, 1.5, 2.5, 4)
-  tetex = c(1, 1.75, 2.9, 4, 4.8, 5.2, 5.8, 6, 5, 3.8, 2.3, 1.2, 1)
-  orgy = c(4.5, 5.2, 6, 6.2, 5.8, 5, 4.5)
-  orgx = c(1.35, 1, 1.2, 2.3, 2.9, 1.75, 1.35)
-  ordy = c(5.8, 6.2, 6, 5.6, 4.8, 4.2, 5, 5.4, 5.8)
-  ordx = c(4, 4.8, 5.3, 5.9, 6, 5.7, 5.2, 4.8, 4)
-
-  ydx = c(3.9, 4.2, 4.8, 5, 4.8, 4.2, 3.8, 3.9)
-  ydy = c(4, 4.4, 4.2, 4, 3.3, 3.2, 3.5, 4)
-
-  ygx = c(2.5, 2.2, 2.5, 3.2, 3.5, 3.2, 2.5)
-  ygy = c(3.2, 4, 4.3, 4.3, 4, 3.3, 3.2 )
-
-  points = data.frame(x = c(2.8, 3.5, 4.3)
-                    ,y = c(3.8, 2.8, 3.8))
-
-  graph = ggplot() + geom_path(aes(tetex, tetey)) + geom_path(aes(orgx, orgy, size = 3)) + geom_path(aes(ordx, ordy, size = 3)) + geom_path(aes(ydx, ydy, size = 3)) + geom_path(aes(ygx, ygy, size = 3)) + geom_point(data = points, aes(x = x, y = y, size = 3)) +
-    theme_bw() +
-    theme(legend.position="none") +
-    theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        axis.title.y=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank()) +
-     ggtitle("penda",subtitle = "PErsoNalized Data Analysis" ) +
-  theme(plot.title = element_text(lineheight=10, face="bold", hjust = 0.5), plot.subtitle = element_text(lineheight=.8, face="italic", hjust = 0.5)) 
-  
-  return(graph)
-}
-draw_penda()
 draw_penda_better = function(){
   tetey = c(4, 5, 5.8, 5.8, 5.4, 5, 4, 3, 1.5, 1.3, 1.5, 2.5, 4)
   tetex = c(1, 1.75, 2.9, 4, 4.8, 5.2, 5.8, 6, 5, 3.8, 2.3, 1.2, 1)
@@ -84,9 +51,15 @@ The dataset used for this example correspond to the transcriptomes (normalized c
 
 `data_ctrl` is a data matrix containing normalized counts for each control sample. 
 The rownames of the matrix correspond the gene_symbol , the colnames indicate the sample ID.
+<span style="color:red">Genes has to be ordered by their median in controls. </span>
 
 ```{r, results="verbatim"}
 data_ctrl = penda::data_ctrl
+median_gene = apply(data_ctrl, 1, median, na.rm = TRUE)
+median_gene = sort(median_gene)
+median_gene[10000:10050]
+data_ctrl = data_ctrl[names(median_gene),]
+
 head(data_ctrl[,1:5])
 is.matrix(data_ctrl)
 dim(data_ctrl)
@@ -97,6 +70,8 @@ The rownames of the matrix correspond the gene_symbol , the colnames indicate th
 
 ```{r, results="verbatim"}
 data_case = penda::data_case
+data_case = data_case[names(median_gene),]
+
 head(data_case[,1:5])
 is.matrix(data_case)
 dim(data_case)
@@ -131,27 +106,23 @@ dim(data_case_f)
 
 Second, we rank the gene expression using normal tissue sample (i.e. `the data_ctrl_f matrix`)
 
-We used the function `compute_down_and_up_list` which a list of two matrices. 
+We used the function `compute_lower_and_higher_lists` to obtain a list of two matrices. 
 
-The matrix **D** corresponds to the list (i.e true) of downregulated genes for each considered genes (columns).
-The matrix **U** corresponds to the list (i.e true) of upregulated genes for each considered genes (columns).
+The matrix **L** corresponds to the list (i.e id) of genes with a lower expression for each considered genes (lines).
+The matrix **D** corresponds to the list (i.e id) of genes with an higher expression for each considered genes (lines).
 
-For each, the list of **D** genes (resp. **U** genes) corresponds to the closest genes (up to `s_max` genes) that are down (resp. up) regulated in at least `threshold` % of the control samples. 
-
+For each, the list of **L** genes (resp. **H** genes) corresponds to the closest genes (up to `s_max` genes) that have a lower (resp. higher) expression in at least `threshold` % of the control samples. 
 
 
 ```{r, results="verbatim"}
-if (!file.exists("tmp/D_U_list.rds")){
-  controls = data_ctrl_f
-  D_U_list = penda::compute_down_and_up_list(controls, threshold = 0.99, s_max = 50)
-  saveRDS(D_U_list , "tmp/D_U_list.rds")
-}
-D_U_list = readRDS("tmp/D_U_list.rds")
-hist(colSums(D_U_list$D))
+L_H_list = penda::compute_lower_and_higher_lists(data_ctrl_f, threshold = 0.99, s_max = 50)
+
+hist(rowSums(L_H_list$L != 0), xlab = "nb of L genes")
+hist(rowSums(L_H_list$H != 0), xlab = "nb of H genes")
+
 ```
 
 ## Differential expression testing
-
 
 
 ```{r, results="verbatim"}
@@ -159,16 +130,16 @@ controls =  data_ctrl_f
 samples = data_case_f[,1:2] 
 threshold = 0.03 
 iterations =  20 
-D_U_list=  D_U_list 
+L_H_list =  L_H_list 
 quant_test =  0.2
 factor_test = 1
 
 if (!file.exists("tmp/penda_res.rds")){
   penda_res = penda::penda_test(samples = samples, 
-                        controls = controls,
+                  controls = controls,
                    threshold = threshold, 
                    iterations =  iterations, 
-                   D_U_list =  D_U_list, 
+                   L_H_list =  L_H_list, 
                    quant_test =  quant_test,
                    factor_test = factor_test)
   saveRDS(penda_res , "tmp/penda_res.rds")

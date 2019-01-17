@@ -4,23 +4,16 @@
 \alias{regulation_test}
 \title{Test gene expression variation for a given gene}
 \usage{
-regulation_test(gene, D_U_list, sample, threshold, controls,
-  quant_test = 0, factor_test = 1)
+regulation_test(gene, L_H_list, sample, threshold)
 }
 \arguments{
 \item{gene}{The name of the gene to analyze.}
 
-\item{D_U_list}{The list of Down and Up-expressed genes matrices in the control.}
+\item{L_H_list}{The list of lower and higher expressed genes matrices in the control.}
 
 \item{sample}{The vector of genes expressions for one patient.}
 
-\item{threshold}{If Dd/Du and Uu/ud are under this threshold, the expression not change.}
-
-\item{controls}{The matrix with genes expressions in controls for all the patients.}
-
-\item{quant_test}{Quant is used to make the quantile of the normal distribution of a gene when the gene has not D or U lists. A down-regulated gene is under the quantile, and an up-regulated is above.}
-
-\item{factor_test}{The factor modifiy the quantile, the min quantile is divied by factor, and the max is multiplied.}
+\item{threshold}{If Ll/Lh and Hh/Hl are under this threshold, the expression not change.}
 }
 \value{
 This function returns 0 if the gene expression has not changed,
@@ -28,7 +21,7 @@ This function returns 0 if the gene expression has not changed,
 }
 \description{
 This function makes the test of expression dysregulation of one gene for a patient compared to control.
-It's an hybrid method, which use the rank method and the quantile method in addition when there is no up or down list.
+It's an hybrid method, which use the rank method and the quantile method in addition when there is no lower or higher list.
 }
 \examples{
 examples/ex_regulation_test.R
