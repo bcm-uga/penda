@@ -116,7 +116,7 @@ sample_test = function (sample, iterations, threshold){
 
   #For each iteration
   for (i in 1:iterations){
-    print(c("Iteration number : ", i))
+    print(paste0("Iteration ", i))
     #Genes dysregulated at the previous iteration are removed of L_H.
     L_H_list_tmp = L_H_list
     id_l1 = which(l1 != 0)
@@ -192,10 +192,13 @@ penda_test = function(samples, controls, iterations, L_H_list, threshold, quant_
     down_genes = res$D
     up_genes = res$U
   } else if (dim(samples)[2] > 1){
-    print(paste0("compute DE list for ", dim(samples)[2], " samples"))
-    res = apply(samples, 2, penda::sample_test,
-                threshold = threshold,
-                iterations =  iterations)
+    print(paste0("Compute DE list for ", dim(samples)[2], " samples"))
+    nbpatient = 0
+    res = apply(samples, 2, function(s){
+      nbpatient <<- nbpatient + 1
+      print(paste0("Patient ", nbpatient, "/", dim(samples)[2]))
+      penda::sample_test(s, threshold = threshold, iterations =  iterations)
+    })
     down_genes = sapply(res, "[[", "D")
     up_genes = sapply(res, "[[", "U")
   } else {

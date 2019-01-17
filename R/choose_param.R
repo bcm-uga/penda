@@ -56,7 +56,7 @@ DU_rearrangement = function(multiple_tests, simu_data, multiple_values){
 test_multiple_thresholds = function(simulation, threshold_values, iterations){
   #Make the deregulation test for all threshold values.
   multiple_test = sapply(threshold_values, function(t){
-    print(c("Threshold",t))
+    print(paste0("Threshold ",t))
     penda::sample_test(simulation$simulated_data, iterations, t)
   })
   sorted_test = DU_rearrangement(multiple_test, simulation$initial_data, threshold_values)
