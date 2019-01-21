@@ -211,7 +211,8 @@ df_quant = data.frame(factor = factor(which_quantile[,1])
 )
 
 library(ggplot2)
-ggplot(df_quant, aes(x = FPR, y = TPR, color = quantile, group = factor, shape = factor)) + geom_point() + geom_line()
+ggplot(df_quant, aes(x = FPR, y = TPR, color = quantile, group = factor, shape = factor)) + geom_point() + 
+  geom_line() + theme_minimal()
 
 ```
 
