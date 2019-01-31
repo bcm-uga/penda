@@ -55,6 +55,8 @@ The purpose of this tutorial is to explain how choose these different parameters
 
 # Dataset
 
+##Loading data
+
 The dataset used for this example correspond to the transcriptomes (normalized count, using DESeq2 method) of 44 patients with lung adenocarcinoma (PMID:25079552), including control and pathological samples. 
 
 `data_ctrl` is a data matrix containing normalized counts for each control sample. 
@@ -86,7 +88,26 @@ head(data_case[,1:5])
 dim(data_case)
 ```
 
-You can use the function `detect_zero_value` to remove genes with very low expression, or the function `detect_na_value` to remove those with high rate of NA.
+## Data filtering
+
+We filter the data with `detect_zero_value` to remove genes with very low expression. We used the function `normalmixEM` to define the threshold of low expression on all the datas normalized with a pseudo-log2.
+You can also used the function `detect_na_value` to remove genes and patients with high rate of NA.
+
+```{r}
+all_data = c((log2(data_ctrl + 1)), (log2(data_case + 1)))
+library(mixtools)
+mod = mixtools::normalmixEM(na.omit(all_data))
+mu = mod$mu[1]
+sig = mod$sigma[1]
+val_min = 2^qnorm(0.80, mu, sig)
+
+null_values = penda::detect_zero_value(data_ctrl, data_case, threshold = 0.99, min = val_min)
+data_ctrl = data_ctrl[!null_values,] #filtered matrix
+data_case = data_case[!null_values,] #filtered matrix
+dim(data_ctrl)
+dim(data_case)
+```
+
 
 We need control samples to do simulations and be able to compute the error rate. Here, we extract the five last patients of data_ctrl in `data_simu`.
 

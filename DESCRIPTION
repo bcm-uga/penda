@@ -13,10 +13,11 @@ Description: The `penda` package provides different method to perform personaliz
 Depends: R(>= 2.10.0)
 Imports:
     ggplot2,
-    Rcpp
+    Rcpp,
+	mixtools
 License: CeCILL
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
 LinkingTo: 
     Rcpp

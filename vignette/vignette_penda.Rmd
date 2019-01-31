@@ -92,10 +92,17 @@ This is a tutorial describing how to use `penda` package.
 
 ## Data filtering
 
-First we filter the data to remove genes with very low expression.
+First we filter the data to remove genes with very low expression. We used the function `normalmixEM` to define the threshold of low expression on all the datas normalized with a pseudo-log2.
 
 ```{r}
-null_values = penda::detect_zero_value(data_ctrl, data_case, threshold = 0.99, min = 10)
+all_data = c((log2(data_ctrl + 1)), (log2(data_case + 1)))
+library(mixtools)
+mod = mixtools::normalmixEM(na.omit(all_data))
+mu = mod$mu[1]
+sig = mod$sigma[1]
+val_min = 2^qnorm(0.80, mu, sig)
+
+null_values = penda::detect_zero_value(data_ctrl, data_case, threshold = 0.99, min = val_min)
 data_ctrl_f = data_ctrl[!null_values,] #filtered matrix
 data_case_f = data_case[!null_values,] #filtered matrix
 dim(data_ctrl_f)
@@ -232,6 +239,7 @@ data_bygene = generate_data_bygene(D_list = penda_res$down_genes,
 ```{r}
 plot_figure = function(data_patients, data_genes){
   
+library(ggplot2)
 mytheme <- theme(panel.background = element_blank(),
   panel.grid.major = element_line(colour="black", size = (0.1)),
                  panel.grid.minor = element_blank())
