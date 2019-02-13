@@ -104,6 +104,60 @@ detect_na_value = function(controls, cancer_data, threshold, probes = TRUE) {
 # clementine.decamps@univ-grenoble-alpes.fr
 #
 #---------------------------------------------
+#' Making the Penda Dataset
+#'
+#' This function makes a dataset with controls and cancer_data pre-filtred and sorted by median in controls.
+#'
+#'@param controls A matrix with datas to analyze.
+#'@param cancer_data A matrix with other conditions datas to analyze.
+#'@param detectlowvalue If detectlowvalue is true, we apply the function "detect_zero_value".
+#'@param detectNA If detectnavalue is true, we apply the function "detect_na_value" on probes and on patients.
+#'@param threshold The maximum proportion of expression under val_min or NA tolerated for each gene.
+#'@param val_min The minimum value accepted. If val_min is NA, we compute this value with mixtools.
+#'
+#'@return This function return a list with data_ctrl and data_case.
+#'
+#'@example examples/ex_make_dataset.R
+#'
+#'@export
+
+make_dataset = function(controls, cancer_data, detectlowvalue = TRUE, detectNA = TRUE, threshold = 0.99, val_min = NA) {
+
+  if(detectNA == TRUE){
+    naprobes = penda::detect_na_value(controls, cancer_data, threshold, probes = TRUE)
+    napatient = penda::detect_na_value(controls,  cancer_data, threshold, probes = FALSE)
+    controls = controls[!naprobes, !napatient[1:ncol(controls)]]
+    cancer_data = cancer_data[!naprobes, !napatient[(ncol(controls)+1):length(napatient)]]
+  }
+
+  if(detectlowvalue == TRUE){
+    if(is.na(val_min)){
+      print("Computing of the low threshold")
+      all_data = c((log2(controls + 1)), (log2(cancer_data + 1)))
+      mod = mixtools::normalmixEM(na.omit(all_data))
+      mu = min(mod$mu)
+      sig = mod$sigma[1]
+      val_min = 2^qnorm(0.80, mu, sig)
+      paste0("The low threshold is ", val_min)
+    }
+    low_values = penda::detect_zero_value(controls, cancer_data, threshold = threshold, min = val_min)
+    controls = controls[!low_values,]
+    cancer_data = cancer_data[!low_values,]
+  }
+
+  median_gene = apply(controls, 1, median, na.rm = TRUE)
+  median_gene = sort(median_gene)
+  controls = controls[names(median_gene),]
+  cancer_data = cancer_data[names(median_gene),]
+
+  return(list(data_ctrl = controls, data_case = cancer_data))
+}
+
+
+# Authors: Clémentine Decamps, UGA
+# clementine.decamps@univ-grenoble-alpes.fr
+#
+#---------------------------------------------
 #' Compute L and H list in control samples.
 #'
 #' For each gene, this function computes two lists.
@@ -126,6 +180,11 @@ detect_na_value = function(controls, cancer_data, threshold, probes = TRUE) {
 compute_lower_and_higher_lists = function (controls, threshold, s_max = 50){
 
   print("Computing genes with lower and higher expression")
+  median_gene = sort(apply(controls, 1, median, na.rm = TRUE))
+  if( sum(names(median_gene) != rownames(controls)) !=0){
+    warning("Genes has to be ordered by their median in controls.")
+  }
+
   #Using DU_rcpp to compute genes with lower and higher expression.
   if(anyNA(controls)){
     LH = penda::compute_LH_cppNA(controls, threshold, rowSums(is.na(controls)), s_max)

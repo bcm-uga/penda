@@ -51,14 +51,9 @@ The dataset used for this example correspond to the transcriptomes (normalized c
 
 `data_ctrl` is a data matrix containing normalized counts for each control sample. 
 The rownames of the matrix correspond the gene_symbol , the colnames indicate the sample ID.
-<span style="color:red">Genes has to be ordered by their median in controls. </span>
 
 ```{r, results="verbatim"}
 data_ctrl = penda::data_ctrl
-median_gene = apply(data_ctrl, 1, median, na.rm = TRUE)
-median_gene = sort(median_gene)
-median_gene[10000:10050]
-data_ctrl = data_ctrl[names(median_gene),]
 
 head(data_ctrl[,1:5])
 is.matrix(data_ctrl)
@@ -70,7 +65,6 @@ The rownames of the matrix correspond the gene_symbol , the colnames indicate th
 
 ```{r, results="verbatim"}
 data_case = penda::data_case
-data_case = data_case[names(median_gene),]
 
 head(data_case[,1:5])
 is.matrix(data_case)
@@ -82,7 +76,7 @@ dim(data_case)
 
 `penda` performs a 3-steps analysis: 
 
-1. Data filtering
+1. Data filtering and creation of the dataset
 
 2. Gene ranking
 
@@ -92,19 +86,16 @@ This is a tutorial describing how to use `penda` package.
 
 ## Data filtering
 
-First we filter the data to remove genes with very low expression. We used the function `normalmixEM` to define the threshold of low expression on all the datas normalized with a pseudo-log2.
+The function `make_dataset` makes 3 steps to prepare the data at the analysis. <\br>
+First, it calls the function `detct_na_value` of Penda to remove samples with more than threshold % probes or patients with NA. <\br>
+Second, it calls the function `detect_zero_value` of Penda to remove genes with very low expression. You can choose the threshold of low expression, or by default it uses the function `normalmixEM` to compute this threshold on all the datas normalized with a pseudo-log2. <\br>
+Finally, the function ranks genes by the median in controls. This step is essential for the proper functioning of Penda.
 
 ```{r}
-all_data = c((log2(data_ctrl + 1)), (log2(data_case + 1)))
-library(mixtools)
-mod = mixtools::normalmixEM(na.omit(all_data))
-mu = mod$mu[1]
-sig = mod$sigma[1]
-val_min = 2^qnorm(0.80, mu, sig)
+Penda_dataset = penda::make_dataset(data_ctrl, data_case, detectlowvalue = TRUE, detectNA = TRUE, threshold = 0.99)
+data_ctrl_f = Penda_dataset$data_ctrl
+data_case_f = Penda_dataset$data_case
 
-null_values = penda::detect_zero_value(data_ctrl, data_case, threshold = 0.99, min = val_min)
-data_ctrl_f = data_ctrl[!null_values,] #filtered matrix
-data_case_f = data_case[!null_values,] #filtered matrix
 dim(data_ctrl_f)
 dim(data_case_f)
 ```

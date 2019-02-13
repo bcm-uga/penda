@@ -3,7 +3,8 @@ controls <<- penda::data_ctrl[1:10, 1:10]
 sample = penda::data_case[1:10, 1]
 # Second, lower and higher lists are computed
 L_H_list <<- penda::compute_lower_and_higher_lists(controls, threshold = 0.99, s_max = 50)
-# Third, test is the expression is deregulated for each gene of a sample. When this function is called, quantiles are already computed
+# Third, test is the expression is deregulated for each gene of a sample.
+#When this function is called, quantiles are already computed
 quant_test = 0
 factor_test = 1
 quantile_genes <<- apply(controls, 1, quantile, c(quant_test,(1-quant_test)), na.rm = TRUE)
