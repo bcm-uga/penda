@@ -66,8 +66,6 @@ The rownames of the matrix correspond the gene_symbol , the colnames indicate th
 ```{r, results="verbatim"}
 data_ctrl = penda::data_ctrl
 
-data_ctrl = data_ctrl[names(median_gene),]
-
 head(data_ctrl[,1:5])
 dim(data_ctrl)
 ```
