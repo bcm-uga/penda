@@ -143,7 +143,7 @@ complex_simulation = function(controls, cancer_data, data, size_grp = 100, quant
   prop = unlist(group[,3])
 
   if(is.matrix(simu_data)){
-    paste0("Simulating dysregulation of ", ncol(simu_data), " patients.")
+    print(paste0("Simulating dysregulation of ", ncol(simu_data), " patients."))
     for (p in 1:ncol(simu_data)){
       for (g in 1:nrow(simu_data)){
         gene = simu_data[g, p]
@@ -172,36 +172,37 @@ complex_simulation = function(controls, cancer_data, data, size_grp = 100, quant
       }
     }
   } else if (is.vector(simu_data)){
-      paste0("Simulating dysregulation of one patient.")
-      for (g in 1:length(simu_data)){
-        gene = simu_data[g]
-        if (!is.na(gene)){
-          sup_group = which(gene >= limits[1,])
-          if(length(sup_group) > 0){
-            group_gene = max(sup_group)
-          } else {
-            group_gene = 1
-          }
-          prop_gene = prop[group_gene]
-          if (runif(1) <= prop_gene) {
-            all_delta = unlist(group[,4][group_gene])
+    print(paste0("Simulating dysregulation of one patient."))
+    for (g in 1:length(simu_data)){
+      gene = simu_data[g]
+      if (!is.na(gene)){
+        sup_group = which(gene >= limits[1,])
+        if(length(sup_group) > 0){
+          group_gene = max(sup_group)
+        } else {
+          group_gene = 1
+        }
+        prop_gene = prop[group_gene]
+        if (runif(1) <= prop_gene) {
+          all_delta = unlist(group[,4][group_gene])
+          delta = sample(all_delta, 1)
+          count = 0
+          while((simu_data[g] + delta) < 0){
             delta = sample(all_delta, 1)
-            count = 0
-            while((simu_data[g] + delta) < 0){
-              delta = sample(all_delta, 1)
-              count = count + 1
-              if(count > 500){
-                break;
-              }
+            count = count + 1
+            if(count > 500){
+              break;
             }
-            simu_data[g] = simu_data[g] + delta
           }
+          simu_data[g] = simu_data[g] + delta
         }
       }
+    }
+  } else {
+    stop("Simu data must be a vector or a matrix.")
   }
   return(list(initial_data = data, simulated_data = simu_data, changes_idx = which(data != simu_data)))
 }
-
 
 # Authors: Clémentine Decamps, UGA
 # clementine.decamps@univ-grenoble-alpes.fr
