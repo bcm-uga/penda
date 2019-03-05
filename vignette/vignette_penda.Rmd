@@ -183,6 +183,7 @@ generate_data_bygene = function(D_list, U_list){
   total = down + up
   gene_name = rownames(D_list)
   pc_up = (up / dim(D_list)[2]) * 100
+  pc_down = (down / dim(D_list)[2]) * 100
   pc_tot = (total /  dim(D_list)[2]) * 100
   #density = get_density(x = pc_up, y = pc_tot)
   
@@ -212,6 +213,7 @@ generate_data_bygene = function(D_list, U_list){
                     down = down,
                     total = total,
                     pc_up = pc_up,
+                    pc_down = pc_down,
                     pc_tot = pc_tot))
                     #density = density,
                    # pval_up = pval_up,
@@ -246,7 +248,7 @@ scale_y_continuous(breaks = seq(0, 10000, 2000)) + scale_x_discrete(breaks = NUL
                        labels=c("DOWN", "UP & DOWN", "UP")) 
  
 
-p2 = ggplot(data_genes, aes(x = pc_up,   y = pc_tot)) + geom_point(size = 0.2, alpha = 0.1) +# scale_color_viridis() + 
+p2 = ggplot(data_genes, aes(x = pc_up,   y = pc_down)) + geom_point(size = 0.2, alpha = 0.1) +# scale_color_viridis() + 
   ylab("% of patients DEregulated") + 
   xlab("% of patients UPregulated") +
  # geom_density2d(colour="black") + 

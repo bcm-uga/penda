@@ -242,7 +242,7 @@ With these values, we can make a curve and choose the better parameter to fit th
 ```{r, tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), message = FALSE}
 threshold_values = c(0, 0.05, 0.1, 0.3, 0.5, 0.6, 0.7, 0.8, 0.9)
 
-#  which_threshold = penda::choose_threshold(data_ctrl, D_U_list, 30, simup1, threshold_values, quant_test = 0.01, factor_test = 1)
+#  which_threshold = penda::choose_threshold(data_ctrl, L_H_list, 30, simup1, threshold_values, quant_test = 0.01, factor_test = 1)
 ```
 
 ```{r, echo=FALSE, message = FALSE}
