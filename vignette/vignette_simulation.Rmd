@@ -10,7 +10,7 @@ toc_depth: 3
 number_sections: true
 ---
   
-  ```{r, echo=FALSE}
+```{r, echo=FALSE}
 draw_penda = function(){
   library(ggplot2)
   tetey = c(4, 5, 5.8, 5.8, 5.4, 5, 4, 3, 1.5, 1.3, 1.5, 2.5, 4)
