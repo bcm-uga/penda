@@ -1,16 +1,16 @@
 ---
-title: "Advanced User - Performing PErsoNalized Data Analysis with `penda`"
+  title: "Advanced User - Performing PErsoNalized Data Analysis with `penda`"
 author: "Magali Richard, Florent Chuffart, Clémentine Decamps, Daniel Jost"
 date: "`r Sys.Date()`"
 output: 
   rmarkdown::html_document:
-    toc: true
-    toc_float: true
-    toc_depth: 3
-    number_sections: true
+  toc: true
+toc_float: true
+toc_depth: 3
+number_sections: true
 ---
-
-```{r, echo=FALSE}
+  
+  ```{r, echo=FALSE}
 draw_penda = function(){
   library(ggplot2)
   tetey = c(4, 5, 5.8, 5.8, 5.4, 5, 4, 3, 1.5, 1.3, 1.5, 2.5, 4)
@@ -19,27 +19,27 @@ draw_penda = function(){
   orgx = c(1.35, 1, 1.2, 2.3, 2.9, 1.75, 1.35)
   ordy = c(5.8, 6.2, 6, 5.6, 4.8, 4.2, 5, 5.4, 5.8)
   ordx = c(4, 4.8, 5.3, 5.9, 6, 5.7, 5.2, 4.8, 4)
-
+  
   ydx = c(3.9, 4.2, 4.8, 5, 4.8, 4.2, 3.8, 3.9)
   ydy = c(4, 4.4, 4.2, 4, 3.3, 3.2, 3.5, 4)
-
+  
   ygx = c(2.5, 2.2, 2.5, 3.2, 3.5, 3.2, 2.5)
   ygy = c(3.2, 4, 4.3, 4.3, 4, 3.3, 3.2 )
-
+  
   points = data.frame(x = c(2.8, 3.5, 4.3)
-                    ,y = c(3.8, 2.8, 3.8))
-
+                      ,y = c(3.8, 2.8, 3.8))
+  
   graph = ggplot() + geom_path(aes(tetex, tetey)) + geom_path(aes(orgx, orgy, size = 3)) + geom_path(aes(ordx, ordy, size = 3)) + geom_path(aes(ydx, ydy, size = 3)) + geom_path(aes(ygx, ygy, size = 3)) + geom_point(data = points, aes(x = x, y = y, size = 3)) +
     theme_bw() +
     theme(legend.position="none") +
     theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        axis.title.y=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank()) +
-     ggtitle("penda",subtitle = "PErsoNalized Data Analysis" ) +
-  theme(plot.title = element_text(lineheight=10, face="bold", hjust = 0.5), plot.subtitle = element_text(lineheight=.8, face="italic", hjust = 0.5)) 
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.title.y=element_blank(),
+          axis.text.y=element_blank(),
+          axis.ticks.y=element_blank()) +
+    ggtitle("penda",subtitle = "PErsoNalized Data Analysis" ) +
+    theme(plot.title = element_text(lineheight=10, face="bold", hjust = 0.5), plot.subtitle = element_text(lineheight=.8, face="italic", hjust = 0.5)) 
   
   return(graph)
 }
@@ -83,9 +83,9 @@ dim(data_case)
 ## Data filtering
 
 The function `make_dataset` makes 3 steps to prepare the data at the analysis.  <br/>
-First, it calls the function `detct_na_value` of Penda to remove samples with more than threshold % probes or patients with NA.  <br/>
-Second, it calls the function `detect_zero_value` of Penda to remove genes with very low expression. You can choose the threshold of low expression, or by default it uses the function `normalmixEM` to compute this threshold on all the datas normalized with a pseudo-log.  <br/>
-Finally, the function ranks genes by the median in controls. This step is essential for the proper functioning of Penda.
+  First, it calls the function `detct_na_value` of Penda to remove samples with more than threshold % probes or patients with NA.  <br/>
+  Second, it calls the function `detect_zero_value` of Penda to remove genes with very low expression. You can choose the threshold of low expression, or by default it uses the function `normalmixEM` to compute this threshold on all the datas normalized with a pseudo-log.  <br/>
+  Finally, the function ranks genes by the median in controls. This step is essential for the proper functioning of Penda.
 
 ```{r}
 Penda_dataset = penda::make_dataset(data_ctrl, data_case, detectlowvalue = TRUE, detectNA = TRUE, threshold = 0.99)
@@ -109,16 +109,16 @@ dim(data_ctrl)
 ```
 
 <span style="color:red">Note : this vignette is just an example. For a real analysis, we recommend to simulate more patients (10 for example).</span>
-
-
-#Gene ranking in control
-
-To use the Penda method, we also have to rank gene expression in normal tissue. 
+  
+  
+  #Gene ranking in control
+  
+  To use the Penda method, we also have to rank gene expression in normal tissue. 
 
 We used the function `compute_lower_and_higher_lists` to obtain a list of two matrices. 
 
 The matrix **L** corresponds to the list of genes (i.e id) with a lower expression for each considered genes (lines). <br/>
-The matrix **H** corresponds to the list of genes (i.e id) with an higher expression for each considered genes (lines).
+  The matrix **H** corresponds to the list of genes (i.e id) with an higher expression for each considered genes (lines).
 
 For each, the list of **L** genes (resp. **H** genes) corresponds to the closest genes (up to `s_max` genes) that have a lower (resp. higher) expression in at least `threshold` % of the control samples. 
 Too many genes make next steps slower, but too few genes lead to errors.
@@ -128,7 +128,7 @@ L_H_list = penda::compute_lower_and_higher_lists(data_ctrl, threshold = 0.99, s_
 ```
 
 For example, an extract from `L_H_list` :
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+  ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 L_H_list$L[15000:15005,1:10]
 L_H_list$H[15000:15005,1:10]
 ```
@@ -179,7 +179,7 @@ We have to vary different parameters and compare the results to choose the ones 
 ![Quantile method](img_quantile.png)
 
 First parameters to test are those of the quantile method.<br/>
-This method is used in the Penda method when we don't have **L** or **H** list. There are two parameters, the `quantile` of the gene expression distribution in the control (dotted line), and the `factor` which modulate this quantile value (red line).
+  This method is used in the Penda method when we don't have **L** or **H** list. There are two parameters, the `quantile` of the gene expression distribution in the control (dotted line), and the `factor` which modulate this quantile value (red line).
 
 To vary these parameters, we use the function `choose_quantile` which, for one patient, vary the quantile value for a fixed factor. This function compute then, for each quantile, three error rates. <br/>
 The **FDR**, False Discovery Rate, the proportion of false positive in all the positive results.<br/>
@@ -197,14 +197,14 @@ which_quantile = penda::choose_quantile(data_ctrl, simulation, factor = factor_v
 
 ```{r, echo = FALSE}
 df_quant = data.frame(factor = factor(which_quantile[,1])
-                      , quantile = factor(which_quantile[,2])
-                      , FPR = which_quantile[,5]
-                      , TPR = which_quantile[,4]
+, quantile = factor(which_quantile[,2])
+, FPR = which_quantile[,5]
+, TPR = which_quantile[,4]
 )
 
 library(ggplot2)
 ggplot(df_quant, aes(x = FPR, y = TPR, color = quantile, group = factor, shape = factor)) + geom_point() + 
-  geom_line() + theme_minimal()
+geom_line() + theme_minimal()
 
 ```
 
@@ -223,26 +223,18 @@ With these values, we can make a curve and choose the better parameter to fit th
 ```{r, tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), message = FALSE}
 threshold_values = c(0, 0.05, 0.1, 0.3, 0.5, 0.6, 0.7, 0.8, 0.9)
 
-#  which_threshold = penda::choose_threshold(data_ctrl, L_H_list, 30, simup1, threshold_values, quant_test = 0.01, factor_test = 1)
-```
-
-```{r, echo=FALSE, message = FALSE}
-if (!file.exists("tmp/which_threshold.rds")){
-  which_threshold = penda::choose_threshold(data_ctrl, L_H_list, 30, simup1, threshold_values, quant_test = as.numeric(best_quantile$quantile), factor_test = as.numeric(best_quantile$factor))
-  saveRDS(which_threshold, "tmp/which_threshold.rds")
-}
-which_threshold = readRDS("tmp/which_threshold.rds")
+which_threshold = penda::choose_threshold(data_ctrl, L_H_list, 30, simulation, threshold_values, quant_test = 0.01, factor_test = 1)
 ```
 
 ```{r, echo=FALSE}
 library(ggplot2)
 df = data.frame(patient = which_threshold[,1],
-                threshold = which_threshold[,2],
-                FPR = as.numeric(which_threshold[,5]),
-                TPR = as.numeric(which_threshold[,4]))
+threshold = which_threshold[,2],
+FPR = as.numeric(which_threshold[,5]),
+TPR = as.numeric(which_threshold[,4]))
 
 ggplot(df, aes(x = FPR, y = TPR, color = threshold, group = patient)) +
-  geom_point() + geom_line()+ theme_minimal()
+geom_point() + geom_line()+ theme_minimal()
 ```
 
 ```{r, tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
@@ -262,4 +254,3 @@ quantile = `r best_quantile`
 factor = `r best_quantile`
 
 <span style="color:red">Note : be careful with recommended parameters compute on samples. For example, with the complete dataset (100 controls and 1000 datacases) and more simulations, the best threshold goes from 0.9 to 0.3. </span>
-
