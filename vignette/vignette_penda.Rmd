@@ -162,58 +162,6 @@ generate_data_bypatient = function(D_list, U_list){
                     value = value))
 }
 
-generate_data_bygene = function(D_list, U_list){
-  
-  #get_density <- function(x, y, n = 100) {
- # dens <- MASS::kde2d(x = x, y = y, n = n)
- # ix <- findInterval(x, dens$x)
- # iy <- findInterval(y, dens$y)
- # ii <- cbind(ix, iy)
- # return(dens$z[ii])
- # }
-  
-  down = rowSums(D_list)
-  up = rowSums(U_list)
-  total = down + up
-  gene_name = rownames(D_list)
-  pc_up = (up / dim(D_list)[2]) * 100
-  pc_down = (down / dim(D_list)[2]) * 100
-  pc_tot = (total /  dim(D_list)[2]) * 100
-  #density = get_density(x = pc_up, y = pc_tot)
-  
-   #Compute zscore test
-  
-  #get_z_score = function(vec){
- # z = mean(vec)/sd(vec)
- # return(z)
- # }
-  
- # z = apply(U_list,1, get_z_score)
-#  z_f = z[!is.na(z)]
-#  fdr_up = fdrtool::fdrtool(z_f, cutoff.method = "pct0", pct0 = 0.99, plot = FALSE)
-#  pval_up = rep(NA, dim(D_list)[1])
-#  names(pval_up) = rownames(D_list)
-#  pval_up[names(fdr_up$pval)] = fdr_up$pval
-  
-#  z = apply(D_list,1, get_z_score)
- # z_f = z[!is.na(z)]
-  #fdr_dw = fdrtool::fdrtool(z_f, cutoff.method = "pct0", pct0 = 0.99, plot = FALSE)
-  #pval_dw = rep(NA, dim(D_list)[1])
-  #names(pval_dw) = rownames(D_list)
-  #pval_dw[names(fdr_dw$pval)] = fdr_dw$pval
-  
-  return(data.frame(gene_name = gene_name,
-                    up = up,
-                    down = down,
-                    total = total,
-                    pc_up = pc_up,
-                    pc_down = pc_down,
-                    pc_tot = pc_tot))
-                    #density = density,
-                   # pval_up = pval_up,
-                   # pval_dw = pval_dw))
-}
-
 data_bypatient = generate_data_bypatient(D_list = penda_res$down_genes,
                                          U_list = penda_res$up_genes)
 
@@ -232,14 +180,14 @@ scale_y_continuous(breaks = seq(0, 10000, 2000)) + scale_x_discrete(breaks = NUL
    scale_colour_manual(name  ="Gene deregulation", 
                       values = c("green", "darkblue", "red"), 
                        labels=c("DOWN", "UP & DOWN", "UP")) 
- 
+ return(p1)
+}
 
-p2 = ggplot(data_genes, aes(x = pc_up,   y = pc_down)) + geom_point(size = 0.2, alpha = 0.1) +# scale_color_viridis() + 
-  ylab("% of patients DEregulated") + 
-  xlab("% of patients UPregulated") +
- # geom_density2d(colour="black") + 
-  ggtitle("Degree of deregulation per genes") + 
-    theme_minimal()
+plot_figure(data_patients = data_bypatient)
+
+```
+
+```{r, echo = FALSE}
 
 plot_heatmap_hclust = function (data) {
   sum(apply(is.na(data), 1, any))
@@ -275,26 +223,5 @@ foo = gplots::heatmap.2(data, Rowv=Rowv, Colv=Colv, dendrogram="col", trace="non
 plot_heatmap_hclust(data = penda_res$down_genes + penda_res$up_genes)
 
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
