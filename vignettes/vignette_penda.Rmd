@@ -1,0 +1,227 @@
+---
+title: "Performing PErsoNalized Data Analysis with `penda`"
+author: "Magali Richard, Florent Chuffart, Clémentine Decamps, Daniel Jost"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+---
+
+```{r, echo=FALSE}
+draw_penda_better = function(){
+  tetey = c(4, 5, 5.8, 5.8, 5.4, 5, 4, 3, 1.5, 1.3, 1.5, 2.5, 4)
+  tetex = c(1, 1.75, 2.9, 4, 4.8, 5.2, 5.8, 6, 5, 3.8, 2.3, 1.2, 1)
+  orgy = c(4.5, 5.2, 6, 6.2, 5.8, 5, 4.5)
+  orgx = c(1.35, 1, 1.2, 2.3, 2.9, 1.75, 1.35)
+  ordy = c(5.8, 6.2, 6, 5.6, 4.8, 4.2, 5, 5.4, 5.8)
+  ordx = c(4, 4.8, 5.3, 5.9, 6, 5.7, 5.2, 4.8, 4)
+
+  ydx = c(3.9, 4.2, 4.8, 5, 4.8, 4.2, 3.8, 3.9)
+  ydy = c(4, 4.4, 4.2, 4, 3.3, 3.2, 3.5, 4)
+
+  ygx = c(2.5, 2.2, 2.5, 3.2, 3.5, 3.2, 2.5)
+  ygy = c(3.2, 4, 4.3, 4.3, 4, 3.3, 3.2 )
+
+  points = data.frame(x = c(2.8, 3.5, 4.3)
+                    ,y = c(3.8, 2.8, 3.8))
+
+  plot(0,0,col=0, xlim=c(0,7), ylim=c(0,7), xaxt="n", yaxt="n", xlab="", ylab="", main="penda\n4x4")
+  grid()
+  polygon(tetex, tetey)
+  polygon(ordx, ordy, lwd=8)
+  polygon(orgx, orgy, lwd=8)
+  polygon(ydx, ydy, lwd=8)
+  polygon(ygx, ygy, lwd=8)
+  points(points, cex=3, pch=16)
+}
+draw_penda_better()
+```
+
+
+# Introduction
+
+`penda` (**PE**rso**N**alized **D**ifferential **A**nalysis ) is an open-access analysis software (R package). The purpose of this tutorial is to present a general method allowing to detect variation in gene expression for each tested sample compared to a reference panel.  
+
+# Dataset
+
+The dataset used for this example correspond to the transcriptomes (normalized count, using DESeq2 method) of 44 patients with lung adenocarcinoma (PMID:25079552), including control and pathological samples. 
+
+`data_ctrl` is a data matrix containing normalized counts for each control sample. 
+The rownames of the matrix correspond the gene_symbol , the colnames indicate the sample ID.
+
+```{r, results="verbatim"}
+data_ctrl = penda::data_ctrl
+
+head(data_ctrl[,1:5])
+is.matrix(data_ctrl)
+dim(data_ctrl)
+```
+
+`data_case` is a data matrix containing normalized counts for each tumor sample. 
+The rownames of the matrix correspond the gene_symbol , the colnames indicate the sample ID.
+
+```{r, results="verbatim"}
+data_case = penda::data_case
+
+head(data_case[,1:5])
+is.matrix(data_case)
+dim(data_case)
+```
+
+
+# Method
+
+`penda` performs a 3-steps analysis: 
+
+1. Data filtering and creation of the dataset
+
+2. Gene ranking
+
+3. Differential expression testing
+
+This is a tutorial describing how to use `penda` package.
+
+## Data filtering
+
+The function `make_dataset` makes 3 steps to prepare the data at the analysis.  <br/>
+First, it calls the function `detct_na_value` of Penda to remove samples with more than threshold % probes or patients with NA.  <br/>
+Second, it calls the function `detect_zero_value` of Penda to remove genes with very low expression. You can choose the threshold of low expression, or by default it uses the function `normalmixEM` to compute this threshold on all the datas normalized with a pseudo-log.  <br/>
+Finally, the function ranks genes by the median in controls. This step is essential for the proper functioning of Penda.
+
+```{r}
+Penda_dataset = penda::make_dataset(data_ctrl, data_case, detectlowvalue = TRUE, detectNA = TRUE, threshold = 0.99)
+data_ctrl_f = Penda_dataset$data_ctrl
+data_case_f = Penda_dataset$data_case
+
+dim(data_ctrl_f)
+dim(data_case_f)
+```
+
+## Gene ranking
+
+Second, we rank the gene expression using normal tissue sample (i.e. `the data_ctrl_f matrix`)
+
+We used the function `compute_lower_and_higher_lists` to obtain a list of two matrices. 
+
+The matrix **L** corresponds to the list of genes (i.e id) with a lower expression for each considered genes (lines). <br/>
+The matrix **H** corresponds to the list of genes (i.e id) with an higher expression for each considered genes (lines).
+
+For each, the list of **L** genes (resp. **H** genes) corresponds to the closest genes (up to `s_max` genes) that have a lower (resp. higher) expression in at least `threshold` % of the control samples. 
+
+```{r, results="verbatim"}
+L_H_list = penda::compute_lower_and_higher_lists(data_ctrl_f, threshold = 0.99, s_max = 50)
+
+hist(rowSums(L_H_list$L != 0), xlab = "nb of L genes")
+hist(rowSums(L_H_list$H != 0), xlab = "nb of H genes")
+
+```
+
+## Differential expression testing
+
+Then, we used  `penda_test` to make the differential expresion test. This function analyse case samples one by one and compare their genes rank to the L_H_list.
+
+Results are in the form of two matrix `$down_genes` and `$up_genes`, with for each case (column), TRUE if the gene (line) is deregulated (resp. down-regulated or up-regulated). 
+
+```{r, results="verbatim"}
+controls =  data_ctrl_f
+samples = data_case_f[,1:5] 
+threshold = 0.03 
+iterations =  20 
+L_H_list =  L_H_list 
+quant_test =  0.2
+factor_test = 1
+
+penda_res = penda::penda_test(samples = samples, 
+                  controls = controls,
+                   threshold = threshold, 
+                   iterations =  iterations, 
+                   L_H_list =  L_H_list, 
+                   quant_test =  quant_test,
+                   factor_test = factor_test)
+
+colSums(penda_res$down_genes)
+colSums(penda_res$up_genes)
+```
+
+```{r, echo = FALSE}
+generate_data_bypatient = function(D_list, U_list){
+  down = colSums(D_list)
+  up = colSums(U_list)
+  total = down + up
+  patient_names = colnames(D_list)
+  patients = rep(factor(patient_names , levels = patient_names [order(total)]), 3)
+  variable = c(rep("down", length(patient_names)),
+               rep("up", length(patient_names)),
+               rep("total", length(patient_names)))
+  value = c(down, up, total)
+  return(data.frame(patients = patients,
+                    variable = variable,
+                    value = value))
+}
+
+data_bypatient = generate_data_bypatient(D_list = penda_res$down_genes,
+                                         U_list = penda_res$up_genes)
+
+plot_figure = function(data_patients){
+library(ggplot2)
+mytheme <- theme(panel.background = element_blank(),
+  panel.grid.major = element_line(colour="black", size = (0.1)),
+                 panel.grid.minor = element_blank())
+
+p1 = ggplot(data_patients, aes(x = patients, y = value)) + 
+    geom_line(aes(group = variable), colour = "grey80") + # theme_minimal(base_size = 20) +
+    mytheme + ylim(0, 10000) + ylab("Number of  genes") + xlab("Patients") +
+theme(axis.text.x = element_blank()) + geom_point(aes(colour = variable), 
+    size = 0.5) + ggtitle("Degree of deregulation per patient") +  
+scale_y_continuous(breaks = seq(0, 10000, 2000)) + scale_x_discrete(breaks = NULL) +
+   scale_colour_manual(name  ="Gene deregulation", 
+                      values = c("green", "darkblue", "red"), 
+                       labels=c("DOWN", "UP & DOWN", "UP")) 
+ return(p1)
+}
+
+plot_figure(data_patients = data_bypatient)
+
+```
+
+```{r, echo = FALSE}
+
+plot_heatmap_hclust = function (data) {
+  sum(apply(is.na(data), 1, any))
+data = data[!apply(is.na(data), 1, any), ]
+
+# clustering base on correlation for tissues
+tmp_d = data
+tmp_d = t(tmp_d) - apply(tmp_d, 2, mean)
+tmp_d = t(tmp_d)
+tmp_d = cor(tmp_d, method="pe")
+dim(tmp_d)
+hc_col = hclust(dist(1 - tmp_d), method="complete")
+
+Colv = as.dendrogram(hc_col)
+dendrogram="col"      
+
+# clustering base on eucl. dist. for genes
+d = dist(data)
+hc_row = hclust(d, method="complete")
+Rowv = as.dendrogram(hc_row)
+dendrogram="both"      
+
+# col
+colors=c("blue", "gray", "red")
+cols = colorRampPalette(colors)(20)
+
+foo = gplots::heatmap.2(data, Rowv=Rowv, Colv=Colv, dendrogram="col", trace="none", col=cols,
+                        labRow = FALSE,labCol = FALSE,
+                        main=paste0("Penda (", nrow(data), " genes x ", ncol(data), " tissues)"), mar=c(10,5), useRaster=TRUE)
+}
+
+
+plot_heatmap_hclust(data = penda_res$down_genes + penda_res$up_genes)
+
+```
+
+
