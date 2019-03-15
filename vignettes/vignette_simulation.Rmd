@@ -65,7 +65,7 @@ head(data_case[,1:3])
 dim(data_case)
 ```
 
-## Data filtering
+*Filtering, move to methods METHODS: *
 
 
 The function `make_dataset` makes 3 steps to prepare the data at the analysis.  
@@ -74,28 +74,30 @@ The function `make_dataset` makes 3 steps to prepare the data at the analysis.
   - `detect_zero_value` function remove genes with very low expression. You can choose the threshold of low expression, or by default it uses the function `normalmixEM` to compute this threshold on all the datas normalized with a pseudo-log, could also be evaluated by cross-validation.
   - `rank_genes` function ranks genes by the median in controls. This step is essential for the proper functioning of Penda.
 
-```{r}
+Clémentine, de quoi s’agit-il ? Est-ce une indexation des données ?
+
+We need control samples to do simulations and be able to compute the error rate. Here, we extract the last patients of data_ctrl in `data_simu`.
+
+Clémentine, de quoi s’agit-il ? Est-ce une indexation des données ?
+
+
+```{r label="penda::make_dataset"}
 Penda_dataset = penda::make_dataset(data_ctrl, data_case, detectlowvalue = TRUE, detectNA = TRUE, threshold = 0.99)
 data_ctrl = Penda_dataset$data_ctrl
 data_case = Penda_dataset$data_case
 
-dim(data_ctrl)
-dim(data_case)
 ```
 
-
-We need control samples to do simulations and be able to compute the error rate. Here, we extract the last patients of data_ctrl in `data_simu`.
-
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+```{r echo=TRUE, results="verbatim"}
 data_simu = data_ctrl[,1]
-
 data_ctrl = data_ctrl[, -1]
-
-dim(data_simu)
+dim(data_case)
 dim(data_ctrl)
 ```
 
 <span style="color:red">Note : this vignette is just an example. For a real analysis, we recommend to simulate more patients (10 for example).</span>
+
+
   
   
   
@@ -103,26 +105,35 @@ dim(data_ctrl)
   
 # Gene ranking in control
   
-  To use the Penda method, we also have to rank gene expression in normal tissue. 
+```{r label="penda::compute_lower_and_higher_lists"}
+threshold = 0.99
+s_max=50
+L_H_list = penda::compute_lower_and_higher_lists(data_ctrl, threshold=threshold, s_max=s_max)
+L = L_H_list$L
+H = L_H_list$H
+```
+
+To use the Penda method, we also have to rank gene expression in normal tissue. 
 
 We used the function `compute_lower_and_higher_lists` to obtain a list of two matrices. 
 
-The matrix **L** corresponds to the list of genes (i.e id) with a lower expression for each considered genes (lines). <br/>
-  The matrix **H** corresponds to the list of genes (i.e id) with an higher expression for each considered genes (lines).
+The matrix **L** corresponds to the list of genes (i.e id) with a lower expression for each considered genes (lines).
 
-For each, the list of **L** genes (resp. **H** genes) corresponds to the closest genes (up to `s_max` genes) that have a lower (resp. higher) expression in at least `threshold` % of the control samples. 
+The matrix **H** corresponds to the list of genes (i.e id) with an higher expression for each considered genes (lines).
+
+For each, the list of **L** genes (resp. **H** genes) corresponds to the closest genes (up to `s_max` genes) that have a lower (resp. higher) expression in at least `r threshold*100` % of the control samples. 
 Too many genes make next steps slower, but too few genes lead to errors.
 
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
-L_H_list = penda::compute_lower_and_higher_lists(data_ctrl, threshold = 0.99, s_max = 50)
-```
 
-For example, an extract from `L_H_list` :
-  ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
-L_H_list$L[1:6,1:10]
-L_H_list$H[1:6,1:10]
-```
 For each gene in line (PYCR2, TTC7A, etc.), we can see the id of 10 genes with a lower expression and 10 genes with an higher expression.
+
+
+```{r echo=TRUE, results="verbatim"}
+L[1:6,1:10]
+H[1:6,1:10]
+dim(L)
+dim(H)
+```
 
 
 # Generation of simulated dataset
@@ -137,9 +148,8 @@ The function `simplified_simulation` has several parameters, the first is the `f
 You have to adapt your parameters at the expected dysregulation in your real dysregulated datas.
 The simulation returns the vector of initial data, the vector of datas with modifications and the index of modified data. 
 
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+```{r label="penda::simplified_simulation"}
 simple_simu = penda::simplified_simulation(data_simu, fraction = 0.3, threshold = 60, modifier = 30, factor = 3)
-
 head(simple_simu$initial_data)
 head(simple_simu$simulated_data)
 ```
@@ -152,7 +162,7 @@ The function `complex_simulation` uses the real distribution of difference betwe
 
 The simulation returns the vector of initial data, the vector of datas with modifications and the index of modified data. 
 
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+```{r label="penda::complex_simulation"}
 simulation = penda::complex_simulation(data_ctrl, data_case, data_simu)
 head(simulation$initial_data)
 head(simulation$simulated_data)
@@ -186,14 +196,14 @@ The **FPR**, False Positive Rate, the proportion of false positive in all the ne
 
 With these values, we can make a curve and choose the better quantile and the better factor, to minimize the FDR and maximize the TPR. 
 
-```{r, tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), message = FALSE}
+```{r label="penda::choose_quantile"}
+# , tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), message = FALSE}
 quantile_values = c(0, 0.01, 0.02, 0.03, 0.05, 0.06, 0.08, 0.1, 0.15, 0.2, 0.3, 0.4)
 factor_values = c(1, 1.2, 1.4)
-
 which_quantile = penda::choose_quantile(data_ctrl, simulation, factor = factor_values, quantile_values = quantile_values)
 ```
 
-```{r, echo = FALSE}
+```{r}
 df_quant = data.frame(factor = factor(which_quantile[,1])
 , quantile = factor(which_quantile[,2])
 , FPR = which_quantile[,5]
@@ -206,7 +216,8 @@ geom_line() + theme_minimal()
 
 ```
 
-```{r, tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+```{r, label="penda::select_quantile_param"}
+# tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 best_quantile = penda::select_quantile_param(which_quantile, FDR_max = 0.15)
 ```
 <span style="color:red">Note : this vignette is just an example. For a real analysis, we recommend to simulate different patients (10 ideally), to test more quantile and factor values and to manually choose the best settings.</span>
@@ -218,7 +229,8 @@ The function `choose_threshold` make the Penda test to different threshold value
 
 With these values, we can make a curve and choose the better parameter to fit the experimental requirements (low FDR and high TPR).
 
-```{r, tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), message = FALSE}
+```{r label="penda::choose_threshold"}
+# , tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), message = FALSE}
 threshold_values = c(0, 0.05, 0.1, 0.3, 0.5, 0.6, 0.7, 0.8, 0.9)
 
 which_threshold = penda::choose_threshold(data_ctrl, L_H_list, 30, simulation, threshold_values, quant_test = 0.01, factor_test = 1)
@@ -235,7 +247,8 @@ ggplot(df, aes(x = FPR, y = TPR, color = threshold, group = patient)) +
 geom_point() + geom_line()+ theme_minimal()
 ```
 
-```{r, tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+```{r label="penda::select_threshold_param"}
+# tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 best_threshold = penda::select_threshold_param(which_threshold, FDR_max = 0.1)
 ```
 <span style="color:red">Note : this vignette is just an example. For a real analysis, we recommend to simulate different patients (10 ideally), to test more threshold values to manually choose the best threshold.</span>
@@ -257,7 +270,7 @@ factor = `r best_quantile`
 
 
   
-```{r, echo=FALSE}
+```{r}
 draw_penda = function(){
   library(ggplot2)
   tetey = c(4, 5, 5.8, 5.8, 5.4, 5, 4, 3, 1.5, 1.3, 1.5, 2.5, 4)
@@ -290,7 +303,35 @@ draw_penda = function(){
   
   return(graph)
 }
-draw_penda()
+draw_penda2 = function(){
+  tetey = c(4, 5, 5.8, 5.8, 5.4, 5, 4, 3, 1.5, 1.3, 1.5, 2.5, 4)
+  tetex = c(1, 1.75, 2.9, 4, 4.8, 5.2, 5.8, 6, 5, 3.8, 2.3, 1.2, 1)
+  orgy = c(4.5, 5.2, 6, 6.2, 5.8, 5, 4.5)
+  orgx = c(1.35, 1, 1.2, 2.3, 2.9, 1.75, 1.35)
+  ordy = c(5.8, 6.2, 6, 5.6, 4.8, 4.2, 5, 5.4, 5.8)
+  ordx = c(4, 4.8, 5.3, 5.9, 6, 5.7, 5.2, 4.8, 4)
+
+  ydx = c(3.9, 4.2, 4.8, 5, 4.8, 4.2, 3.8, 3.9)
+  ydy = c(4, 4.4, 4.2, 4, 3.3, 3.2, 3.5, 4)
+
+  ygx = c(2.5, 2.2, 2.5, 3.2, 3.5, 3.2, 2.5)
+  ygy = c(3.2, 4, 4.3, 4.3, 4, 3.3, 3.2 )
+
+  points = data.frame(x = c(2.8, 3.5, 4.3)
+                    ,y = c(3.8, 2.8, 3.8))
+
+  plot(0,0,col=0, xlim=c(0,7), ylim=c(0,7), xaxt="n", yaxt="n", bty="n", xlab="", ylab="",
+    main="PENDA: PErsoNalized Data Analysis")
+  # grid()
+  polygon(tetex, tetey)
+  polygon(ordx, ordy, lwd=8)
+  polygon(orgx, orgy, lwd=8)
+  polygon(ydx, ydy, lwd=8)
+  polygon(ygx, ygy, lwd=8)
+  points(points, cex=3, pch=16)
+}
+layout(1, respect=TRUE)
+draw_penda2()
 ```
 
 
