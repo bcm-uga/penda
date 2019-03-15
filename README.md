@@ -17,6 +17,8 @@ R
 ## Build package
 
 ```R
+install.packages("devtools")
+install.packages("mixtools")
 devtools::install()
 ```
 ## Build vignettes
