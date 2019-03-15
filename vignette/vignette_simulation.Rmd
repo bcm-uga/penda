@@ -179,7 +179,8 @@ We have to vary different parameters and compare the results to choose the ones 
 ![Quantile method](img_quantile.png)
 
 First parameters to test are those of the quantile method.<br/>
-  This method is used in the Penda method when we don't have **L** or **H** list. There are two parameters, the `quantile` of the gene expression distribution in the control (dotted line), and the `factor` which modulate this quantile value (red line).
+This method is used in the Penda method when we don’t have **L** or **H** list. There are two parameters, the `quantile` of the gene expression distribution in the control (dotted line), and the `factor` which modulate this quantile value (red line).
+
 
 To vary these parameters, we use the function `choose_quantile` which, for one patient, vary the quantile value for a fixed factor. This function compute then, for each quantile, three error rates. <br/>
 The **FDR**, False Discovery Rate, the proportion of false positive in all the positive results.<br/>
