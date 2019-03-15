@@ -6,20 +6,24 @@ The __penda__ package provide different methods to perform differential analysis
 ## Installation
 
 To get the current development version from github:
+
+```
 git clone https://github.com/bcm-uga/penda.git
 cd penda 
 R
+```
 
+
+## Build package
+
+```R
+devtools::install()
+```
 ## Build vignettes
 
 ```R
-setwd("vignette")
+setwd("vignettes")
 rmarkdown::render("vignette_simulation.Rmd")
 # source(knitr::purl(("vignette_simulation.Rmd")))
+```
 
-## Build vignettes
-
-```R
-setwd("vignette")
-rmarkdown::render("vignette_simulation.Rmd")
-# source(knitr::purl(("vignette_simulation.Rmd")))
