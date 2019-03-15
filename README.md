@@ -18,7 +18,7 @@ R
 
 ```R
 install.packages("devtools")
-install.packages("mixtools")
+# mixtools htmltools scales yaml lazyeval plyr rlang
 devtools::install()
 ```
 ## Build vignettes
