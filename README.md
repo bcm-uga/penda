@@ -6,6 +6,9 @@ The __penda__ package provide different methods to perform differential analysis
 ## Installation
 
 To get the current development version from github:
+git clone https://github.com/bcm-uga/penda.git
+cd penda 
+R
 
 ## Build vignettes
 
