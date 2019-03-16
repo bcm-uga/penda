@@ -43,10 +43,16 @@ data_ctrl = penda::data_ctrl
 ```
 
 ```{r results="verbatim"}
-set.seed(1)
-idx_genes = sample(rownames(data_ctrl), 1000)
-idx_ctrl = sample(colnames(data_ctrl), 20)
+if (exists("nb_genes")) {
+  set.seed(1)
+  idx_genes = sample(rownames(data_ctrl), nb_genes)
+} else {
+  idx_genes = rownames(data_ctrl)
+}
+# idx_ctrl = sample(colnames(data_ctrl), 20)
+idx_ctrl = colnames(data_ctrl)
 data_ctrl = data_ctrl[idx_genes,idx_ctrl]
+
 head(data_ctrl[,1:3])
 dim(data_ctrl)
 ```
@@ -59,7 +65,8 @@ data_case = penda::data_case
 ```
 
 ```{r results="verbatim"}
-idx_case = sample(colnames(data_case), 30)
+#idx_case = sample(colnames(data_case), 30)
+idx_case = colnames(data_case)
 data_case = data_case[idx_genes,idx_case]
 head(data_case[,1:3])
 dim(data_case)
