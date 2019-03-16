@@ -10,36 +10,6 @@ output:
     number_sections: true
 ---
 
-```{r, echo=FALSE}
-draw_penda_better = function(){
-  tetey = c(4, 5, 5.8, 5.8, 5.4, 5, 4, 3, 1.5, 1.3, 1.5, 2.5, 4)
-  tetex = c(1, 1.75, 2.9, 4, 4.8, 5.2, 5.8, 6, 5, 3.8, 2.3, 1.2, 1)
-  orgy = c(4.5, 5.2, 6, 6.2, 5.8, 5, 4.5)
-  orgx = c(1.35, 1, 1.2, 2.3, 2.9, 1.75, 1.35)
-  ordy = c(5.8, 6.2, 6, 5.6, 4.8, 4.2, 5, 5.4, 5.8)
-  ordx = c(4, 4.8, 5.3, 5.9, 6, 5.7, 5.2, 4.8, 4)
-
-  ydx = c(3.9, 4.2, 4.8, 5, 4.8, 4.2, 3.8, 3.9)
-  ydy = c(4, 4.4, 4.2, 4, 3.3, 3.2, 3.5, 4)
-
-  ygx = c(2.5, 2.2, 2.5, 3.2, 3.5, 3.2, 2.5)
-  ygy = c(3.2, 4, 4.3, 4.3, 4, 3.3, 3.2 )
-
-  points = data.frame(x = c(2.8, 3.5, 4.3)
-                    ,y = c(3.8, 2.8, 3.8))
-
-  plot(0,0,col=0, xlim=c(0,7), ylim=c(0,7), xaxt="n", yaxt="n", xlab="", ylab="", main="penda\n4x4")
-  grid()
-  polygon(tetex, tetey)
-  polygon(ordx, ordy, lwd=8)
-  polygon(orgx, orgy, lwd=8)
-  polygon(ydx, ydy, lwd=8)
-  polygon(ygx, ygy, lwd=8)
-  points(points, cex=3, pch=16)
-}
-draw_penda_better()
-```
-
 
 # Introduction
 
@@ -53,7 +23,7 @@ The dataset used for this example correspond to the transcriptomes (normalized c
 The rownames of the matrix correspond the gene_symbol , the colnames indicate the sample ID.
 
 ```{r, results="verbatim"}
-data_ctrl = penda::data_ctrl
+if (!exists("data_ctrl")) data_ctrl = penda::data_ctrl
 
 head(data_ctrl[,1:5])
 is.matrix(data_ctrl)
@@ -64,7 +34,7 @@ dim(data_ctrl)
 The rownames of the matrix correspond the gene_symbol , the colnames indicate the sample ID.
 
 ```{r, results="verbatim"}
-data_case = penda::data_case
+if (!exists("data_case")) data_case = penda::data_case
 
 head(data_case[,1:5])
 is.matrix(data_case)
@@ -92,7 +62,10 @@ Second, it calls the function `detect_zero_value` of Penda to remove genes with 
 Finally, the function ranks genes by the median in controls. This step is essential for the proper functioning of Penda.
 
 ```{r}
-Penda_dataset = penda::make_dataset(data_ctrl, data_case, detectlowvalue = TRUE, detectNA = TRUE, threshold = 0.99)
+
+
+```{r label="penda::make_dataset"}
+if (!exists("Penda_dataset")) Penda_dataset = penda::make_dataset(data_ctrl, data_case, detectlowvalue = TRUE, detectNA = TRUE, threshold = 0.99)
 data_ctrl_f = Penda_dataset$data_ctrl
 data_case_f = Penda_dataset$data_case
 
@@ -112,7 +85,7 @@ The matrix **H** corresponds to the list of genes (i.e id) with an higher expres
 For each, the list of **L** genes (resp. **H** genes) corresponds to the closest genes (up to `s_max` genes) that have a lower (resp. higher) expression in at least `threshold` % of the control samples. 
 
 ```{r, results="verbatim"}
-L_H_list = penda::compute_lower_and_higher_lists(data_ctrl_f, threshold = 0.99, s_max = 50)
+if (!exists("L_H_list")) L_H_list = penda::compute_lower_and_higher_lists(data_ctrl_f, threshold = 0.99, s_max = 50)
 
 hist(rowSums(L_H_list$L != 0), xlab = "nb of L genes")
 hist(rowSums(L_H_list$H != 0), xlab = "nb of H genes")
