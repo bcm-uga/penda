@@ -1,5 +1,6 @@
 ---
-title: "Advanced User - Performing PErsoNalized Data Analysis with `penda`"
+title: "PENDA: PErsoNalized Data Analysis"
+subtitle: "Advanced User - Performing simulated personalized data analysis with `penda`"
 author: "Magali Richard, Florent Chuffart, Clémentine Decamps, Daniel Jost"
 date: "`r Sys.Date()`"
 output:
@@ -47,8 +48,11 @@ draw_penda = function(GGPLOT=FALSE){
   
       return(graph)
   } else {
-    plot(0,0,col=0, xlim=c(0,7), ylim=c(0,7), xaxt="n", yaxt="n", bty="n", xlab="", ylab="",
-      main="PENDA: PErsoNalized Data Analysis")
+    plot(0,0,col=0, 
+      # main="PENDA: PErsoNalized Data Analysis"
+      xaxt="n", yaxt="n", bty="n", xlab="", ylab="",
+      xlim=c(0,7), ylim=c(0,7)
+    )
     # grid()
     polygon(tetex, tetey)
     polygon(ordx, ordy, lwd=8)

@@ -1,5 +1,6 @@
 ---
-title: "Performing PErsoNalized Data Analysis with `penda`"
+title: "PENDA: PErsoNalized Data Analysis"
+subtitle: "Performing personalized data analysis with `penda`"
 author: "Magali Richard, Florent Chuffart, Clémentine Decamps, Daniel Jost"
 date: "`r Sys.Date()`"
 output: 
@@ -9,6 +10,17 @@ output:
     toc_depth: 3
     number_sections: true
 ---
+
+```{r echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=6, eval=TRUE, echo=FALSE, results="hide", dpi=75)
+```  
+
+```{r}
+if (exists("draw_penda")) {
+  layout(1, respect=TRUE)
+  draw_penda()
+}
+```
 
 
 # Introduction
@@ -87,9 +99,9 @@ For each, the list of **L** genes (resp. **H** genes) corresponds to the closest
 ```{r, results="verbatim"}
 if (!exists("L_H_list")) L_H_list = penda::compute_lower_and_higher_lists(data_ctrl_f, threshold = 0.99, s_max = 50)
 
+layout(matrix(1:2, 1), respect=TRUE)
 hist(rowSums(L_H_list$L != 0), xlab = "nb of L genes")
 hist(rowSums(L_H_list$H != 0), xlab = "nb of H genes")
-
 ```
 
 ## Differential expression testing
@@ -100,7 +112,7 @@ Results are in the form of two matrix `$down_genes` and `$up_genes`, with for ea
 
 ```{r, results="verbatim"}
 controls =  data_ctrl_f
-samples = data_case_f[,1:5] 
+samples = data_case_f
 threshold = 0.03 
 iterations =  20 
 L_H_list =  L_H_list 
@@ -160,41 +172,53 @@ plot_figure(data_patients = data_bypatient)
 
 ```
 
-```{r, echo = FALSE}
+```{r fig.width=9, fig.height=9}
 
 plot_heatmap_hclust = function (data) {
   sum(apply(is.na(data), 1, any))
-data = data[!apply(is.na(data), 1, any), ]
+  data = data[!apply(is.na(data), 1, any), ]
 
-# clustering base on correlation for tissues
-tmp_d = data
-tmp_d = t(tmp_d) - apply(tmp_d, 2, mean)
-tmp_d = t(tmp_d)
-tmp_d = cor(tmp_d, method="pe")
-dim(tmp_d)
-hc_col = hclust(dist(1 - tmp_d), method="complete")
+  # clustering base on correlation for tissues
+  tmp_d = data
+  tmp_d = t(tmp_d) - apply(tmp_d, 2, mean)
+  tmp_d = t(tmp_d)
+  tmp_d = cor(tmp_d, method="pe")
+  dim(tmp_d)
+  hc_col = hclust(dist(1 - tmp_d), method="complete")
 
-Colv = as.dendrogram(hc_col)
-dendrogram="col"      
+  Colv = as.dendrogram(hc_col)
+  dendrogram="col"      
 
-# clustering base on eucl. dist. for genes
-d = dist(data)
-hc_row = hclust(d, method="complete")
-Rowv = as.dendrogram(hc_row)
-dendrogram="both"      
+  # clustering base on eucl. dist. for genes
+  d = dist(data)
+  hc_row = hclust(d, method="complete")
+  Rowv = as.dendrogram(hc_row)
+  dendrogram="both"      
 
-# col
-colors=c("blue", "gray", "red")
-cols = colorRampPalette(colors)(20)
+  # col
+  colors=c("blue", "gray", "red")
+  cols = colorRampPalette(colors)(20)
 
-foo = gplots::heatmap.2(data, Rowv=Rowv, Colv=Colv, dendrogram="col", trace="none", col=cols,
-                        labRow = FALSE,labCol = FALSE,
-                        main=paste0("Penda (", nrow(data), " genes x ", ncol(data), " tissues)"), mar=c(10,5), useRaster=TRUE)
+  foo = gplots::heatmap.2(data, Rowv=Rowv, Colv=Colv, dendrogram="col", trace="none", col=cols,
+                          labRow = FALSE,labCol = FALSE,
+                          main=paste0("Penda (", nrow(data), " genes x ", ncol(data), " samples)"), mar=c(10,5), useRaster=TRUE)
 }
 
 
-plot_heatmap_hclust(data = penda_res$down_genes + penda_res$up_genes)
-
+plot_heatmap_hclust(data = penda_res$down_genes - penda_res$up_genes)
 ```
+
+
+
+
+
+
+
+# Session Information
+
+```{r, results="verbatim"}
+sessionInfo()
+```
+
 
 
