@@ -1,18 +1,21 @@
 ---
-  title: "Advanced User - Performing PErsoNalized Data Analysis with `penda`"
+title: "PENDA: PErsoNalized Data Analysis"
+subtitle: "Advanced User - Performing simulated personalized data analysis with `penda`"
 author: "Magali Richard, Florent Chuffart, Clémentine Decamps, Daniel Jost"
 date: "`r Sys.Date()`"
-output: 
+output:
   rmarkdown::html_document:
-  toc: true
-toc_float: true
-toc_depth: 3
-number_sections: true
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
 ---
-  
-```{r, echo=FALSE}
-draw_penda = function(){
-  library(ggplot2)
+
+```{r echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=6, eval=TRUE, echo=FALSE, results="hide", dpi=75)
+```  
+```{r}
+draw_penda = function(GGPLOT=FALSE){
   tetey = c(4, 5, 5.8, 5.8, 5.4, 5, 4, 3, 1.5, 1.3, 1.5, 2.5, 4)
   tetex = c(1, 1.75, 2.9, 4, 4.8, 5.2, 5.8, 6, 5, 3.8, 2.3, 1.2, 1)
   orgy = c(4.5, 5.2, 6, 6.2, 5.8, 5, 4.5)
@@ -28,23 +31,62 @@ draw_penda = function(){
   
   points = data.frame(x = c(2.8, 3.5, 4.3)
                       ,y = c(3.8, 2.8, 3.8))
+  if (GGPLOT) {
+    library(ggplot2)
   
-  graph = ggplot() + geom_path(aes(tetex, tetey)) + geom_path(aes(orgx, orgy, size = 3)) + geom_path(aes(ordx, ordy, size = 3)) + geom_path(aes(ydx, ydy, size = 3)) + geom_path(aes(ygx, ygy, size = 3)) + geom_point(data = points, aes(x = x, y = y, size = 3)) +
-    theme_bw() +
-    theme(legend.position="none") +
-    theme(axis.title.x=element_blank(),
-          axis.text.x=element_blank(),
-          axis.ticks.x=element_blank(),
-          axis.title.y=element_blank(),
-          axis.text.y=element_blank(),
-          axis.ticks.y=element_blank()) +
-    ggtitle("penda",subtitle = "PErsoNalized Data Analysis" ) +
-    theme(plot.title = element_text(lineheight=10, face="bold", hjust = 0.5), plot.subtitle = element_text(lineheight=.8, face="italic", hjust = 0.5)) 
+    graph = ggplot() + geom_path(aes(tetex, tetey)) + geom_path(aes(orgx, orgy, size = 3)) + geom_path(aes(ordx, ordy, size = 3)) + geom_path(aes(ydx, ydy, size = 3)) + geom_path(aes(ygx, ygy, size = 3)) + geom_point(data = points, aes(x = x, y = y, size = 3)) +
+      theme_bw() +
+      theme(legend.position="none") +
+      theme(axis.title.x=element_blank(),
+            axis.text.x=element_blank(),
+            axis.ticks.x=element_blank(),
+            axis.title.y=element_blank(),
+            axis.text.y=element_blank(),
+            axis.ticks.y=element_blank()) +
+      ggtitle("penda",subtitle = "PErsoNalized Data Analysis" ) +
+      theme(plot.title = element_text(lineheight=10, face="bold", hjust = 0.5), plot.subtitle = element_text(lineheight=.8, face="italic", hjust = 0.5)) 
   
-  return(graph)
+      return(graph)
+  } else {
+    plot(0,0,col=0, 
+      # main="PENDA: PErsoNalized Data Analysis"
+      xaxt="n", yaxt="n", bty="n", xlab="", ylab="",
+      xlim=c(0,7), ylim=c(0,7)
+    )
+    # grid()
+    polygon(tetex, tetey)
+    polygon(ordx, ordy, lwd=8)
+    polygon(orgx, orgy, lwd=8)
+    polygon(ydx, ydy, lwd=8)
+    polygon(ygx, ygy, lwd=8)
+    points(points, cex=3, pch=16)    
+  }
 }
+layout(1, respect=TRUE)
 draw_penda()
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Introduction
 
@@ -53,116 +95,152 @@ To determine the variation in gene expression, Penda uses different parameters.
 The purpose of this tutorial is to explain how choose these different parameters according to your data for an advanced user. Simulations are used to identify errors and their types.
 
 
+
+
+
 # Dataset
 
-##Loading data
+The dataset used for this example correspond to the transcriptomes (normalized count, using DESeq2 method) of 44 patients with lung adenocarcinoma [PMID:25079552], including control and pathological samples. 
 
-The dataset used for this example correspond to the transcriptomes (normalized count, using DESeq2 method) of 44 patients with lung adenocarcinoma (PMID:25079552), including control and pathological samples. 
+https://www.ncbi.nlm.nih.gov/pubmed/25079552
 
 `data_ctrl` is a data matrix containing normalized counts for each control sample. 
 The rownames of the matrix correspond the gene_symbol , the colnames indicate the sample ID.
 
 
-```{r, results="verbatim"}
+```{r echo=TRUE}
 data_ctrl = penda::data_ctrl
+```
 
-head(data_ctrl[,1:5])
+```{r results="verbatim"}
+if (exists("nb_genes")) {
+  set.seed(1)
+  idx_genes = sample(rownames(data_ctrl), nb_genes)
+} else {
+  idx_genes = rownames(data_ctrl)
+}
+# idx_ctrl = sample(colnames(data_ctrl), 20)
+idx_ctrl = colnames(data_ctrl)
+data_ctrl = data_ctrl[idx_genes,idx_ctrl]
+
+head(data_ctrl[,1:3])
 dim(data_ctrl)
 ```
 
 `data_case` is a data matrix containing normalized counts for each tumor sample. 
 The rownames of the matrix correspond the gene_symbol , the colnames indicate the sample ID.
 
-```{r, results="verbatim"}
+```{r echo=TRUE}
 data_case = penda::data_case
+```
 
-head(data_case[,1:5])
+
+```{r results="verbatim"}
+#idx_case = sample(colnames(data_case), 30)
+# idx_case = colnames(data_case)
+data_case = data_case[rownames(data_ctrl),]
+head(data_case[,1:3])
 dim(data_case)
 ```
 
-## Data filtering
+*Filtering, move to methods METHODS: *
 
-The function `make_dataset` makes 3 steps to prepare the data at the analysis.  <br/>
-  First, it calls the function `detct_na_value` of Penda to remove samples with more than threshold % probes or patients with NA.  <br/>
-  Second, it calls the function `detect_zero_value` of Penda to remove genes with very low expression. You can choose the threshold of low expression, or by default it uses the function `normalmixEM` to compute this threshold on all the datas normalized with a pseudo-log.  <br/>
-  Finally, the function ranks genes by the median in controls. This step is essential for the proper functioning of Penda.
 
-```{r}
+The function `make_dataset` makes 3 steps to prepare the data at the analysis.  
+
+  - `detect_na_value` function remove samples with more than `r "threshold"`% probes or patients with NA.  <br/>
+  - `detect_zero_value` function remove genes with very low expression. You can choose the threshold of low expression, or by default it uses the function `normalmixEM` to compute this threshold on all the datas normalized with a pseudo-log, could also be evaluated by cross-validation.
+  - `rank_genes` function ranks genes by the median in controls. This step is essential for the proper functioning of Penda.
+
+Clémentine, de quoi s’agit-il ? Est-ce une indexation des données ?
+
+We need control samples to do simulations and be able to compute the error rate. Here, we extract the last patients of data_ctrl in `data_simu`.
+
+Clémentine, de quoi s’agit-il ? Est-ce une indexation des données ?
+
+
+```{r label="penda::make_dataset"}
 Penda_dataset = penda::make_dataset(data_ctrl, data_case, detectlowvalue = TRUE, detectNA = TRUE, threshold = 0.99)
 data_ctrl = Penda_dataset$data_ctrl
 data_case = Penda_dataset$data_case
 
-dim(data_ctrl)
-dim(data_case)
 ```
 
-
-We need control samples to do simulations and be able to compute the error rate. Here, we extract the last patients of data_ctrl in `data_simu`.
-
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+```{r echo=TRUE, results="verbatim"}
 data_simu = data_ctrl[,1]
-
 data_ctrl = data_ctrl[, -1]
-
-dim(data_simu)
+dim(data_case)
 dim(data_ctrl)
 ```
 
 <span style="color:red">Note : this vignette is just an example. For a real analysis, we recommend to simulate more patients (10 for example).</span>
+
+
   
   
-  #Gene ranking in control
   
-  To use the Penda method, we also have to rank gene expression in normal tissue. 
+  
+  
+# Gene ranking in control
+  
+```{r label="penda::compute_lower_and_higher_lists"}
+threshold = 0.99
+s_max=50
+L_H_list = penda::compute_lower_and_higher_lists(data_ctrl, threshold=threshold, s_max=s_max)
+L = L_H_list$L
+H = L_H_list$H
+```
+
+To use the Penda method, we also have to rank gene expression in normal tissue. 
 
 We used the function `compute_lower_and_higher_lists` to obtain a list of two matrices. 
 
-The matrix **L** corresponds to the list of genes (i.e id) with a lower expression for each considered genes (lines). <br/>
-  The matrix **H** corresponds to the list of genes (i.e id) with an higher expression for each considered genes (lines).
+The matrix **L** corresponds to the list of genes (i.e id) with a lower expression for each considered genes (lines).
 
-For each, the list of **L** genes (resp. **H** genes) corresponds to the closest genes (up to `s_max` genes) that have a lower (resp. higher) expression in at least `threshold` % of the control samples. 
+The matrix **H** corresponds to the list of genes (i.e id) with an higher expression for each considered genes (lines).
+
+For each, the list of **L** genes (resp. **H** genes) corresponds to the closest genes (up to `s_max` genes) that have a lower (resp. higher) expression in at least `r threshold*100` % of the control samples. 
 Too many genes make next steps slower, but too few genes lead to errors.
 
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
-L_H_list = penda::compute_lower_and_higher_lists(data_ctrl, threshold = 0.99, s_max = 50)
-```
 
-For example, an extract from `L_H_list` :
-  ```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
-L_H_list$L[15000:15005,1:10]
-L_H_list$H[15000:15005,1:10]
-```
 For each gene in line (PYCR2, TTC7A, etc.), we can see the id of 10 genes with a lower expression and 10 genes with an higher expression.
 
 
-#Generation of simulated dataset
+```{r echo=TRUE, results="verbatim"}
+L[1:6,1:10]
+H[1:6,1:10]
+dim(L)
+dim(H)
+```
+
+
+# Generation of simulated dataset
 
 To compute the real error rate, we need to use simulations. There are two methods of simulation, one simple and one more complex inspired by real dataset.
 
 
-##Simple simulation 
+## Simple simulation 
 
 The function `simplified_simulation` has several parameters, the first is the `fraction` of datas to dysregulate. The dysregulation is +- `modifier` if the gene expression is under the `threshold`, or * / `factor` if the gene expression is above.
 
 You have to adapt your parameters at the expected dysregulation in your real dysregulated datas.
 The simulation returns the vector of initial data, the vector of datas with modifications and the index of modified data. 
 
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+```{r label="penda::simplified_simulation"}
 simple_simu = penda::simplified_simulation(data_simu, fraction = 0.3, threshold = 60, modifier = 30, factor = 3)
-
 head(simple_simu$initial_data)
 head(simple_simu$simulated_data)
 ```
 Note : the simulation is a random process, the sample shown here can contain no modifications.
 
 
-##Simulation inspired by real dataset
+## Simulation inspired by real dataset
 
 The function `complex_simulation` uses the real distribution of difference between data_case and data_ctrl to simulate the proportion and the value of the dysregulation. 
 
 The simulation returns the vector of initial data, the vector of datas with modifications and the index of modified data. 
 
-```{r, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+```{r label="penda::complex_simulation"}
 simulation = penda::complex_simulation(data_ctrl, data_case, data_simu)
 head(simulation$initial_data)
 head(simulation$simulated_data)
@@ -170,13 +248,20 @@ head(simulation$simulated_data)
 Note : the simulation is a random process, the sample shown here can contain no modifications.
 
 
-#Define optimal parameters for your dataset
+# Define optimal parameters for your dataset
 
 We have to vary different parameters and compare the results to choose the ones that minimize the errors.
 
-##Parameters of the quantile method
+## Parameters of the quantile method
 
-![Quantile method](img_quantile.png)
+
+```{r}
+set.seed(1)
+tmp_d = c(rnorm(100, 50000, 10000), rnorm(50, 70000, 15000))
+plot(density(tmp_d), main="limit if don't have lists: quantile and factor")
+abline(v=quantile(tmp_d, c(0.05, 0.95)), col=2)
+abline(v=quantile(tmp_d, c(0.1, 0.9)), lty=2)
+```
 
 First parameters to test are those of the quantile method.<br/>
 This method is used in the Penda method when we don’t have **L** or **H** list. There are two parameters, the `quantile` of the gene expression distribution in the control (dotted line), and the `factor` which modulate this quantile value (red line).
@@ -189,14 +274,14 @@ The **FPR**, False Positive Rate, the proportion of false positive in all the ne
 
 With these values, we can make a curve and choose the better quantile and the better factor, to minimize the FDR and maximize the TPR. 
 
-```{r, tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), message = FALSE}
+```{r label="penda::choose_quantile"}
+# , tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), message = FALSE}
 quantile_values = c(0, 0.01, 0.02, 0.03, 0.05, 0.06, 0.08, 0.1, 0.15, 0.2, 0.3, 0.4)
 factor_values = c(1, 1.2, 1.4)
-
 which_quantile = penda::choose_quantile(data_ctrl, simulation, factor = factor_values, quantile_values = quantile_values)
 ```
 
-```{r, echo = FALSE}
+```{r}
 df_quant = data.frame(factor = factor(which_quantile[,1])
 , quantile = factor(which_quantile[,2])
 , FPR = which_quantile[,5]
@@ -209,19 +294,21 @@ geom_line() + theme_minimal()
 
 ```
 
-```{r, tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+```{r, label="penda::select_quantile_param"}
+# tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 best_quantile = penda::select_quantile_param(which_quantile, FDR_max = 0.15)
 ```
 <span style="color:red">Note : this vignette is just an example. For a real analysis, we recommend to simulate different patients (10 ideally), to test more quantile and factor values and to manually choose the best settings.</span>
 
-##Threshold of the Penda test
+## Threshold of the Penda test
 
 The last important parameter to choose is the `threshold` of the test. This threshold is the importance of the change of rank necessary to assert the deregulation of a gene. 
 The function `choose_threshold` make the Penda test to different threshold values and compute the FDR, TPR and FPR. 
 
 With these values, we can make a curve and choose the better parameter to fit the experimental requirements (low FDR and high TPR).
 
-```{r, tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), message = FALSE}
+```{r label="penda::choose_threshold"}
+# , tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), message = FALSE}
 threshold_values = c(0, 0.05, 0.1, 0.3, 0.5, 0.6, 0.7, 0.8, 0.9)
 
 which_threshold = penda::choose_threshold(data_ctrl, L_H_list, 30, simulation, threshold_values, quant_test = 0.01, factor_test = 1)
@@ -238,12 +325,13 @@ ggplot(df, aes(x = FPR, y = TPR, color = threshold, group = patient)) +
 geom_point() + geom_line()+ theme_minimal()
 ```
 
-```{r, tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+```{r label="penda::select_threshold_param"}
+# tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 best_threshold = penda::select_threshold_param(which_threshold, FDR_max = 0.1)
 ```
 <span style="color:red">Note : this vignette is just an example. For a real analysis, we recommend to simulate different patients (10 ideally), to test more threshold values to manually choose the best threshold.</span>
 
-#Next: analysis of your data
+# Next: analysis of your data
 
 With these simulation you can now perform analysis on your real data.
 You can define your own parameters with the graph visualisation, or use the recommended parameters :
@@ -255,3 +343,17 @@ quantile = `r best_quantile`
 factor = `r best_quantile`
 
 <span style="color:red">Note : be careful with recommended parameters compute on samples. For example, with the complete dataset (100 controls and 1000 datacases) and more simulations, the best threshold goes from 0.9 to 0.3. </span>
+
+
+
+
+
+
+# Session Information
+
+```{r, results="verbatim"}
+sessionInfo()
+```
+
+
+

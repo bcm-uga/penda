@@ -1,2 +1,4 @@
+examples
+^.*\vignettes\.*html$
 ^.*\.Rproj$
 ^\.Rproj\.user$
