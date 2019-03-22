@@ -5,8 +5,9 @@
 #---------------------------------------------
 #' Test gene expression variation for a given gene
 #'
-#' This function makes the test of expression dysregulation of one gene for a patient compared to control.
-#' It's an hybrid method, which use the rank method and the quantile method in addition when there is no lower or higher list.
+#' This function makes the test of expression dysregulation of one gene for a
+#' patient compared to control. It's an hybrid method, which use the rank method
+#' and the quantile method in addition when there is no lower or higher list.
 #'
 #'@param gene The name of the gene to analyze.
 #'@param L_H_list The list of lower and higher expressed genes matrices in the control.
@@ -28,11 +29,11 @@ regulation_test = function(gene, L_H_list, sample, threshold){
   } else {
     #Compute the quantile for the quantile method, if L or H does not exist.
     changement = numeric()
-    quantile_gene = quantile_genes[,gene]
+    quantile_gene = quantile_genes[ ,gene]
 
-    L = sample[L_H_list$L[gene,]]
+    L = sample[L_H_list$L[gene, ]]
     L = L[!is.na(L)]
-    H = sample[L_H_list$H[gene,]]
+    H = sample[L_H_list$H[gene, ]]
     H = H[!is.na(H)]
 
     Lh = sum(L > sample[gene])
@@ -66,7 +67,7 @@ regulation_test = function(gene, L_H_list, sample, threshold){
     else if (length(L) != 0 & length(H) == 0){
       if ((Lh / length(L) < threshold) & (sample[gene] < quantile_gene[2])){
         changement = 0
-      } else if (Lh / length(L)>= threshold){
+      } else if (Lh / length(L) >= threshold){
         changement = -1
       } else {
         changement = 1
@@ -115,17 +116,17 @@ sample_test = function (sample, iterations, threshold){
   print("Begining of iterations")
 
   #For each iteration
-  for (i in 1:iterations){
+  for (i in seq_len(iterations)){
     print(paste0("Iteration ", i))
     #Genes dysregulated at the previous iteration are removed of L_H.
     L_H_list_tmp = L_H_list
     id_l1 = which(l1 != 0)
     L_H_list_tmp$L = apply(L_H_list_tmp$L, 2, function(g){
-      g[g%in%id_l1] = 0
+      g[g %in% id_l1] = 0
       return(g)
     })
     L_H_list_tmp$H = apply(L_H_list_tmp$H, 2, function(g){
-      g[g%in%id_l1] = 0
+      g[g %in% id_l1] = 0
       return(g)
     })
 
@@ -176,13 +177,15 @@ sample_test = function (sample, iterations, threshold){
 #'
 #'@export
 
-penda_test = function(samples, controls, iterations, L_H_list, threshold, quant_test = 0, factor_test = 1){
+penda_test = function(samples, controls, iterations, L_H_list, threshold,
+                      quant_test = 0, factor_test = 1){
 
   controls <<- controls
   L_H_list <<- L_H_list
-  quantile_genes <<- apply(controls, 1, quantile, c(quant_test,(1-quant_test)), na.rm = TRUE)
-  quantile_genes[1,] = quantile_genes[1,] / factor_test
-  quantile_genes[2,] = quantile_genes[2,] * factor_test
+  quantile_genes <<- apply(controls, 1, quantile,
+                           c(quant_test, (1 - quant_test)), na.rm = TRUE)
+  quantile_genes[1,] = quantile_genes[1, ] / factor_test
+  quantile_genes[2,] = quantile_genes[2, ] * factor_test
 
   if (is.null(dim(samples)[2])){
     print("Compute DE list for one sample")
@@ -217,8 +220,8 @@ penda_test = function(samples, controls, iterations, L_H_list, threshold, quant_
 #---------------------------------------------
 #' Simple test of gene expression variations in a serie of samples
 #'
-#' This function makes the quantile test of the dysregulation of all genes. The patient's gene is compared at the gene expression
-#' in controls sample.
+#' This function makes the quantile test of the dysregulation of all genes.
+#' The patient's gene is compared at the gene expression in controls sample.
 #'
 #'@param controls A matrix with genes expressions in controls for all the patients.
 #'@param samples A vector or a matrix with all the genes expressions for each sample.

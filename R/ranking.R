@@ -4,8 +4,8 @@
 #---------------------------------------------
 #'Find low values
 #'
-#' This function detects genes with more than threshold percent of expression values under the min value.
-#' NA expression values are not considered.
+#' This function detects genes with more than threshold percent of expression
+#' values under the min value. NA expression values are not considered.
 #'
 #'@param controls A matrix with datas to analyze.
 #'@param cancer_data A matrix with other conditions datas to analyze.
@@ -26,6 +26,7 @@ detect_zero_value = function(controls, cancer_data, threshold, min = 0) {
 
   #If any NA, we don't consider these values.
   if(anyNA(controls)){
+
     values0 = apply(binded_data, 1, function(l) {
       idx_cancer_sans_na = idx_cancer[!is.na(l[idx_cancer])]
       idx_ctrl_sans_na = idx_ctrl[!is.na(l[idx_ctrl])]
@@ -39,6 +40,7 @@ detect_zero_value = function(controls, cancer_data, threshold, min = 0) {
         return(FALSE)
       }
     })
+
   } else {
 
     values0 = apply(binded_data, 1, function(l) {
@@ -53,8 +55,10 @@ detect_zero_value = function(controls, cancer_data, threshold, min = 0) {
         return(FALSE)
       }
     })
+
   }
-  print(paste0(sum(values0), " genes have less than ", min, " counts in ", threshold*100, " % of the samples."))
+  print(paste0(sum(values0), " genes have less than ", min, " counts in ",
+               threshold*100, " % of the samples."))
   return(values0)
 }
 
@@ -84,7 +88,7 @@ detect_na_value = function(controls, cancer_data, threshold, probes = TRUE) {
 
     nactrl = rowSums(is.na(controls))
     nacancer = rowSums(is.na(cancer_data))
-    low_na = nactrl >= threshold*ncol(controls) & nacancer >= threshold*ncol(cancer_data)
+    low_na = nactrl >= threshold*ncol(controls) & nacancer >= threshold * ncol(cancer_data)
     print(paste0(sum(low_na), " probes are NA in at least ", threshold*100, " % of the samples."))
     return(low_na)
 
@@ -124,13 +128,15 @@ detect_na_value = function(controls, cancer_data, threshold, probes = TRUE) {
 make_dataset = function(controls, cancer_data, detectlowvalue = TRUE, detectNA = TRUE, threshold = 0.99, val_min = NA) {
 
   if(detectNA == TRUE){
+
     naprobes = penda::detect_na_value(controls, cancer_data, threshold, probes = TRUE)
     napatient = penda::detect_na_value(controls,  cancer_data, threshold, probes = FALSE)
     controls = controls[!naprobes, !napatient[1:ncol(controls)]]
     cancer_data = cancer_data[!naprobes, !napatient[(ncol(controls)+1):length(napatient)]]
-  }
 
+  }
   if(detectlowvalue == TRUE){
+
     if(is.na(val_min)){
       print("Computing of the low threshold")
       all_data = c((log2(controls + 1)), (log2(cancer_data + 1)))
@@ -141,14 +147,14 @@ make_dataset = function(controls, cancer_data, detectlowvalue = TRUE, detectNA =
       paste0("The low threshold is ", val_min)
     }
     low_values = penda::detect_zero_value(controls, cancer_data, threshold = threshold, min = val_min)
-    controls = controls[!low_values,]
-    cancer_data = cancer_data[!low_values,]
+    controls = controls[!low_values, ]
+    cancer_data = cancer_data[!low_values, ]
   }
 
   median_gene = apply(controls, 1, median, na.rm = TRUE)
   median_gene = sort(median_gene)
-  controls = controls[names(median_gene),]
-  cancer_data = cancer_data[names(median_gene),]
+  controls = controls[names(median_gene), ]
+  cancer_data = cancer_data[names(median_gene), ]
 
   return(list(data_ctrl = controls, data_case = cancer_data))
 }
