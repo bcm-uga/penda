@@ -199,7 +199,7 @@ select_threshold_param = function(which_threshold, FDR_max = 0.05) {
 #'
 #'@param controls A matrix with genes expressions in controls for all the patients.
 #'@param simulation The list of initial data $initial_data and modified data in $simulated_data
-#'@param factor A vector with different values of factor. The down-regulated limit will be quantmin/factor, and the up-regulated limit quantmax*factor.
+#'@param factor_values A vector with different values of factor. The down-regulated limit will be quantmin/factor, and the up-regulated limit quantmax*factor.
 #'@param quantile_values A vector with different values to test for the quantile.
 #'
 #'@return This function returns a matrix with 5 columns : the value of the factor test,

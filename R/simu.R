@@ -271,6 +271,5 @@ results_simulation = function(D_matrix, U_matrix, simulation){
 draw_results = function(results){
   FP = results$FP
   df= data.frame(type = c("TP","FP","FN","TN", "FDR", "TPR"), results=c(unlist(results), (results$FP / (results$TP + results$FP)), results$TP / (results$TP + results$FN)))
-  library(ggplot2)
-  ggplot(df, aes(x=type, y=results, fill=type)) + geom_bar(stat="identity") + geom_text(aes(label=results), vjust=1)
+  ggplot2::ggplot(df, ggplot2::aes(x=type, y=results, fill=type)) + ggplot2::geom_bar(stat="identity") + ggplot2::geom_text(ggplot2::aes(label=results), vjust=1)
 }

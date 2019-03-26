@@ -20,8 +20,9 @@ This function returns 0 if the gene expression has not changed,
 1 if the gene is up-regulated and -1 if the gene is down-regulated.
 }
 \description{
-This function makes the test of expression dysregulation of one gene for a patient compared to control.
-It's an hybrid method, which use the rank method and the quantile method in addition when there is no lower or higher list.
+This function makes the test of expression dysregulation of one gene for a
+patient compared to control. It's an hybrid method, which use the rank method
+and the quantile method in addition when there is no lower or higher list.
 }
 \examples{
 examples/ex_regulation_test.R

@@ -32,7 +32,7 @@ This function simulates the dysregulation (up and down) of datas.
 }
 \examples{
 # First, load data
-data = penda::data_ctrl[1:10, 1:10]
+data = penda::penda_data_ctrl[1:10, 1:10]
 
 # Second, simulated the dysregulation
 simulation = penda::simplified_simulation(data,

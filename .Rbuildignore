@@ -1,4 +1,9 @@
 examples
+misc
+^.*\data\data_case_orig.RData$
+^.*\data\data_ctrl_orig.RData$
+^.*\data\export_data.R$
 ^.*\vignettes\.*html$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+

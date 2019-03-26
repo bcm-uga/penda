@@ -21,13 +21,13 @@ D, with TRUE for genes down-regulated
 U, with TRUE for genes up-regulated.
 }
 \description{
-This function makes the quantile test of the dysregulation of all genes. The patient's gene is compared at the gene expression
-in controls sample.
+This function makes the quantile test of the dysregulation of all genes.
+The patient's gene is compared at the gene expression in controls sample.
 }
 \examples{
 # First, load and define the data
-controls = penda::data_ctrl[1:10, 1:10]
-samples = penda::data_case[1:10, 1:3]
+controls = penda::penda_data_ctrl[1:10, 1:10]
+samples = penda::penda_data_case[1:10, 1:3]
 # Second, test is the expression is deregulated for each gene of a sample
 res_quantile = penda::quantile_test(controls,
                                 samples,
