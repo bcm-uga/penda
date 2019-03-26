@@ -49,7 +49,7 @@ DU_rearrangement = function(multiple_tests, simu_data, multiple_values){
 #'@return This function returns a list of two logical matrices. The D matrix with for each threshold
 #'TRUE for genes down-regulated, and the U matrix with TRUE for genes up-regulated.
 #'
-#'@examples examples/ex_test_multiple_thresholds.R
+#'@example examples/ex_test_multiple_thresholds.R
 #'
 #'@export
 

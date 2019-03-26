@@ -36,5 +36,5 @@ which_threshold = penda::choose_threshold(controls,
                                           quant_test = 0,
                                           factor_test = 1)
 # Fifth, use the function to automatically choose the better threshold
-best_threshold = penda::select_threshold_param(which_threshold, FDR_goal = 0.05)
+best_threshold = penda::select_threshold_param(which_threshold, FDR_max = 0.05)
 }

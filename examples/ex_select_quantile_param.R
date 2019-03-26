@@ -11,4 +11,4 @@ which_quantile = penda::choose_quantile(controls,
                                         factor_values,
                                         quantile_values)
 # Fourth, use the function to automatically choose the bests parameters
-best_quantile = penda::select_quantile_param(which_quantile, FDR_goal = 0.15)
+best_quantile = penda::select_quantile_param(which_quantile, FDR_max = 0.15)

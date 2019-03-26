@@ -17,7 +17,7 @@
 #'@return This function returns 0 if the gene expression has not changed,
 #' 1 if the gene is up-regulated and -1 if the gene is down-regulated.
 #'
-#'@examples examples/ex_regulation_test.R
+#'@example examples/ex_regulation_test.R
 #'
 #'@export
 
