@@ -187,7 +187,7 @@ compute_lower_and_higher_lists = function (controls, threshold, s_max = 50){
 
   print("Computing genes with lower and higher expression")
   median_gene = sort(apply(controls, 1, median, na.rm = TRUE))
-  if( sum(names(median_gene) != rownames(controls)) !=0){
+  if(sum(names(median_gene) != rownames(controls)) != 0){
     warning("Genes has to be ordered by their median in controls.")
   }
 

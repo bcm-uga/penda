@@ -16,6 +16,10 @@
 
 DU_rearrangement = function(multiple_tests, simu_data, multiple_values){
 
+  if(!is.vector(simu_data) | !is.vector(multiple_values) | !is.matrix(multiple_tests)){
+    stop("Wrong format of data")
+  }
+
   #Definition of D and U matrices for all the conditions.
   D_simu = matrix(data = NA, nrow = length(simu_data)
                   , ncol = length(multiple_values)
@@ -25,9 +29,9 @@ DU_rearrangement = function(multiple_tests, simu_data, multiple_values){
                   , dimnames = list(names(simu_data), multiple_values))
 
   #D and U are put in the matrices for all the conditions.
-  for (r in 1:length(multiple_values)){
-    D_simu[,r] = unlist(multiple_tests[(r*2-1)])
-    U_simu[,r] = unlist(multiple_tests[r*2])
+  for (r in seq_len(multiple_values)){
+    D_simu[,r] = unlist(multiple_tests[(r * 2 - 1)])
+    U_simu[,r] = unlist(multiple_tests[r * 2])
   }
   return(list(D = D_simu, U = U_simu))
 }
@@ -56,11 +60,11 @@ DU_rearrangement = function(multiple_tests, simu_data, multiple_values){
 test_multiple_thresholds = function(simulation, threshold_values, iterations){
   #Make the deregulation test for all threshold values.
   multiple_test = sapply(threshold_values, function(t){
-    print(paste0("Threshold ",t))
+    print(paste0("Threshold ", t))
     penda::sample_test(simulation$simulated_data, iterations, t)
   })
   sorted_test = DU_rearrangement(multiple_test, simulation$initial_data, threshold_values)
-  return (sorted_test)
+  return(sorted_test)
 }
 
 
