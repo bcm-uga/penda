@@ -21,8 +21,8 @@ the given FDR with the best TPR.
 }
 \examples{
 # First, load and define the data, make the simulation
-controls = penda::data_ctrl[1:10, 1:10]
-simu_data = penda::data_ctrl[1:10,11:16]
+controls = penda::penda_data_ctrl[1:10, 1:10]
+simu_data = penda::penda_data_ctrl[1:10,11:16]
 simulation = penda::simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
 # Second, choose the vectors of quantiles and factors to test
 quantile_values = c(0, 0.02, 0.04, 0.06, 0.08, 0.1, 0.15, 0.2, 0.25, 0.30, 0.35, 0.4, 0.45)
@@ -33,5 +33,5 @@ which_quantile = penda::choose_quantile(controls,
                                         factor_values,
                                         quantile_values)
 # Fourth, use the function to automatically choose the bests parameters
-best_quantile = penda::select_quantile_param(which_quantile, FDR_goal = 0.15)
+best_quantile = penda::select_quantile_param(which_quantile, FDR_max = 0.15)
 }

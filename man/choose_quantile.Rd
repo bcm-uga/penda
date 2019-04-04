@@ -13,9 +13,9 @@ choose_quantile(controls, simulation, factor_values = c(1, 1.2, 1.4, 1.6,
 
 \item{simulation}{The list of initial data $initial_data and modified data in $simulated_data}
 
-\item{quantile_values}{A vector with different values to test for the quantile.}
+\item{factor_values}{A vector with different values of factor. The down-regulated limit will be quantmin/factor, and the up-regulated limit quantmax*factor.}
 
-\item{factor}{A vector with different values of factor. The D limit will be quantmin/factor, and the U limit quantmax*factor.}
+\item{quantile_values}{A vector with different values to test for the quantile.}
 }
 \value{
 This function returns a matrix with 5 columns : the value of the factor test,
@@ -27,8 +27,8 @@ for each set of parameters, it computes FDR, TPR and FPR.
 }
 \examples{
 # First, load and define the data, make the simulation
-controls = penda::data_ctrl[1:10, 1:10]
-simu_data = penda::data_ctrl[1:10,11:16]
+controls = penda::penda_data_ctrl[1:10, 1:10]
+simu_data = penda::penda_data_ctrl[1:10,11:16]
 simulation = penda::simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
 # Second, choose the vectors of quantiles and factors to test
 quantile_values = c(0, 0.02, 0.04, 0.06, 0.08, 0.1, 0.15, 0.2, 0.25, 0.30, 0.35, 0.4, 0.45)

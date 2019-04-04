@@ -4,24 +4,15 @@
 \alias{test_multiple_thresholds}
 \title{Test gene expression variations for multiple thresholds}
 \usage{
-test_multiple_thresholds(controls, D_U_list, simulation, threshold_values,
-  iterations, quant_test = 0, factor_test = 1)
+test_multiple_thresholds(simulation, threshold_values, iterations)
 }
 \arguments{
-\item{controls}{A matrix with genes expressions in controls for all the patients.}
-
-\item{D_U_list}{The list of Down and Up-expressed genes matrices in the control.}
-
 \item{simulation}{The simulation with the list of initial data $initial_data and modified data in $simulated_data.}
 
 \item{threshold_values}{The vector of values of the threshold for the regulation test.}
 
 \item{iterations}{The maximal number of iterations for the test. If the dysregulation list
 no longer changes, iterations are stop before.}
-
-\item{quant_test}{The quantile for the test. When D and U lists are void, we use the naive method.}
-
-\item{factor_test}{The factor for the test. The limit D will be quant(gene)/factor, and the limit U quant(gene)*factor.}
 }
 \value{
 This function returns a list of two logical matrices. The D matrix with for each threshold
@@ -31,6 +22,22 @@ TRUE for genes down-regulated, and the U matrix with TRUE for genes up-regulated
 This function makes the Penda dysregulation test for different values of the threshold.
 }
 \examples{
-examples/ex_test_multiple_thresholds.R
-
+# First, load and define the data, make the simulation
+controls = penda::penda_data_ctrl[1:10, 1:10]
+simu_data = penda::penda_data_ctrl[1:10,11:16]
+simulation = penda::simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
+# Second, lower and higher lists are computed
+L_H_list = penda::compute_lower_and_higher_lists(controls, threshold = 0.99, s_max = 50)
+# Third, choose the vector of threshold to test
+threshold_values = c(0.1, 0.2, 0.3, 0.4, 0.5)
+# Fourth, make the test on simulation for different thresholds. 
+#   When this function is called, quantiles are already computed
+quant_test = 0
+factor_test = 1
+quantile_genes = apply(controls, 1, quantile, c(quant_test,(1-quant_test)), na.rm = TRUE)
+quantile_genes[1,] = quantile_genes[1,] / factor_test
+quantile_genes[2,] = quantile_genes[2,] * factor_test
+res_penda = penda::test_multiple_thresholds(simulation,
+                                threshold_values,
+                                iterations = 20)
 }

@@ -77,17 +77,17 @@ group_genes = function(controls, cancer_data, size_grp = 100, quant = 0.05){
   nb_grp = floor(length(all_ctrl) / size_grp)
 
   #For each group,
-  for (grp in 1:nb_grp){
+  for(grp in 1:nb_grp){
     #We define limits and genes of the group.
     if (grp < nb_grp){
       limits = c(1 + (grp - 1) * size_grp, grp * size_grp)
     } else {
       limits = c(1 + (grp - 1) * size_grp, length(all_ctrl))
     }
+
     genes_grp = all_ctrl[limits[1] : limits[2]]
     delta_gen = c()
     delta_cancer = c()
-
     #For all genes of the group,
     for (g in 1:length(genes_grp)){
       gene_name = names(genes_grp)[g]
@@ -142,11 +142,40 @@ complex_simulation = function(controls, cancer_data, data, size_grp = 100, quant
   limits = rbind(as.numeric(unlist(group[,1])), as.numeric(unlist(group[,2])))
   prop = unlist(group[,3])
 
-  print ("Simulating dysregulation")
-  for (p in 1:ncol(simu_data)){
-    for (g in 1:nrow(simu_data)){
-      gene = simu_data[g, p]
-      if (is.na(gene) == FALSE){
+  if(is.matrix(simu_data)){
+    print(paste0("Simulating dysregulation of ", ncol(simu_data), " patients."))
+    for (p in 1:ncol(simu_data)){
+      for (g in 1:nrow(simu_data)){
+        gene = simu_data[g, p]
+        if (!is.na(gene)){
+          sup_group = which(gene >= limits[1,])
+          if(length(sup_group) > 0){
+            group_gene = max(sup_group)
+          } else {
+            group_gene = 1
+          }
+          prop_gene = prop[group_gene]
+          if (runif(1) <= prop_gene) {
+            all_delta = unlist(group[,4][group_gene])
+            delta = sample(all_delta, 1)
+            count = 0
+            while((simu_data[g,p] + delta) < 0){
+              delta = sample(all_delta, 1)
+              count = count + 1
+              if(count > 500){
+                break;
+              }
+            }
+            simu_data[g, p] = simu_data[g,p] + delta
+          }
+        }
+      }
+    }
+  } else if (is.vector(simu_data)){
+    print(paste0("Simulating dysregulation of one patient."))
+    for (g in 1:length(simu_data)){
+      gene = simu_data[g]
+      if (!is.na(gene)){
         sup_group = which(gene >= limits[1,])
         if(length(sup_group) > 0){
           group_gene = max(sup_group)
@@ -158,21 +187,22 @@ complex_simulation = function(controls, cancer_data, data, size_grp = 100, quant
           all_delta = unlist(group[,4][group_gene])
           delta = sample(all_delta, 1)
           count = 0
-          while((simu_data[g,p] + delta) < 0){
+          while((simu_data[g] + delta) < 0){
             delta = sample(all_delta, 1)
             count = count + 1
             if(count > 500){
               break;
             }
           }
-          simu_data[g, p] = simu_data[g,p] + delta
+          simu_data[g] = simu_data[g] + delta
         }
       }
     }
+  } else {
+    stop("Simu data must be a vector or a matrix.")
   }
   return(list(initial_data = data, simulated_data = simu_data, changes_idx = which(data != simu_data)))
 }
-
 
 # Authors: Clémentine Decamps, UGA
 # clementine.decamps@univ-grenoble-alpes.fr
@@ -241,6 +271,5 @@ results_simulation = function(D_matrix, U_matrix, simulation){
 draw_results = function(results){
   FP = results$FP
   df= data.frame(type = c("TP","FP","FN","TN", "FDR", "TPR"), results=c(unlist(results), (results$FP / (results$TP + results$FP)), results$TP / (results$TP + results$FN)))
-  library(ggplot2)
-  ggplot(df, aes(x=type, y=results, fill=type)) + geom_bar(stat="identity") + geom_text(aes(label=results), vjust=1)
+  ggplot2::ggplot(df, ggplot2::aes(x=type, y=results, fill=type)) + ggplot2::geom_bar(stat="identity") + ggplot2::geom_text(ggplot2::aes(label=results), vjust=1)
 }
