@@ -136,8 +136,8 @@ dim(data_ctrl)
   
 ```{r label="penda::compute_lower_and_higher_lists"}
 threshold = 0.99
-s_max=50
-L_H_list = penda::compute_lower_and_higher_lists(data_ctrl, threshold=threshold, s_max=s_max)
+s_max = 50
+L_H_list = penda::compute_lower_and_higher_lists(data_ctrl, threshold = threshold, s_max = s_max)
 L = L_H_list$L
 H = L_H_list$H
 ```
@@ -289,9 +289,9 @@ You can define your own parameters with the graph visualisation, or use the reco
 
 threshold = `r best_threshold` 
 
-quantile = `r best_quantile`
+quantile = `r best_quantile$quantile`
 
-factor = `r best_quantile`
+factor = `r best_quantile$factor`
 
 <span style="color:red">Note : be careful with recommended parameters compute on samples. For example, with the complete dataset (100 controls and 1000 datacases) and more simulations, the best threshold goes from 0.9 to 0.3. </span>
 

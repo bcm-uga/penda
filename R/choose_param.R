@@ -172,7 +172,7 @@ select_threshold_param = function(which_threshold, FDR_max = 0.05) {
 
   small_FDR = median_t[median_t[,2] <= FDR_max,]
 
-  if(length(small_FDR) != 0){
+  if(length(small_FDR) != 0 & length(small_FDR) != sum(is.na(small_FDR))){
     #If only one FDR under the FDR max,
     if (is.vector(small_FDR)){
       print (paste0("The threshold closest to the FDR is ", small_FDR[1], " which has a median FDR of ",
@@ -274,6 +274,10 @@ select_quantile_param = function(which_quantile, FDR_max = 0.15){
     }
   } else {
     print ("Your FDR is not reachable, check the results table to choose your quantile.")
+    return(list(factor = "Your FDR is not reachable, check the results table to choose your factor.",
+                quantile = "Your FDR is not reachable, check the results table to choose your quantile.",
+                FDR = NA, TPR = NA))
+
   }
 }
 
