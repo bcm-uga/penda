@@ -16,10 +16,6 @@
 
 DU_rearrangement = function(multiple_tests, simu_data, multiple_values){
 
-  if(!is.vector(simu_data) | !is.vector(multiple_values) | !is.matrix(multiple_tests)){
-    stop("Wrong format of data")
-  }
-
   #Definition of D and U matrices for all the conditions.
   D_simu = matrix(data = NA, nrow = length(simu_data)
                   , ncol = length(multiple_values)
@@ -29,9 +25,11 @@ DU_rearrangement = function(multiple_tests, simu_data, multiple_values){
                   , dimnames = list(names(simu_data), multiple_values))
 
   #D and U are put in the matrices for all the conditions.
-  for (r in seq_len(multiple_values)){
-    D_simu[,r] = unlist(multiple_tests[(r * 2 - 1)])
-    U_simu[,r] = unlist(multiple_tests[r * 2])
+  for (r in seq_len(length(multiple_values))){
+    if(length(multiple_tests[r * 2]) > 1 & length(multiple_tests[(r * 2 - 1)]) > 1){
+      D_simu[,r] = unlist(multiple_tests[(r * 2 - 1)])
+      U_simu[,r] = unlist(multiple_tests[r * 2])
+    }
   }
   return(list(D = D_simu, U = U_simu))
 }
