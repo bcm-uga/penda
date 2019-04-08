@@ -1,6 +1,7 @@
 # First, load and define the data
-controls = penda::penda_data_ctrl[1:10, 1:10]
-sample = penda::penda_data_case[1:10, 1]
+dataset = penda::make_dataset(penda::penda_data_ctrl[1:10, 1:10],  penda::penda_data_case[1:10, 1:2])
+controls = dataset$data_ctrl
+sample = dataset$data_case[,1]
 # Second, lower and higher lists are computed
 L_H_list = penda::compute_lower_and_higher_lists(controls, threshold = 0.99, s_max = 50)
 # Third, test is the expression is deregulated for each gene of a sample.
