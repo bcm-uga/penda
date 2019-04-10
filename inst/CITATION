@@ -1,0 +1,25 @@
+citHeader("To cite ptlmapper in publications use:")
+
+citEntry(entry="article",
+         title = "Exploiting single-cell quantitative data to map genetic variants having probabilistic effects",
+         author = personList(
+                 person("Florent", "Chuffart"),
+                 person("Magali", "Richard"),
+                 person("Daniel", "Jost"),
+                 person("Claire", "Burny"),
+                 person("Helene", "Duplus-Bottin"),
+                 person("Yoshikazu", "Ohya"),
+                 person("Gael", "Yvert")),
+         journal = "PloS Genetics",
+         year = 2016,
+         volume = "",
+         pages = "accepted",
+         key = "Chuffar2016",
+
+         textVersion =
+         paste("Chuffart et al. (2016) Exploiting single-cell",
+               "quantitative data to map genetic variants having",
+               "probabilistic effects. PLoS Genetics (in revision)")
+         )
+
+

@@ -1,5 +1,8 @@
 # First, load and define the data
-dataset = penda::make_dataset(penda::penda_data_ctrl[1:10, 1:10],  penda::penda_data_case[1:10, 1:2])
+dataset = penda::make_dataset(
+  penda::penda_data_ctrl[1:10, 1:10],  
+  penda::penda_data_case[1:10, 1:2]
+)
 controls = dataset$data_ctrl
 sample = dataset$data_case[,1]
 # Second, lower and higher lists are computed
