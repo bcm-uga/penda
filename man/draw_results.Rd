@@ -17,8 +17,12 @@ This function computes the the FDR and the TPR and makes a ggplot of the results
 }
 \examples{
 # First, load and define the data, make the simulation
-controls = penda::penda_data_ctrl[1:10, 1:10]
-simu_data = penda::penda_data_ctrl[1:10,11:16]
+controls = penda::penda_data_ctrl[1:10, 1:13]
+median_gene = apply(controls, 1, median, na.rm = TRUE)
+median_gene = sort(median_gene)
+controls = controls[names(median_gene), ]
+simu_data = controls[,11:13]
+controls = controls[,-(11:13)]
 simulation = penda::simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
 samples = simulation$simulated_data
 # Second, lower and higher lists are computed

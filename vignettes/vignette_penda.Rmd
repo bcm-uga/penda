@@ -34,7 +34,6 @@ data_ctrl = penda::penda_data_ctrl
 ```
 
 ```{r results="verbatim"}
-nb_genes = 3000
 if (exists("nb_genes")) {
   set.seed(1)
   idx_genes = sample(rownames(data_ctrl), nb_genes)
