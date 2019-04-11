@@ -16,19 +16,22 @@
 
 DU_rearrangement = function(multiple_tests, simu_data, multiple_values){
 
+  nvalues = length(multiple_values)
   #Definition of D and U matrices for all the conditions.
   D_simu = matrix(data = NA, nrow = length(simu_data)
-                  , ncol = length(multiple_values)
+                  , ncol = nvalues
                   , dimnames = list(names(simu_data), multiple_values))
   U_simu = matrix(data = NA, nrow = length(simu_data)
-                  , ncol = length(multiple_values)
+                  , ncol = nvalues
                   , dimnames = list(names(simu_data), multiple_values))
 
   #D and U are put in the matrices for all the conditions.
-  for (r in seq_len(length(multiple_values))){
-    if(length(multiple_tests[r * 2]) > 1 & length(multiple_tests[(r * 2 - 1)]) > 1){
-      D_simu[,r] = unlist(multiple_tests[(r * 2 - 1)])
-      U_simu[,r] = unlist(multiple_tests[r * 2])
+  for (r in seq_len(nvalues)){
+    D_loc = unlist(multiple_tests[(r * 2 - 1)])
+    U_loc = unlist(multiple_tests[r * 2])
+    if(length(D_loc) > 1 & length(U_loc) > 1){
+      D_simu[,r] = D_loc
+      U_simu[,r] = U_loc
     }
   }
   return(list(D = D_simu, U = U_simu))
@@ -158,34 +161,47 @@ choose_threshold = function(controls, L_H_list, iterations, simulation, threshol
 #'@export
 
 select_threshold_param = function(which_threshold, FDR_max = 0.05) {
-  median_t = c()
+
   which_threshold = apply(which_threshold, 2, as.numeric)
-  threshold_values = which_threshold[,"threshold"]
 
-  for (value in 1:length(threshold_values)){
-    threshold = threshold_values[value]
-    FDRt = as.numeric(which_threshold[which_threshold[,"threshold"] == threshold & !is.na(which_threshold[,"FDR"]), "FDR"])
-    median_t = rbind(median_t, c(threshold, median(FDRt)))
+  if(length(unique(which_threshold[,1])) > 1){
+    results_threshold = c()
+    for(value in unique(which_threshold[,2])){
+      sum_value = colSums(which_threshold[which_threshold[,"threshold"] == value, ])
+      results_threshold = rbind(results_threshold, c(value, sum_value[c(6, 7, 8, 9)]))
+    }
+  } else {
+    results_threshold = which_threshold[, c(2, 6, 7, 8, 9)]
   }
+  results_threshold = as.data.frame(results_threshold)
 
-  small_FDR = median_t[median_t[,2] <= FDR_max,]
+  results_threshold$FDR = results_threshold$FP / (results_threshold$TP + results_threshold$FP)
+  results_threshold$TPR  = results_threshold$TP / (results_threshold$TP + results_threshold$FN)
+
+  small_FDR = which(results_threshold$FDR <= FDR_max)
 
   if(length(small_FDR) != 0 & length(small_FDR) != sum(is.na(small_FDR))){
     #If only one FDR under the FDR max,
-    if (is.vector(small_FDR)){
-      print (paste0("The threshold closest to the FDR is ", small_FDR[1], " which has a median FDR of ",
-               small_FDR[2]), quote = FALSE)
-      return(list(threshold = small_FDR[1], FDR = small_FDR[2]))
-
-      #If more than one FDR under the FDR max,
+    if (length(small_FDR) == 1){
+      print(paste0("The threshold closest to the FDR is ",
+                    results_threshold[small_FDR, 1],
+                    " which has a FDR of ",
+                    results_threshold[small_FDR, "FDR"]))
+      return(list(threshold = results_threshold[small_FDR, 1],
+                  FDR = results_threshold[small_FDR, "FDR"]))
+    #If more than one FDR under the FDR max,
     } else {
-      idx = which(small_FDR[,2] == max(small_FDR[,2]))
-      print(paste0("The threshold closest to the FDR is ", small_FDR[idx, 1]
-               , " which has a median FDR of ", small_FDR[idx, 2]), quote = FALSE)
-      return(list(threshold = small_FDR[idx,1], FDR = small_FDR[idx,2]))
+      small_results = results_threshold[small_FDR, ]
+      idx = which.max(small_results[, "TPR"])
+      print(paste0("The threshold closest to the FDR is ", small_results[idx, 1]
+               , " which has a FDR of ", small_results[idx, "FDR"]))
+      return(list(threshold = small_results[idx, 1], FDR = small_results[idx, "FDR"]))
     }
   } else {
-    print ("Your FDR is not reachable, check the results table to choose your threshold.")
+    warning("Your FDR is not reachable, we return the threshold of the smallest FDR.")
+    idx = which.min(results_threshold[,"FDR"])
+    return(list(threshold = results_threshold[idx, 1],
+                FDR = results_threshold[idx, "FDR"]))
   }
 }
 
@@ -255,27 +271,28 @@ select_quantile_param = function(which_quantile, FDR_max = 0.15){
 
 #Compute the small FDR.
   small_FDR = which_quantile[which_quantile[,"FDR"] <= FDR_max & !is.na(which_quantile[,"FDR"]) ,]
-  if(length(small_FDR) !=0){
+  if(length(small_FDR) != 0){
     if (is.vector(small_FDR)){
-      print("Best parameters are: ", quote = FALSE)
-      print (c(small_FDR[1], small_FDR[2], small_FDR[3], small_FDR[4]), quote = FALSE)
-
-      return(list(factor = small_FDR[1], quantile = small_FDR[2], FDR = small_FDR[3], TPR = small_FDR[4]))
+      print(paste0("Best parameters are a factor of ", small_FDR[1],
+                   " and a quantile of ", small_FDR[2],
+                   " to obtain a FDR of ", small_FDR[3]))
+      return(list(factor = small_FDR[1], quantile = small_FDR[2],
+                  FDR = small_FDR[3], TPR = small_FDR[4]))
 
     } else {
-      idx = which(small_FDR[,"TPR"] == max(small_FDR[,"TPR"]))
-      print("Best parameters are: ", quote = FALSE)
-      print(c(small_FDR[idx, 1], small_FDR[idx, 2]
-               , small_FDR[idx, 3] , small_FDR[idx, 4]), quote = FALSE)
+      idx = which.max(small_FDR[,"TPR"])
+      print(paste0("Best parameters are a factor of ", small_FDR[idx, 1],
+                   " and a quantile of ", small_FDR[idx, 2],
+                   " to obtain a FDR of ", small_FDR[idx, 3]))
 
-      return(list(factor = small_FDR[idx, 1], quantile = small_FDR[idx, 2], FDR = small_FDR[idx, 3], TPR = small_FDR[idx, 4]))
+      return(list(factor = small_FDR[idx, 1], quantile = small_FDR[idx, 2],
+                  FDR = small_FDR[idx, 3], TPR = small_FDR[idx, 4]))
     }
   } else {
-    print ("Your FDR is not reachable, check the results table to choose your quantile.")
-    return(list(factor = "Your FDR is not reachable, check the results table to choose your factor.",
-                quantile = "Your FDR is not reachable, check the results table to choose your quantile.",
-                FDR = NA, TPR = NA))
-
+    warning("Your FDR is not reachable, we return the quantile and the factor of the smallest FDR.")
+    idx = which.min(which_quantile[,"FDR"])
+    return(list(factor = which_quantile[idx, 1], quantile = which_quantile[idx, 2],
+                FDR = which_quantile[idx, 3], TPR = which_quantile[idx, 4]))
   }
 }
 
