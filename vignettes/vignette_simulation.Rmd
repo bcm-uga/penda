@@ -304,11 +304,16 @@ factor = `r best_quantile$factor`
 
 # Material and methods
 
-The simulation vignette of the penda package version 1.0 was executed on XXX genes, using XXX control samples and XXX case samples.
+The simulation vignette of the penda package version 1.0 was executed on `r floor(Penda_dataset$info["init_nb_genes"])`  genes, using `r floor(Penda_dataset$info["init_nb_ctrls"])` control samples and `r floor(Penda_dataset$info["init_nb_cases"])` case samples.
 
-The data set was pretreated as following: filtering for NA = XXX, filtering on low value = XXX based on XXX threshold, % of patient = XXX).
+The data set was pretreated as following: X
+`r floor(Penda_dataset$info["nb_genes_NA"])` genes and 
+`r floor(Penda_dataset$info["nb_patients_NA"])` patients was removed for NA values, 
+and `r floor(Penda_dataset$info["nb_genes_0"])` genes was removed for low value 
+(under the threshold of `r Penda_dataset$info["val_min"]`). 
+Genes and patients removed was under the conditions in `r Penda_dataset$info["threshold"]*100` % of cases.
 
-XXX cases samples were simulated using the complex simulation function with the following parameters: list size = XXX, grp size = XXX, threshold = XXX. Theses simulations identified XXX% of genes as typically deregulated in cases samples.
+`r ncol(data_simu)` cases samples were simulated using the complex simulation function with the following parameters: list size = XXX, grp size = XXX, threshold = XXX. Theses simulations identified XXX% of genes as typically deregulated in cases samples.
 
 XXX controls were used to generate L and H lists using the following parameters: threshold = XXX and s_max = XXX
 

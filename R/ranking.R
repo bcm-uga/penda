@@ -119,7 +119,8 @@ detect_na_value = function(controls, cancer_data, threshold, probes = TRUE) {
 #'@param threshold The maximum proportion of expression under val_min or NA tolerated for each gene.
 #'@param val_min The minimum value accepted. If val_min is NA, we compute this value with mixtools.
 #'
-#'@return This function return a list with data_ctrl and data_case.
+#'@return This function return a list with modified data_ctrl and data_case, and
+#'the vector info with different parameters.
 #'
 #'@example examples/ex_make_dataset.R
 #'
@@ -127,13 +128,18 @@ detect_na_value = function(controls, cancer_data, threshold, probes = TRUE) {
 
 make_dataset = function(controls, cancer_data, detectlowvalue = TRUE, detectNA = TRUE, threshold = 0.99, val_min = NA) {
 
+  resume = c(nrow(controls), ncol(controls), ncol(cancer_data), threshold,
+             0, 0, val_min, 0)
+  names(resume) = c("init_nb_genes", "init_nb_ctrls", "init_nb_cases", "threshold",
+                    "nb_patients_NA", "nb_genes_NA", "val_min", "nb_genes_0")
   if(detectNA == TRUE){
 
     naprobes = penda::detect_na_value(controls, cancer_data, threshold, probes = TRUE)
     napatient = penda::detect_na_value(controls,  cancer_data, threshold, probes = FALSE)
     controls = controls[!naprobes, !napatient[1:ncol(controls)]]
     cancer_data = cancer_data[!naprobes, !napatient[(ncol(controls)+1):length(napatient)]]
-
+    resume["nb_patients_NA"] = sum(napatient)
+    resume["nb_genes_NA"] = sum(naprobes)
   }
   if(detectlowvalue == TRUE){
 
@@ -145,18 +151,21 @@ make_dataset = function(controls, cancer_data, detectlowvalue = TRUE, detectNA =
       sig = mod$sigma[1]
       val_min = 2^qnorm(0.80, mu, sig)
       paste0("The low threshold is ", val_min)
+      resume["val_min"] = val_min
     }
-    low_values = penda::detect_zero_value(controls, cancer_data, threshold = threshold, min = val_min)
+    low_values = penda::detect_zero_value(controls, cancer_data,
+                                          threshold = threshold, min = val_min)
     controls = controls[!low_values, ]
     cancer_data = cancer_data[!low_values, ]
+    resume["nb_genes_0"] = sum(low_values)
+
   }
 
   median_gene = apply(controls, 1, median, na.rm = TRUE)
   median_gene = sort(median_gene)
   controls = controls[names(median_gene), ]
   cancer_data = cancer_data[names(median_gene), ]
-
-  return(list(data_ctrl = controls, data_case = cancer_data))
+  return(list(data_ctrl = controls, data_case = cancer_data, info = round(resume, 2)))
 }
 
 
