@@ -21,7 +21,8 @@ make_dataset(controls, cancer_data, detectlowvalue = TRUE,
 \item{val_min}{The minimum value accepted. If val_min is NA, we compute this value with mixtools.}
 }
 \value{
-This function return a list with data_ctrl and data_case.
+This function return a list with modified data_ctrl and data_case, and
+the vector info with different parameters.
 }
 \description{
 This function makes a dataset with controls and cancer_data pre-filtred and sorted by median in controls.

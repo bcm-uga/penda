@@ -9,6 +9,9 @@ output:
     toc_float: true
     toc_depth: 3
     number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
 ---
 
 ```{r echo=FALSE, eval=TRUE}
