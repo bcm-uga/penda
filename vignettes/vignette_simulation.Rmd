@@ -102,7 +102,7 @@ dim(data_case)
 
 The function `make_dataset` makes 3 steps to prepare the data at the analysis.  
 
-  - `detect_na_value` function remove samples with more than `r "threshold"`% probes or patients with NA.  <br/>
+  - `detect_na_value` function remove samples with more than `r "threshold_dataset"`% probes or patients with NA.  <br/>
   - `detect_zero_value` function remove genes with very low expression. You can choose the threshold of low expression, or by default it uses the function `normalmixEM` to compute this threshold on all the data normalized with a pseudo-log, could also be evaluated by cross-validation.
   - `rank_genes` function ranks genes by the median in controls. This step is essential for the proper functioning of Penda.
 
@@ -133,7 +133,7 @@ dim(data_ctrl)
   
 # Gene ranking in control
   
-```{r label="penda::compute_lower_and_higher_lists"}
+```{r label="penda::compute_lower_and_higher_lists", warning = FALSE}
 threshold_LH = 0.99
 s_max = 50
 L_H_list = penda::compute_lower_and_higher_lists(data_ctrl, threshold = threshold_LH, s_max = s_max)
@@ -149,7 +149,7 @@ The matrix **L** corresponds to the list of genes (i.e id) with a lower expressi
 
 The matrix **H** corresponds to the list of genes (i.e id) with a higher expression for each considered genes (lines).
 
-For each, the list of **L** genes (resp. **H** genes) corresponds to the closest genes (up to `s_max` genes) that have a lower (resp. higher) expression in at least `r threshold_dataset*100` % of the control samples. 
+For each, the list of **L** genes (resp. **H** genes) corresponds to the closest genes (up to `s_max` genes) that have a lower (resp. higher) expression in at least `r threshold_LH*100` % of the control samples. 
 Too many genes make next steps slower, but too few genes lead to errors.
 
 
@@ -228,11 +228,15 @@ The **FPR**, False Positive Rate, the proportion of false positive in all the ne
 
 With these values, we can make a curve and choose the better quantile and the better factor, to minimize the FDR and maximize the TPR. 
 
-```{r label="penda::choose_quantile"}
+```{r label="penda::choose_quantile", results = "hide"}
 # , tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), message = FALSE}
 quantile_values = c(0, 0.01, 0.02, 0.03, 0.05, 0.06, 0.08, 0.1, 0.15, 0.2, 0.3, 0.4)
 factor_values = c(1, 1.2, 1.4)
 which_quantile = penda::choose_quantile(data_ctrl, simulation, factor = factor_values, quantile_values = quantile_values)
+```
+```{r, label="penda::select_quantile_param"}
+# tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
+best_quantile = penda::select_quantile_param(which_quantile, FDR_max = 0.1)
 ```
 
 ```{r}
@@ -243,15 +247,14 @@ df_quant = data.frame(factor = factor(which_quantile[,1])
 )
 
 library(ggplot2)
-ggplot(df_quant, aes(x = TPR, y = FDR, color = quantile, group = factor, shape = factor)) + geom_point() + 
-geom_line() + theme_minimal()
+ggplot(df_quant, aes(x = FDR, y = TPR, color = quantile, group = factor, shape = factor)) + geom_point() + 
+geom_line() + theme_minimal() +
+  geom_vline(xintercept = best_quantile$FDR, linetype = "dotted")  +
+  geom_hline(yintercept = best_quantile$TPR, linetype = "dotted")    
 
 ```
 
-```{r, label="penda::select_quantile_param"}
-# tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
-best_quantile = penda::select_quantile_param(which_quantile, FDR_max = 0.15)
-```
+
 <span style="color:red">Note: this vignette is just an example. For a real analysis, we recommend to simulate different patients (10 ideally), to test more quantile and factor values and to manually choose the best settings.</span>
 
 ## Threshold of the Penda test
@@ -261,7 +264,7 @@ The function `choose_threshold` make the Penda test to different threshold value
 
 With these values, we can make a curve and choose the better parameter to fit the experimental requirements (low FDR and high TPR).
 
-```{r label="penda::choose_threshold"}
+```{r label="penda::choose_threshold", results = "hide"}
 # , tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), message = FALSE}
 threshold_values = c(0, 0.05, 0.1, 0.3, 0.5, 0.6, 0.7, 0.8, 0.9)
 
@@ -271,27 +274,78 @@ best_fact = best_quantile$factor
 which_threshold = penda::choose_threshold(data_ctrl, L_H_list, 30, simulation, threshold_values, quant_test = best_quant, factor_test = best_fact)
 ```
 
-```{r, echo=FALSE}
-library(ggplot2)
-df = data.frame(patient = which_threshold[,1],
-threshold = which_threshold[,2],
-FDR = as.numeric(which_threshold[,3]),
-TPR = as.numeric(which_threshold[,4]))
-
-ggplot(df, aes(x = TPR, y = FDR, color = threshold, group = patient, shape = patient)) +
-geom_point() + geom_line()+ theme_minimal()
-```
-
 ```{r label="penda::select_threshold_param"}
 # tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 best_threshold = penda::select_threshold_param(which_threshold, FDR_max = 0.05)
 ```
+
+```{r, echo=FALSE}
+library(ggplot2)
+which_threshold = apply(which_threshold, 2, as.numeric)
+if(length(unique(which_threshold[,1])) > 1){
+    results_threshold = c()
+    for(value in unique(which_threshold[,2])){
+      sum_value = colSums(which_threshold[which_threshold[,"threshold"] == value, ])
+      results_threshold = rbind(results_threshold, c(value, sum_value[c(6, 7, 8, 9)]))
+    }
+} else {
+    results_threshold = which_threshold[, c(2, 6, 7, 8, 9)]
+}
+
+df = data.frame(threshold = as.factor(results_threshold[,1]),
+                FDR = results_threshold[,"FP"] / (results_threshold[,"TP"] + results_threshold[,"FP"]), 
+                TPR  = results_threshold[,"TP"] / (results_threshold[,"TP"] + results_threshold[,"FN"]),
+                group = rep(1))
+
+
+ggplot(df, aes(x = FDR, y = TPR, color = threshold, group = group)) +
+geom_point() + geom_line() + theme_minimal() +
+  geom_vline(xintercept = best_threshold$FDR, linetype = "dotted")  +
+  geom_hline(yintercept = best_threshold$TPR, linetype = "dotted")   
+```
+
 <span style="color:red">Note: this vignette is just an example. For a real analysis, we recommend to simulate different patients (10 ideally), to test more threshold values and to manually choose the best threshold.</span>
 
-# Next: analysis of your data
+##Test of false positive
+
+We applied the Penda method with computed parameters on the `r ncol(data_simu)` controls used for simulation before the deregulation to see the number of false positive. 
+
+```{r, label="penda::penda_test", echo = FALSE, results = "hide"}
+threshold_values = c(0, 0.05, 0.1, 0.3, 0.5, 0.6, 0.7, 0.8, 0.9)
+
+best_quant = best_quantile$quantile
+best_fact = best_quantile$factor
+results = c()
+for(thres in threshold_values){
+  penda_res = penda::penda_test(samples = data_simu, 
+                  controls = controls,
+                   threshold = thres, 
+                   iterations =  20, 
+                   L_H_list =  L_H_list, 
+                   quant_test =  best_quant,
+                   factor_test = best_fact)
+  results = rbind(results, c("U", thres, colSums(penda_res$up_genes)))
+  results = rbind(results, c("D", thres, colSums(penda_res$down_genes)))
+}
+
+```
+
+```{r, echo = FALSE, results = "hide"}
+df = as.data.frame(results)
+colnames(df)[1:2] = c("Deregulation", "Threshold")
+patients = apply(results[, 3:ncol(results)], 2, as.numeric)
+df$mean = rowMeans(patients)
+
+ggplot(df, aes(x = Threshold, y = mean, color = Deregulation, group = Deregulation)) +
+  geom_point() + geom_line() + theme_minimal() +  
+  labs(title = "Number of genes deregulated detected in controls", subtitle = paste0("Mean between ", ncol(patients), " control samples."))+ ylab("Number of genes")
+
+```
+
+#Next: analysis of your data
 
 With these simulations you can now perform analysis on your real data.
-You can define your own parameters with the graph visualisation or use the recommended parameters:
+You can define your own parameters with the graph visualisation or use the automatically calculated parameters:
 
 threshold = `r best_threshold$threshold` 
 
@@ -299,10 +353,10 @@ quantile = `r best_quantile$quantile`
 
 factor = `r best_quantile$factor`
 
-<span style="color:red">Note: being careful with recommended parameters compute on samples. For example, with the complete dataset (100 controls and 1000 datacases for 28K genes) and more simulations, the best threshold goes from 0.9 to 0.3. </span>
+<span style="color:red">Note: being careful with recommended parameters compute on samples. For example, with the complete dataset (100 controls and 1000 datacases for 28K genes) and more simulations, we obtained different best parameters. </span>
 
 
-# Material and methods
+#Material and methods
 
 The simulation vignette of the penda package version 1.0 was executed on `r floor(Penda_dataset$info["init_nb_genes"])`  genes, using `r floor(Penda_dataset$info["init_nb_ctrls"])` control samples and `r floor(Penda_dataset$info["init_nb_cases"])` case samples.
 
@@ -321,7 +375,7 @@ The quantile method was applied on the `r ncol(data_simu)` simulated cases. We r
 
 The penda method was then applied on these `r ncol(data_simu)` cases. We retained a global FDR value of `r best_threshold$FDR` , with the following set of parameters: quantile = `r best_quantile$quantile`, factor = `r best_quantile$factor` and threshold = `r best_threshold$threshold`.
 
-# Session Information
+#Session Information
 
 ```{r, results="verbatim"}
 sessionInfo()

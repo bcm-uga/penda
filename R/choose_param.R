@@ -183,25 +183,29 @@ select_threshold_param = function(which_threshold, FDR_max = 0.05) {
   if(length(small_FDR) != 0 & length(small_FDR) != sum(is.na(small_FDR))){
     #If only one FDR under the FDR max,
     if (length(small_FDR) == 1){
-      print(paste0("The threshold closest to the FDR is ",
+      print(paste0("Best threshold is ",
                     results_threshold[small_FDR, 1],
                     " which has a FDR of ",
                     results_threshold[small_FDR, "FDR"]))
       return(list(threshold = results_threshold[small_FDR, 1],
-                  FDR = results_threshold[small_FDR, "FDR"]))
+                  FDR = results_threshold[small_FDR, "FDR"],
+                  TPR = results_threshold[small_FDR, "TPR"]))
     #If more than one FDR under the FDR max,
     } else {
       small_results = results_threshold[small_FDR, ]
       idx = which.max(small_results[, "TPR"])
-      print(paste0("The threshold closest to the FDR is ", small_results[idx, 1]
+      print(paste0("Best threshold is ", small_results[idx, 1]
                , " which has a FDR of ", small_results[idx, "FDR"]))
-      return(list(threshold = small_results[idx, 1], FDR = small_results[idx, "FDR"]))
+      return(list(threshold = small_results[idx, 1],
+                  FDR = small_results[idx, "FDR"],
+                  TPR = small_results[idx, "TPR"]))
     }
   } else {
     warning("Your FDR is not reachable, we return the threshold of the smallest FDR.")
     idx = which.min(results_threshold[,"FDR"])
     return(list(threshold = results_threshold[idx, 1],
-                FDR = results_threshold[idx, "FDR"]))
+                FDR = results_threshold[idx, "FDR"],
+                TPR = results_threshold[idx, "TPR"]))
   }
 }
 

@@ -81,13 +81,15 @@ This is a tutorial describing how to use `penda` package.
 
 ## Data filtering
 
-The function `make_dataset` makes 3 steps to prepare the data at the analysis.  <br/>
-First, it calls the function `detct_na_value` of Penda to remove samples with more than threshold % probes or patients with NA.  <br/>
-Second, it calls the function `detect_zero_value` of Penda to remove genes with very low expression. You can choose the threshold of low expression, or by default it uses the function `normalmixEM` to compute this threshold on all the data normalized with a pseudo-log.  <br/>
-Finally, the function ranks genes by the median in controls. This step is essential for the proper functioning of Penda.
+The function `make_dataset` makes 3 steps to prepare the data at the analysis.  
+
+  - `detect_na_value` function remove samples with more than `r "threshold_dataset"`% probes or patients with NA.  <br/>
+  - `detect_zero_value` function remove genes with very low expression. You can choose the threshold of low expression, or by default it uses the function `normalmixEM` to compute this threshold on all the data normalized with a pseudo-log, could also be evaluated by cross-validation.
+  - `rank_genes` function ranks genes by the median in controls. This step is essential for the proper functioning of Penda.
 
 ```{r label="penda::make_dataset"}
-if (!exists("Penda_dataset")) Penda_dataset = penda::make_dataset(data_ctrl, data_case, detectlowvalue = TRUE, detectNA = TRUE, threshold = 0.99)
+threshold_dataset = 0.99
+if (!exists("Penda_dataset")) Penda_dataset = penda::make_dataset(data_ctrl, data_case, detectlowvalue = TRUE, detectNA = TRUE, threshold = threshold_dataset)
 data_ctrl_f = Penda_dataset$data_ctrl
 data_case_f = Penda_dataset$data_case
 
@@ -97,20 +99,24 @@ dim(data_case_f)
 
 ## Gene ranking
 
-Second, we rank the gene expression using normal tissue sample (i.e. `the data_ctrl_f matrix`)
+Second, we rank the gene expression in normal tissue sample (i.e. `the data_ctrl_f matrix`)
 
 We used the function `compute_lower_and_higher_lists` to obtain a list of two matrices. 
 
 The matrix **L** corresponds to the list of genes (i.e id) with a lower expression for each considered genes (lines). <br/>
 The matrix **H** corresponds to the list of genes (i.e id) with a higher expression for each considered genes (lines).
 
-For each, the list of **L** genes (resp. **H** genes) corresponds to the closest genes (up to `s_max` genes) that have a lower (resp. higher) expression in at least `threshold` % of the control samples. 
-
-```{r, results="verbatim"}
+```{r, label="penda::compute_lower_and_higher_lists"}
 threshold_LH = 0.99
 s_max = 50
 if (!exists("L_H_list")) L_H_list = penda::compute_lower_and_higher_lists(data_ctrl_f, threshold = threshold_LH, s_max = s_max)
+```
 
+For each, the list of **L** genes (resp. **H** genes) corresponds to the closest genes (up to `s_max` genes) that have a lower (resp. higher) expression in at least `r threshold_LH*100` % of the control samples. 
+
+For each gene in line (PYCR2, TTC7A, etc.), we can see the number of L and H genes.
+
+```{r, results="verbatim"}
 layout(matrix(1:2, 1), respect=TRUE)
 hist(rowSums(L_H_list$L != 0), xlab = "nb of L genes")
 hist(rowSums(L_H_list$H != 0), xlab = "nb of H genes")
@@ -122,13 +128,16 @@ Then, we used  `penda_test` to make the differential expresion test. This functi
 
 Results are in the form of two matrix `$down_genes` and `$up_genes`, with for each case (column), TRUE if the gene (line) is deregulated (resp. down-regulated or up-regulated). 
 
-```{r, results="verbatim"}
+<span style="color:red">Note: you can use the vignette `"vignette_simulation"` to adjust the parameters to your data.</span>
+
+
+```{r, label="penda::penda_test", echo = FALSE, results = "hide"}
 controls =  data_ctrl_f
 samples = data_case_f
-threshold = 0.9 
+threshold = 0.5
 iterations =  20 
 L_H_list =  L_H_list 
-quant_test =  0
+quant_test =  0.08
 factor_test = 1.4
 
 penda_res = penda::penda_test(samples = samples, 
@@ -138,9 +147,6 @@ penda_res = penda::penda_test(samples = samples,
                    L_H_list =  L_H_list, 
                    quant_test =  quant_test,
                    factor_test = factor_test)
-
-colSums(penda_res$down_genes)
-colSums(penda_res$up_genes)
 ```
 
 ```{r, echo = FALSE}
@@ -184,7 +190,7 @@ plot_figure(data_patients = data_bypatient)
 
 ```
 
-```{r fig.width=9, fig.height=9, eval = FALSE, echo = FALSE}
+```{r fig.width=9, fig.height=9, echo = FALSE}
 
 plot_heatmap_hclust = function (data) {
   sum(apply(is.na(data), 1, any))
