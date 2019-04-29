@@ -44,9 +44,9 @@ penda::draw_penda()
 
 # Introduction
 
-`penda` (**PE**rso**N**alized **D**ifferential **A**nalysis ) is an open-access R package that detects gene deregulation in individual samples compared to as set of reference, control samples. To determine the variation in gene expression, PenDa uses different parameters. This tutorial aims at providing to advanced users a help to choose these different parameters according to your data.
+`penda` (**PE**rso**N**alized **D**ifferential **A**nalysis ) is an R package that detects gene deregulation in individual samples compared to as set of reference, control samples. To determine the variation in gene expression, PenDa uses different parameters. This tutorial aims at providing to advanced users a help to choose these different parameters according to your data.
 
-How to cite: Richard et al. (2019) PenDa, a rank-based method for Personalized Differential Analysis: application to lung cancer, in submission.
+How to cite: Richard et al. (XXX) PenDa, a rank-based method for Personalized Differential Analysis: application to lung cancer, in submission.
 
 
 # Dataset
@@ -62,16 +62,6 @@ data_ctrl = penda::penda_data_ctrl
 ```
 
 ```{r results="verbatim"}
-if (exists("nb_genes")) {
-  set.seed(1)
-  idx_genes = sample(rownames(data_ctrl), nb_genes)
-} else {
-  idx_genes = rownames(data_ctrl)
-}
-# idx_ctrl = sample(colnames(data_ctrl), 20)
-idx_ctrl = colnames(data_ctrl)
-data_ctrl = data_ctrl[idx_genes,idx_ctrl]
-
 head(data_ctrl[,1:3])
 dim(data_ctrl)
 ```
@@ -85,8 +75,6 @@ data_case = penda::penda_data_case
 
 
 ```{r results="verbatim"}
-#idx_case = sample(colnames(data_case), 30)
-# idx_case = colnames(data_case)
 data_case = data_case[rownames(data_ctrl),]
 head(data_case[,1:3])
 dim(data_case)
@@ -103,14 +91,14 @@ data_case = Penda_dataset$data_case
 
 The function `make_dataset` contains three steps to prepare the data for the analysis.  
 
-  - `detect_na_value` removes rows and columns (ie, genes and samples) of the data matrices that contain more than `r "threshold"` % (default value = `r threshold_dataset`) of NA (Not Available) value. <br/>
-  - `detect_zero_value` removes genes with very low expression in the majority of samples (controls and cases), ie. genes whose expression is lower than `r "val_min"` in `r "threshold"` % of all the samples. By default it uses the function `normalmixEM` to estimate the value of `r "val_min"`using all the log2-transformed data but this parameter can also be tuned manually by the user.
+  - `detect_na_value` removes rows and columns (ie, genes and samples) of the data matrices that contain more than `r "threshold"` % (default value = `r threshold_dataset`) of NA (Not Available) value.
+  - `detect_zero_value` removes genes with very low expression in the majority of samples (controls and cases), *ie.* genes whose expression is lower than `val_min` in `threshold`% of all the samples. By default it uses the function `normalmixEM` to estimate the value of `val_min` using all the *log2*-transformed data but this parameter can also be tuned manually by the user.
   - `rank_genes` sorts genes based on the median in controls. This step is essential for the proper functioning of `penda`.
 
 
 
 
-We need control samples to do simulations and be able to compute the error rate. Here, we extract the three last patients of data_ctrl in `data_simu`.
+We need control samples to do simulations and be able to compute the error rate. Here, we extract the three last patients of `data_ctrl` in `data_simu`.
 
 ```{r echo=TRUE, results="verbatim"}
 data_simu = data_ctrl[,c(1:3)]
@@ -119,7 +107,7 @@ dim(data_case)
 dim(data_ctrl)
 ```
 
-<span style="color:red">Note: this vignette is just an example. For a real analysis, we recommend to simulate more patients (10 for example).</span>
+<span style="color:red">Note: this vignette is an example. For a real analysis, we recommend to simulate more patients (10 for example).</span>
 
 
   
@@ -132,19 +120,22 @@ dim(data_ctrl)
 ```{r label="penda::compute_lower_and_higher_lists", warning = FALSE}
 threshold_LH = 0.99
 s_max = 50
-L_H_list = penda::compute_lower_and_higher_lists(data_ctrl, threshold = threshold_LH, s_max = s_max)
+L_H_list = penda::compute_lower_and_higher_lists(data_ctrl, threshold=threshold_LH, s_max=s_max)
 L = L_H_list$L
 H = L_H_list$H
 ```
 
 To use the Penda method, we need the relative gene ordering in normal tissue. 
 
-The function `compute_lower_and_higher_lists` computes two matrices of lists L and H based on the filtered control dataset (`data_ctrl`).  
+The function `compute_lower_and_higher_lists` computes the two matrices `L` and `H` based on the filtered control dataset (`data_ctrl`).  
 
-Each row of the **L** matrix contains a list of at most `s_max` (default value = `r s_max`) genes (characterized by their ids) whose expressions are **lower** than that of the gene correspond to the row in at least `threshold_LH` (default value = `r threshold_LH*100` %) of the control samples.<br/>
-Each row of the **H** matrix contains a list of at most `s_max` (default value = `r s_max`) genes (characterized by their ids) whose expressions are **higher** than that of the gene correspond to the row in at least `threshold_LH` (default value = `r threshold_LH*100` %) of the control samples.<br/>
+Each row of the `L` matrix is a list of at most `s_max` (default value = `r s_max`) genes (characterized by their ids) whose expressions are **lower** than that of the gene correspond to the row in at least `threshold_LH` (default value = `r threshold_LH*100`%) of the control samples.
 
-Too many genes make next steps slower, but too few genes lead to errors.
+Each row of the `H` matrix is a list of at most `s_max` (default value = `r s_max`) genes (characterized by their ids) whose expressions are **higher** than that of the gene correspond to the row in at least `threshold_LH` (default value = `r threshold_LH*100`%) of the control samples.
+
+**Be carefull**, too many genes make next steps slower, but too few genes lead to errors.
+
+For each gene in line (MFSD11, STEAP2, etc.), we can see the id of 10 genes with a lower expression and 10 genes with a higher expression.
 
 
 ```{r echo=TRUE, results="verbatim"}
@@ -153,19 +144,26 @@ H[100:105,1:10]
 dim(L)
 dim(H)
 ```
-For each gene in line (MFSD11, STEAP2, etc.), we can see the id of 10 genes with a lower expression and 10 genes with a higher expression.
+
 
 
 # Generation of the simulated dataset
 
 To compute the real error rate, we need to use simulations. There are two methods of simulation, one simple and one more complex inspired by real dataset.
 
+<span style="color:green">FCH: IN WHICH CASE CHOOSING 1ST OR 2ND?</span>
 
 ## Simple simulation 
 
-The function `simplified_simulation` has several parameters, the first is the `fraction` of data to dysregulate. The dysregulation is +- `modifier` if the gene expression is under the `threshold`, or * / `factor` if the gene expression is above.
+The function `simplified_simulation` takes several arguments. The first argument is `fraction`, it indicates the proportion of data to dysregulate. The second and the third argument are `modifier` and `factors`, they indicate the level dysregulation introduced in the simulation. The forth is `threshold` used as follow.
+
+The dysregulation is computed according to `threshold` as:
+
+ - $\text{expression value} \pm \text{modifier}$, if the gene expression is under the `threshold`
+ - $\text{expression value} \times \text{factor}^{\pm 1}$, if the gene expression is above the `threshold`.
 
 You have to adapt your parameters at the expected dysregulation in your real data case.
+
 The simulation returns the vector of initial data, the vector of data with modifications and the index of modified data. 
 
 ```{r label="penda::simplified_simulation"}
@@ -199,41 +197,56 @@ We have to vary different parameters and compare the results to choose the ones 
 
 ```{r}
 set.seed(1)
-tmp_d = c(rnorm(100, 50000, 10000), rnorm(50, 70000, 15000))
-plot(density(tmp_d), main="limit if don't have lists: quantile and factor")
-quant_fig = quantile(tmp_d, c(0.05, 0.95))
+tmp_kc = c(rnorm(100, 50000, 10000), rnorm(50, 70000, 15000))
+tmp_ctrl = c(rnorm(100, 50000, 10000))
+plot(density(tmp_kc), main="Expression of a gene in tumoral lung", yaxt="n", ylab="")
+quant_fig = quantile(tmp_ctrl, c(0.05, 0.95))
 abline(v = quant_fig, lty=2)
 lim_fig = c(quant_fig[1] / 1.2, quant_fig[2] * 1.2)
 abline(v = lim_fig, col=2)
+legend("topright", lty=2:1, col=1:2, c("quantiles", "quantiles * factor"))
 ```
 
-First parameters to test are those of the quantile method.<br/>
-This method is used in the Penda method when we don’t have **L** or **H** list. There are two parameters, the `quantile` of the gene expression distribution in the control (dotted line) and the `factor` which modulate this quantile value (red line).
+First set of parameters to test are those of the quantile method. This method is used when we don’t have `L` or `H` list. There are two parameters:
+
+  - the `quantile` values of the gene expression distribution in the control (dotted line)
+  - the `factor` which modulate the quantile values and defined the thresholds which discriminated dysregulation or not patients (red line).
 
 
-To vary these parameters, we use the function `choose_quantile` which, for one patient, vary the quantile value for a fixed factor. This function compute then, for each quantile, three error rates. <br/>
-The **FDR**, False Discovery Rate, the proportion of false positive in all the positive results.<br/>
-The **TPR**, True Positive Rate, the proportion of true positives detected in results.<br/>
-The **FPR**, False Positive Rate, the proportion of false positive in all the negative results. <br/>
+<span style="color:green">FCH: IN WHICH CASE "we don’t have `L` or `H` list"? SO WHO DOES THE METHOD WORK? DESCRRIBED IN THE PAPER?</span>
 
-With these values, we can make a curve and choose the better quantile and the better factor, to minimize the FDR and maximize the TPR. 
+
+To vary these parameters, we use the function `choose_quantile` which, for one patient, vary the quantile value for a fixed factor. This function compute then, for each quantile, three error rates. 
+
+  - The **FDR**, False Discovery Rate, the proportion of false positive in all the positive results.
+  - The **TPR**, True Positive Rate, the proportion of true positives detected in results.
+  - The **FPR**, False Positive Rate, the proportion of false positive in all the negative results.
+
+With these values, we can make a ROC curves and choose the better quantile and the better factor, to minimize the FDR and maximize the TPR. 
+
 
 ```{r label="penda::choose_quantile", results = "hide"}
-# , tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), message = FALSE}
+
 quantile_values = c(0, 0.01, 0.02, 0.03, 0.05, 0.06, 0.08, 0.1, 0.15, 0.2, 0.3, 0.4)
 factor_values = c(1, 1.2, 1.4)
 which_quantile = penda::choose_quantile(data_ctrl, simulation, factor = factor_values, quantile_values = quantile_values)
 ```
 ```{r, label="penda::select_quantile_param"}
-# tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 best_quantile = penda::select_quantile_param(which_quantile, FDR_max = 0.1)
 ```
 
+In this example, optimum quantile method parameters are defined as:
+
+  - quantile = `r best_quantile$quantile`
+  - factor = `r best_quantile$factor`
+
+
 ```{r}
-df_quant = data.frame(factor = factor(which_quantile[,1])
-, quantile = factor(which_quantile[,2])
-, FDR = which_quantile[,3]
-, TPR = which_quantile[,4]
+df_quant = data.frame(
+  factor = factor(which_quantile[,1]),
+  quantile = factor(which_quantile[,2]),
+  FDR = which_quantile[,3],
+  TPR = which_quantile[,4]
 )
 
 library(ggplot2)
@@ -245,17 +258,17 @@ geom_line() + theme_minimal() +
 ```
 
 
-<span style="color:red">Note: this vignette is just an example. For a real analysis, we recommend to simulate different patients (10 ideally), to test more quantile and factor values and to manually choose the best settings.</span>
+<span style="color:red">Note: this vignette is an example. For a real analysis, we recommend to simulate different patients (10 ideally), to test more quantile and factor values and to manually choose the best settings.</span>
 
 ## Threshold of the Penda test
 
-The last important parameter to choose is the `threshold` of the test. This threshold is the importance of the change of rank necessary to assert the deregulation of a gene. 
+The second and last important parameter to choose is the `threshold` of the test. This threshold is the importance of the change of rank necessary to assert the deregulation of a gene. 
 The function `choose_threshold` make the Penda test to different threshold values and compute the FDR, TPR and FPR. 
 
-With these values, we can make a curve and choose the better parameter to fit the experimental requirements (low FDR and high TPR).
+With these values, we can make a ROC curve and choose the better parameter to fit the experimental requirements (low FDR and high TPR).
 
 ```{r label="penda::choose_threshold", results = "hide"}
-# , tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55), message = FALSE}
+
 threshold_values = c(0, 0.05, 0.1, 0.3, 0.5, 0.6, 0.7, 0.8, 0.9)
 
 best_quant = best_quantile$quantile
@@ -265,9 +278,13 @@ which_threshold = penda::choose_threshold(data_ctrl, L_H_list, 30, simulation, t
 ```
 
 ```{r label="penda::select_threshold_param"}
-# tidy = TRUE, tidy.opts=list(blank=FALSE, width.cutoff=55)}
 best_threshold = penda::select_threshold_param(which_threshold, FDR_max = 0.05)
 ```
+
+In this example, optimum test threshold parameter is defined as:
+
+  -  threshold = `r best_threshold$threshold` 
+
 
 ```{r, echo=FALSE}
 library(ggplot2)
@@ -294,9 +311,9 @@ geom_point() + geom_line() + theme_minimal() +
   geom_hline(yintercept = best_threshold$TPR, linetype = "dotted")   
 ```
 
-<span style="color:red">Note: this vignette is just an example. For a real analysis, we recommend to simulate different patients (10 ideally), to test more threshold values and to manually choose the best threshold.</span>
+<span style="color:red">Note: this vignette is an example. For a real analysis, we recommend to simulate different patients (10 ideally), to test more threshold values and to manually choose the best threshold.</span>
 
-##Test of false positive
+## Test of false positive
 
 We applied the Penda method with computed parameters on the `r ncol(data_simu)` controls used for simulation before the deregulation to see the number of false positive. 
 
@@ -332,16 +349,15 @@ ggplot(df, aes(x = Threshold, y = mean, color = Deregulation, group = Deregulati
 
 ```
 
-# Next: analysis of your data
+# Summary of simulation results
 
 With these simulations you can now perform analysis on your real data.
 You can define your own parameters with the graph visualisation or use the automatically calculated parameters:
 
-threshold = `r best_threshold$threshold` 
 
-quantile = `r best_quantile$quantile`
-
-factor = `r best_quantile$factor`
+  - quantile = `r best_quantile$quantile`
+  - factor = `r best_quantile$factor`
+  - threshold = `r best_threshold$threshold` 
 
 <span style="color:red">Note: being careful with recommended parameters compute on samples. For example, with the complete dataset (100 controls and 1000 datacases for 28K genes) and more simulations, we obtained different best parameters. </span>
 
@@ -358,13 +374,13 @@ The data set was pretreated as following:
 and `r floor(Penda_dataset$info["nb_genes_0"])` genes was removed for low value 
 (under the threshold `val_min` of `r Penda_dataset$info["val_min"]`) in at least `r Penda_dataset$info["threshold"]*100` % of cases.
 
-`r ncol(data_simu)` cases samples were simulated using the complex simulation function with the following parameters: group size = `r size_grp`, quantile = `r quant_simu`. Theses simulations identified `r length(simulation$changes_idx) / length(simulation$simulated_data) * 100`% of genes as typically deregulated in cases samples.
+`r ncol(data_simu)` cases samples were simulated using the complex simulation function with the following parameters: group size = `r size_grp`, quantile = `r quant_simu`. Theses simulations identified `r signif(length(simulation$changes_idx) / length(simulation$simulated_data) * 100,3)`% of genes as typically deregulated in cases samples.
 
-`r ncol(controls)` controls were used to generate L and H lists using the following parameters: threshold LH = `r threshold_LH` and s_max = `r s_max`.
+`r ncol(controls)` controls were used to generate L and H lists using the following parameters: threshold LH = `r signif(threshold_LH,3)` and s_max = `r s_max`.
 
-The quantile method was applied on the `r ncol(data_simu)` simulated cases. We retained a global FDR value of `r best_quantile$FDR`, with the following set of parameters: quantile = `r best_quantile$quantile` and factor = `r best_quantile$factor`.
+The quantile method was applied on the `r ncol(data_simu)` simulated cases. We retained a global FDR value of `r signif(best_quantile$FDR,3)`, with the following set of parameters: quantile = `r best_quantile$quantile` and factor = `r best_quantile$factor`.
 
-The penda method was then applied on these `r ncol(data_simu)` cases. We retained a global FDR value of `r best_threshold$FDR` , with the following set of parameters: quantile = `r best_quantile$quantile`, factor = `r best_quantile$factor` and threshold = `r best_threshold$threshold`.
+The penda method was then applied on these `r ncol(data_simu)` cases. We retained a global FDR value of `r signif(best_threshold$FDR,3)` , with the following set of parameters: quantile = `r best_quantile$quantile`, factor = `r best_quantile$factor` and threshold = `r best_threshold$threshold`.
 
 # Session Information
 
