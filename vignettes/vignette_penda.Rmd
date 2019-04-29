@@ -18,12 +18,13 @@ vignette: >
 ```{r echo=FALSE, eval=TRUE}
 knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=6, eval=TRUE, echo=FALSE, results="hide", dpi=75)
 layout(1, respect=TRUE)
-penda::draw_penda()Z```
+penda::draw_penda()
+```
 
 
 # Introduction
 
-`penda` (**PE**rso**N**alized **D**ifferential **A**nalysis ) is an open-access R package that detects gene deregulation in individual samples compared to as set of reference, control samples. This tutorial aims at providing to non-expert users basic informations and illustrations on how to rune the package.
+`penda` (**PE**rso**N**alized **D**ifferential **A**nalysis ) is an open-access R package that detects gene deregulation in individual samples compared to a set of reference, control samples. This tutorial aims at providing to non-expert users basic informations and illustrations on how to run the package.
 
 How to cite: Richard et al. (2019) PenDa, a rank-based method for Personalized Differential Analysis: application to lung cancer, in submission.
 
@@ -95,22 +96,24 @@ dim(data_case_f)
 The function `make_dataset` contains three steps to prepare the data for the analysis.  
 
   - `detect_na_value` removes rows and columns (ie, genes and samples) of the data matrices that contain more than `r "threshold"`% (default value = `r threshold_dataset`) of NA (Not Available) value. <br/>
-  - `detect_zero_value` removes genes with very low expression in the majority of samples (controls and cases), ie. genes whose expression is lower than `r "val_min"` in `r "threshold"`% of all the samples. By default it uses the function `normalmixEM` to estimate the value of `r "val_min"`using all the log2-transformed data but this parameter can also be tuned manually by the user.
-  - `rank_genes` sorts genes based on the median in controls. This step is essential for the proper functioning of `penda`.
+  - `detect_zero_value` removes genes with very low expression in the majority of samples (controls and cases), ie. genes whose expression is lower than `r "val_min"` in `r "threshold"`% of all the samples. By default it uses the function `normalmixEM` to estimate the value of `r "val_min"` using all the log2-transformed count data but this parameter can also be tuned manually by the user.
+  - `rank_genes` sorts the genes based on the median of gene expression in controls. This step is essential for the proper functioning of `penda`.
 
 
 ## Relative gene ordering
 
 ```{r, label="penda::compute_lower_and_higher_lists"}
 threshold_LH = 0.99
-s_max = 50
+s_max = 30
 if (!exists("L_H_list")) L_H_list = penda::compute_lower_and_higher_lists(data_ctrl_f, threshold = threshold_LH, s_max = s_max)
 ```
 
 The function `compute_lower_and_higher_lists` computes two matrices of lists L and H based on the filtered control dataset (`data_ctrl_f`).  
 
-Each row of the **L** matrix contains a list of at most `s_max` (default value = `r s_max`) genes (characterized by their ids) whose expressions are **lower** than that of the gene correspond to the row in at least `threshold_LH` (default value = `r threshold_LH*100` %) of the control samples.<br/>
-Each row of the **H** matrix contains a list of at most `s_max` (default value = `r s_max`) genes (characterized by their ids) whose expressions are **higher** than that of the gene correspond to the row in at least `threshold_LH` (default value = `r threshold_LH*100` %) of the control samples.<br/>
+Each row of the **L** matrix contains a list of at most `s_max` (default value = `r s_max`) genes (characterized by their ids) whose expressions are **lower** than that of the gene associated to the corresponding row, in at least `threshold_LH` (default value = `r threshold_LH*100` %) of the control samples.<br/>
+Each row of the **H** matrix contains a list of at most `s_max` (default value = `r s_max`) genes (characterized by their ids) whose expressions are **higher** than that of the gene associated to the corresponding row, in at least `threshold_LH` (default value = `r threshold_LH*100` %) of the control samples.<br/>
+
+Bellow are the histograms of the size of L and H lists fo all the genes:
 
 
 ```{r, results="verbatim"}
@@ -118,7 +121,6 @@ layout(matrix(1:2, 1), respect=TRUE)
 hist(rowSums(L_H_list$L != 0), xlab = "nb of L genes")
 hist(rowSums(L_H_list$H != 0), xlab = "nb of H genes")
 ```
-For each gene in line (AADAC, AAMP, etc.), we can see the number of L and H genes.
 
 
 ## Differential expression testing
@@ -129,8 +131,8 @@ samples = data_case_f
 threshold = 0.5
 iterations =  20 
 L_H_list =  L_H_list 
-quant_test =  0.08
-factor_test = 1.4
+quant_test =  0.05
+factor_test = 1.2
 
 penda_res = penda::penda_test(samples = samples, 
                   controls = controls,
@@ -141,9 +143,9 @@ penda_res = penda::penda_test(samples = samples,
                    factor_test = factor_test)
 ```
 
-The function  `penda_test` infer for each gene and for each sample of the `data_case` matrix its deregulation status (up-regulation, down-regulation or no deregulation). This function analyses case samples one by one. It is based on the `L_H_list` and tacks for changes in relative ordering in the sample of interest. If these changes exceed the given `threshold`, the gene of interest is considered as deregulated. 
+The function  `penda_test` infers for each gene and for each sample of the `data_case` matrix its deregulation status (up-regulation, down-regulation or no deregulation). This function analyses case samples one by one. It is based on the `L_H_list` and tracks for changes in relative ordering in the sample of interest. If these changes exceed the given `threshold`, the gene of interest is considered as deregulated. 
 
-By default, the `threshold` parameter is set to `r threshold` but we strongy advise users to use the vignette `vignette simulation` to adjust this parameter to the user-specific data.
+By default, the `threshold` parameter is set to `r threshold` but we strongly advise users to use the vignette `vignette simulation` to adjust this parameter to the user-specific data.
 
 Results are in the form of two matrices `$down_genes` and `$up_genes`. Each row corresponds to a gene and each column to a case sample. A TRUE entry in these matrices meands that the corresponding genes is deregulated (down or up-regulated) in the corresponding samples. 
 
@@ -231,7 +233,7 @@ plot_heatmap_hclust(data = penda_res$down_genes - penda_res$up_genes)
 
 # Material and methods
 
-*This paragraph is automatically generated by the vignette on the parameters used. It can be used to write the "materiel and method" part of your analysis.*
+*This paragraph is automatically generated by the vignette to specify the method and data filtering parameters. It can be directly cut and paste to the "material and methods" section of the user analysis.*
 
 The Penda vignette of the penda package version 1.0 was executed on `r floor(Penda_dataset$info["init_nb_genes"])`  genes, using `r floor(Penda_dataset$info["init_nb_ctrls"])` control samples and `r floor(Penda_dataset$info["init_nb_cases"])` case samples.
 
