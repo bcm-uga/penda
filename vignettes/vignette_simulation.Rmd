@@ -1,7 +1,7 @@
 ---
 title: "PENDA: PErsoNalized Data Analysis"
 subtitle: "Advanced User - Performing simulated personalized data analysis with `penda`"
-author: "Magali Richard, Florent Chuffart, Clémentine Decamps, Daniel Jost"
+author: "Magali Richard, Clémentine Decamps, Florent Chuffart, Daniel Jost"
 date: "`r Sys.Date()`"
 output:
   rmarkdown::html_document:
@@ -44,21 +44,16 @@ penda::draw_penda()
 
 # Introduction
 
-`penda` (**PE**rso**N**alized **D**ifferential **A**nalysis ) is an open-access analysis software (R package). 
-To determine the variation in gene expression, Penda uses different parameters. 
-The purpose of this tutorial is to explain how choose these different parameters according to your data for an advanced user. Simulations are used to identify errors and their types.
+`penda` (**PE**rso**N**alized **D**ifferential **A**nalysis ) is an open-access R package that detects gene deregulation in individual samples compared to as set of reference, control samples. To determine the variation in gene expression, PenDa uses different parameters. This tutorial aims at providing to advanced users a help to choose these different parameters according to your data.
 
-
-
+How to cite: Richard et al. (2019) PenDa, a rank-based method for Personalized Differential Analysis: application to lung cancer, in submission.
 
 
 # Dataset
 
-The dataset used for this example corresponds to the transcriptomes (normalized count, using DESeq2 method) of 44 patients with lung adenocarcinoma [PMID:25079552], including control and pathological samples. 
+The dataset used to illustrated the method corresponds to the transcriptomes of 3000 genes (RNAseq counts, normalized with DESeq2) for 40 normal, control samples and 40 tumorous samples taken from the TCGA study of lung adenocarcinoma [PMID:25079552].
 
-https://www.ncbi.nlm.nih.gov/pubmed/25079552
-
-`data_ctrl` is a data matrix containing normalized counts for each control sample. 
+`data_ctrl` is a data matrix containing the normalized counts of each control sample. 
 The rownames of the matrix correspond to the gene_symbol, the colnames indicate the sample ID.
 
 
@@ -81,7 +76,7 @@ head(data_ctrl[,1:3])
 dim(data_ctrl)
 ```
 
-`data_case` is a data matrix containing normalized counts for each tumor sample. 
+`data_case` is a data matrix containing the normalized counts of each tumor sample. 
 The rownames of the matrix correspond to the gene_symbol, the colnames indicate the sample ID.
 
 ```{r echo=TRUE}
@@ -99,14 +94,6 @@ dim(data_case)
 
 *Filtering, move to methods METHODS: *
 
-
-The function `make_dataset` makes 3 steps to prepare the data at the analysis.  
-
-  - `detect_na_value` function remove samples with more than `r "threshold_dataset"`% probes or patients with NA.  <br/>
-  - `detect_zero_value` function remove genes with very low expression. You can choose the threshold of low expression, or by default it uses the function `normalmixEM` to compute this threshold on all the data normalized with a pseudo-log, could also be evaluated by cross-validation.
-  - `rank_genes` function ranks genes by the median in controls. This step is essential for the proper functioning of Penda.
-
-
 ```{r label="penda::make_dataset"}
 threshold_dataset = 0.99
 Penda_dataset = penda::make_dataset(data_ctrl, data_case, detectlowvalue = TRUE, detectNA = TRUE, threshold = threshold_dataset)
@@ -114,7 +101,16 @@ data_ctrl = Penda_dataset$data_ctrl
 data_case = Penda_dataset$data_case
 ```
 
-We need control samples to do simulations and be able to compute the error rate. Here, we extract the last patients of data_ctrl in `data_simu`.
+The function `make_dataset` contains three steps to prepare the data for the analysis.  
+
+  - `detect_na_value` removes rows and columns (ie, genes and samples) of the data matrices that contain more than `r "threshold"` % (default value = `r threshold_dataset`) of NA (Not Available) value. <br/>
+  - `detect_zero_value` removes genes with very low expression in the majority of samples (controls and cases), ie. genes whose expression is lower than `r "val_min"` in `r "threshold"` % of all the samples. By default it uses the function `normalmixEM` to estimate the value of `r "val_min"`using all the log2-transformed data but this parameter can also be tuned manually by the user.
+  - `rank_genes` sorts genes based on the median in controls. This step is essential for the proper functioning of `penda`.
+
+
+
+
+We need control samples to do simulations and be able to compute the error rate. Here, we extract the three last patients of data_ctrl in `data_simu`.
 
 ```{r echo=TRUE, results="verbatim"}
 data_simu = data_ctrl[,c(1:3)]
@@ -131,7 +127,7 @@ dim(data_ctrl)
   
   
   
-# Gene ranking in control
+#  Relative gene ordering
   
 ```{r label="penda::compute_lower_and_higher_lists", warning = FALSE}
 threshold_LH = 0.99
@@ -141,27 +137,23 @@ L = L_H_list$L
 H = L_H_list$H
 ```
 
-To use the Penda method, we also have to rank gene expression in normal tissue. 
+To use the Penda method, we need the relative gene ordering in normal tissue. 
 
-We used the function `compute_lower_and_higher_lists` to obtain a list of two matrices. 
+The function `compute_lower_and_higher_lists` computes two matrices of lists L and H based on the filtered control dataset (`data_ctrl`).  
 
-The matrix **L** corresponds to the list of genes (i.e id) with a lower expression for each considered genes (lines).
+Each row of the **L** matrix contains a list of at most `s_max` (default value = `r s_max`) genes (characterized by their ids) whose expressions are **lower** than that of the gene correspond to the row in at least `threshold_LH` (default value = `r threshold_LH*100` %) of the control samples.<br/>
+Each row of the **H** matrix contains a list of at most `s_max` (default value = `r s_max`) genes (characterized by their ids) whose expressions are **higher** than that of the gene correspond to the row in at least `threshold_LH` (default value = `r threshold_LH*100` %) of the control samples.<br/>
 
-The matrix **H** corresponds to the list of genes (i.e id) with a higher expression for each considered genes (lines).
-
-For each, the list of **L** genes (resp. **H** genes) corresponds to the closest genes (up to `s_max` genes) that have a lower (resp. higher) expression in at least `r threshold_LH*100` % of the control samples. 
 Too many genes make next steps slower, but too few genes lead to errors.
 
 
-For each gene in line (PYCR2, TTC7A, etc.), we can see the id of 10 genes with a lower expression and 10 genes with a higher expression.
-
-
 ```{r echo=TRUE, results="verbatim"}
-L[1:6,1:10]
-H[1:6,1:10]
+L[100:105,1:10]
+H[100:105,1:10]
 dim(L)
 dim(H)
 ```
+For each gene in line (MFSD11, STEAP2, etc.), we can see the id of 10 genes with a lower expression and 10 genes with a higher expression.
 
 
 # Generation of the simulated dataset
@@ -173,7 +165,7 @@ To compute the real error rate, we need to use simulations. There are two method
 
 The function `simplified_simulation` has several parameters, the first is the `fraction` of data to dysregulate. The dysregulation is +- `modifier` if the gene expression is under the `threshold`, or * / `factor` if the gene expression is above.
 
-You have to adapt your parameters at the expected dysregulation in your real dysregulated data.
+You have to adapt your parameters at the expected dysregulation in your real data case.
 The simulation returns the vector of initial data, the vector of data with modifications and the index of modified data. 
 
 ```{r label="penda::simplified_simulation"}
@@ -181,7 +173,6 @@ simple_simu = penda::simplified_simulation(data_simu, fraction = 0.3, threshold 
 head(simple_simu$initial_data)
 head(simple_simu$simulated_data)
 ```
-Note: the simulation is a random process, the sample shown here can contain no modifications.
 
 
 ## Simulation inspired by real dataset
@@ -197,7 +188,6 @@ simulation = penda::complex_simulation(data_ctrl, data_case, data_simu, size_grp
 head(simulation$initial_data)
 head(simulation$simulated_data)
 ```
-Note: the simulation is a random process, the sample shown here can contain no modifications.
 
 
 # Define optimal parameters for your dataset
@@ -358,18 +348,19 @@ factor = `r best_quantile$factor`
 
 #Material and methods
 
+*This paragraph is automatically generated by the vignette on the parameters used. It can be used to write the "materiel and method" part of your analysis.*
+
 The simulation vignette of the penda package version 1.0 was executed on `r floor(Penda_dataset$info["init_nb_genes"])`  genes, using `r floor(Penda_dataset$info["init_nb_ctrls"])` control samples and `r floor(Penda_dataset$info["init_nb_cases"])` case samples.
 
 The data set was pretreated as following: 
 `r floor(Penda_dataset$info["nb_genes_NA"])` genes and 
 `r floor(Penda_dataset$info["nb_patients_NA"])` patients was removed for NA values, 
 and `r floor(Penda_dataset$info["nb_genes_0"])` genes was removed for low value 
-(under the threshold of `r Penda_dataset$info["val_min"]`). 
-Genes and patients removed were under the conditions in `r Penda_dataset$info["threshold"]*100` % of cases.
+(under the threshold `val_min` of `r Penda_dataset$info["val_min"]`) in at least `r Penda_dataset$info["threshold"]*100` % of cases.
 
 `r ncol(data_simu)` cases samples were simulated using the complex simulation function with the following parameters: group size = `r size_grp`, quantile = `r quant_simu`. Theses simulations identified `r length(simulation$changes_idx) / length(simulation$simulated_data) * 100`% of genes as typically deregulated in cases samples.
 
-`r ncol(controls)` controls were used to generate L and H lists using the following parameters: threshold = `r threshold_LH` and s_max = `r s_max`.
+`r ncol(controls)` controls were used to generate L and H lists using the following parameters: threshold LH = `r threshold_LH` and s_max = `r s_max`.
 
 The quantile method was applied on the `r ncol(data_simu)` simulated cases. We retained a global FDR value of `r best_quantile$FDR`, with the following set of parameters: quantile = `r best_quantile$quantile` and factor = `r best_quantile$factor`.
 
