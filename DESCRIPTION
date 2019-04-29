@@ -23,6 +23,7 @@ VignetteBuilder: knitr
 LinkingTo: 
   Rcpp
 Suggests: 
+  gplots,
   knitr,
   rmarkdown
 

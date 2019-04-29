@@ -342,7 +342,7 @@ ggplot(df, aes(x = Threshold, y = mean, color = Deregulation, group = Deregulati
 
 ```
 
-#Next: analysis of your data
+# Next: analysis of your data
 
 With these simulations you can now perform analysis on your real data.
 You can define your own parameters with the graph visualisation or use the automatically calculated parameters:
@@ -356,7 +356,7 @@ factor = `r best_quantile$factor`
 <span style="color:red">Note: being careful with recommended parameters compute on samples. For example, with the complete dataset (100 controls and 1000 datacases for 28K genes) and more simulations, we obtained different best parameters. </span>
 
 
-#Material and methods
+# Material and methods
 
 The simulation vignette of the penda package version 1.0 was executed on `r floor(Penda_dataset$info["init_nb_genes"])`  genes, using `r floor(Penda_dataset$info["init_nb_ctrls"])` control samples and `r floor(Penda_dataset$info["init_nb_cases"])` case samples.
 
@@ -375,7 +375,7 @@ The quantile method was applied on the `r ncol(data_simu)` simulated cases. We r
 
 The penda method was then applied on these `r ncol(data_simu)` cases. We retained a global FDR value of `r best_threshold$FDR` , with the following set of parameters: quantile = `r best_quantile$quantile`, factor = `r best_quantile$factor` and threshold = `r best_threshold$threshold`.
 
-#Session Information
+# Session Information
 
 ```{r, results="verbatim"}
 sessionInfo()
