@@ -108,7 +108,7 @@ s_max = 30
 if (!exists("L_H_list")) L_H_list = penda::compute_lower_and_higher_lists(data_ctrl_f, threshold = threshold_LH, s_max = s_max)
 ```
 
-The function `compute_lower_and_higher_lists` computes two matrices of lists L and H based on the filtered control dataset (`data_ctrl_f`).  
+The function `compute_lower_and_higher_lists` computes two matrices `L` and `H` based on the filtered control dataset (`data_ctrl_f`).  
 
 Each row of the **L** matrix contains a list of at most `s_max` (default value = `r s_max`) genes (characterized by their ids) whose expressions are **lower** than that of the gene associated to the corresponding row, in at least `threshold_LH` (default value = `r threshold_LH*100` %) of the control samples.<br/>
 Each row of the **H** matrix contains a list of at most `s_max` (default value = `r s_max`) genes (characterized by their ids) whose expressions are **higher** than that of the gene associated to the corresponding row, in at least `threshold_LH` (default value = `r threshold_LH*100` %) of the control samples.<br/>
@@ -128,7 +128,7 @@ hist(rowSums(L_H_list$H != 0), xlab = "nb of H genes")
 ```{r, label="penda::penda_test", echo = FALSE, results = "hide"}
 controls =  data_ctrl_f
 samples = data_case_f
-threshold = 0.5
+threshold = 0.4
 iterations =  20 
 L_H_list =  L_H_list 
 quant_test =  0.05
