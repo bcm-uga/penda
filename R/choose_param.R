@@ -176,12 +176,13 @@ select_threshold_param = function(which_threshold, FDR_max = 0.05) {
   results_threshold = as.data.frame(results_threshold)
 
   results_threshold$FDR = results_threshold$FP / (results_threshold$TP + results_threshold$FP)
-  results_threshold$TPR  = results_threshold$TP / (results_threshold$TP + results_threshold$FN)
+  results_threshold$TPR = results_threshold$TP / (results_threshold$TP + results_threshold$FN)
+  results_threshold$FPR = results_threshold$FP / (results_threshold$TN + results_threshold$FP)
 
   small_FDR = which(results_threshold$FDR <= FDR_max)
 
   if(length(small_FDR) != 0 & length(small_FDR) != sum(is.na(small_FDR))){
-    #If only one FDR under the FDR max,
+    # If only one FDR under the FDR max,
     if (length(small_FDR) == 1){
       print(paste0("Best threshold is ",
                     results_threshold[small_FDR, 1],
@@ -189,8 +190,10 @@ select_threshold_param = function(which_threshold, FDR_max = 0.05) {
                     results_threshold[small_FDR, "FDR"]))
       return(list(threshold = results_threshold[small_FDR, 1],
                   FDR = results_threshold[small_FDR, "FDR"],
-                  TPR = results_threshold[small_FDR, "TPR"]))
-    #If more than one FDR under the FDR max,
+                  TPR = results_threshold[small_FDR, "TPR"],
+                  FPR = results_threshold[small_FDR, "FPR"]
+                  ))
+    # If more than one FDR under the FDR max,
     } else {
       small_results = results_threshold[small_FDR, ]
       idx = which.max(small_results[, "TPR"])
@@ -198,14 +201,18 @@ select_threshold_param = function(which_threshold, FDR_max = 0.05) {
                , " which has a FDR of ", small_results[idx, "FDR"]))
       return(list(threshold = small_results[idx, 1],
                   FDR = small_results[idx, "FDR"],
-                  TPR = small_results[idx, "TPR"]))
+                  TPR = small_results[idx, "TPR"],
+                  FPR = small_results[idx, "FPR"]
+                  ))
     }
   } else {
     warning("Your FDR is not reachable, we return the threshold of the smallest FDR.")
     idx = which.min(results_threshold[,"FDR"])
     return(list(threshold = results_threshold[idx, 1],
                 FDR = results_threshold[idx, "FDR"],
-                TPR = results_threshold[idx, "TPR"]))
+                TPR = results_threshold[idx, "TPR"],
+                FPR = results_threshold[idx, "FPR"]
+                ))
   }
 }
 
