@@ -1,7 +1,7 @@
 ---
-title: "PENDA: PErsoNalized Data Analysis"
+title: "PENDA: PErsoNalized Differential Analysis"
 subtitle: "Performing personalized data analysis with `penda`"
-author: "Magali Richard, Clémentine Decamps, Florent Chuffart, Daniel Jost"
+author: "Magali Richard, Clementine Decamps, Florent Chuffart, Daniel Jost"
 contact: 
 date: "`r Sys.Date()`"
 output: 
@@ -26,7 +26,7 @@ penda::draw_penda()
 
 `penda` (**PE**rso**N**alized **D**ifferential **A**nalysis ) is an open-access R package that detects gene deregulation in individual samples compared to a set of reference, control samples. This tutorial aims at providing to non-expert users basic informations and illustrations on how to run the package.
 
-How to cite: Richard et al. (2019) PenDa, a rank-based method for Personalized Differential Analysis: application to lung cancer, in submission.
+How to cite: Richard et al. (2019) PenDA, a rank-based method for Personalized Differential Analysis: application to lung cancer, in submission.
 
 # Dataset
 
@@ -113,13 +113,13 @@ The function `compute_lower_and_higher_lists` computes two matrices `L` and `H` 
 Each row of the **L** matrix contains a list of at most `s_max` (default value = `r s_max`) genes (characterized by their ids) whose expressions are **lower** than that of the gene associated to the corresponding row, in at least `threshold_LH` (default value = `r threshold_LH*100` %) of the control samples.<br/>
 Each row of the **H** matrix contains a list of at most `s_max` (default value = `r s_max`) genes (characterized by their ids) whose expressions are **higher** than that of the gene associated to the corresponding row, in at least `threshold_LH` (default value = `r threshold_LH*100` %) of the control samples.<br/>
 
-Bellow are the histograms of the size of L and H lists fo all the genes:
+Bellow are the histograms of the size of L and H lists for all the genes:
 
 
 ```{r, results="verbatim"}
 layout(matrix(1:2, 1), respect=TRUE)
-hist(rowSums(L_H_list$L != 0), xlab = "nb of L genes")
-hist(rowSums(L_H_list$H != 0), xlab = "nb of H genes")
+hist(rowSums(L_H_list$L != 0), xlab = "nb of L genes", main = "Size of L list")
+hist(rowSums(L_H_list$H != 0), xlab = "nb of H genes", main = "Size of H list")
 ```
 
 
@@ -147,7 +147,7 @@ The function  `penda_test` infers for each gene and for each sample of the `data
 
 By default, the `threshold` parameter is set to `r threshold` but we strongly advise users to use the vignette `vignette simulation` to adjust this parameter to the user-specific data.
 
-Results are in the form of two matrices `$down_genes` and `$up_genes`. Each row corresponds to a gene and each column to a case sample. A TRUE entry in these matrices meands that the corresponding genes is deregulated (down or up-regulated) in the corresponding samples. 
+Results are in the form of two matrices `$down_genes` and `$up_genes`. Each row corresponds to a gene and each column to a case sample. A TRUE entry in these matrices means that the corresponding genes are deregulated (down or up-regulated) in the corresponding samples. 
 
 
 
@@ -164,10 +164,27 @@ generate_data_bypatient = function(D_list, U_list){
                rep("up", length(patient_names)),
                rep("total", length(patient_names)))
   value = c(down, up, total)
+  pc = c(down/nrow(D_list)*100, up/nrow(D_list)*100, total/nrow(D_list)*100)
   return(data.frame(patients = patients,
                     variable = variable,
-                    value = value))
+                    value = value,
+                    pc = round(pc,2)))
 }
+
+# generate_data_bypatient = function(D_list, U_list){
+#   down = colSums(D_list)
+#   up = colSums(U_list)
+#   total = down + up
+#   patient_names = colnames(D_list)
+#   patients = rep(factor(patient_names , levels = patient_names [order(total)]), 3)
+#   variable = c(rep("down", length(patient_names)),
+#                rep("up", length(patient_names)),
+#                rep("total", length(patient_names)))
+#   value = c(down, up, total)
+#   return(data.frame(patients = patients,
+#                     variable = variable,
+#                     value = value))
+# }
 
 data_bypatient = generate_data_bypatient(D_list = penda_res$down_genes,
                                          U_list = penda_res$up_genes)
@@ -178,15 +195,30 @@ mytheme <- theme(panel.background = element_blank(),
   panel.grid.major = element_line(colour="black", size = (0.1)),
                  panel.grid.minor = element_blank())
 
-p1 = ggplot(data_patients, aes(x = patients, y = value)) + 
-    geom_line(aes(group = variable), colour = "grey80") + # theme_minimal(base_size = 20) +
-    mytheme + ylim(0, 10000) + ylab("Number of  genes") + xlab("Patients") +
-theme(axis.text.x = element_blank()) + geom_point(aes(colour = variable), 
-    size = 0.5) + ggtitle("Degree of deregulation per patient") +  
-scale_y_continuous(breaks = seq(0, 10000, 2000)) + scale_x_discrete(breaks = NULL) +
-   scale_colour_manual(name  ="Gene deregulation", 
-                      values = c("green", "darkblue", "red"), 
-                       labels=c("DOWN", "UP & DOWN", "UP")) 
+# p1 = ggplot(data_patients, aes(x = patients, y = value)) + 
+#     geom_line(aes(group = variable), colour = "grey80") + # theme_minimal(base_size = 20) +
+#     mytheme + ylim(0, 10000) + ylab("Number of  genes") + xlab("Patients") +
+# theme(axis.text.x = element_blank()) + geom_point(aes(colour = variable), 
+#     size = 0.5) + ggtitle("Degree of deregulation per patient") +  
+# scale_y_continuous(breaks = seq(0, 10000, 2000)) + scale_x_discrete(breaks = NULL) +
+#    scale_colour_manual(name  ="Gene deregulation", 
+#                       values = c("green", "darkblue", "red"), 
+#                        labels=c("DOWN", "UP & DOWN", "UP")) 
+
+ p1 <- ggplot(data_patients, aes(x = patients, y = pc)) +
+    geom_line(aes(group = variable), colour = "grey80") +
+    mytheme +
+    ylab("% of gene deregulation") + xlab("patients") +
+    geom_point(aes(colour = variable), size = 0.5) +
+    ylim(0, 80) +
+    scale_x_discrete(breaks = NULL) +
+    scale_colour_manual(
+      name = "Gene deregulation per patient",
+      values = c("blue", "black", "red"),
+      labels = c("DOWN", "UP & DOWN", "UP")
+    ) #+
+  #  theme(legend.position = "none", axis.text.x = element_blank())
+ 
  return(p1)
 }
 
@@ -235,17 +267,17 @@ plot_heatmap_hclust(data = penda_res$down_genes - penda_res$up_genes)
 
 *This paragraph is automatically generated by the vignette to specify the method and data filtering parameters. It can be directly cut and paste to the "material and methods" section of the user analysis.*
 
-The Penda vignette of the penda package version 1.0 was executed on `r floor(Penda_dataset$info["init_nb_genes"])`  genes, using `r floor(Penda_dataset$info["init_nb_ctrls"])` control samples and `r floor(Penda_dataset$info["init_nb_cases"])` case samples.
+The PenDA vignette of the `penda` package version 1.0 was executed on `r floor(Penda_dataset$info["init_nb_genes"])`  genes, using `r floor(Penda_dataset$info["init_nb_ctrls"])` control samples and `r floor(Penda_dataset$info["init_nb_cases"])` case samples.
 
 The data set was pretreated as following: 
 `r floor(Penda_dataset$info["nb_genes_NA"])` genes and 
-`r floor(Penda_dataset$info["nb_patients_NA"])` patients was removed for NA values, 
-and `r floor(Penda_dataset$info["nb_genes_0"])` genes was removed for low value 
-(under the threshold `val_min` of `r Penda_dataset$info["val_min"]`) in at least `r Penda_dataset$info["threshold"]*100` % of cases.
+`r floor(Penda_dataset$info["nb_patients_NA"])` samples were removed during the NA values filtering step, 
+and `r floor(Penda_dataset$info["nb_genes_0"])` genes were removed because lowly expressed: 
+under the threshold `val_min` = `r Penda_dataset$info["val_min"]` in at least `r Penda_dataset$info["threshold"]*100` % of cases.
 
 `r ncol(controls)` controls were used to generate L and H lists using the following parameters: threshold LH = `r threshold_LH` and s_max = `r s_max`.
 
-The penda method was then applied on `r ncol(data_case)` cases. With the following set of parameters: quantile = `r quant_test`, factor = `r factor_test` and threshold = `r threshold`.
+The PenDA method was then applied on `r ncol(data_case)` cases, with the following set of parameters: quantile = `r quant_test`, factor = `r factor_test` and threshold = `r threshold`.
 
 
 
