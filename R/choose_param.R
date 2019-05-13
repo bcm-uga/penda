@@ -176,7 +176,8 @@ select_threshold_param = function(which_threshold, FDR_max = 0.05) {
   results_threshold = as.data.frame(results_threshold)
 
   results_threshold$FDR = results_threshold$FP / (results_threshold$TP + results_threshold$FP)
-  results_threshold$TPR  = results_threshold$TP / (results_threshold$TP + results_threshold$FN)
+  results_threshold$TPR = results_threshold$TP / (results_threshold$TP + results_threshold$FN)
+  results_threshold$FPR = results_threshold$FP / (results_threshold$TN + results_threshold$FP)
 
   small_FDR = which(results_threshold$FDR <= FDR_max)
 
