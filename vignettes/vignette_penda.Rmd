@@ -18,7 +18,8 @@ vignette: >
 ```{r echo=FALSE, eval=TRUE}
 knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=6, eval=TRUE, echo=FALSE, results="hide", dpi=75)
 layout(1, respect=TRUE)
-penda::draw_penda()Z```
+penda::draw_penda()
+```
 
 
 # Introduction
