@@ -19,7 +19,7 @@ R
 ```R
 install.packages("devtools")
 # mixtools htmltools scales yaml lazyeval plyr rlang ggplot2 gtools caTools KernSmooth
-devtools::install()
+devtools::document(); devtools::install()
 ```
 ## Build vignettes
 
