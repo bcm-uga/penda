@@ -21,27 +21,6 @@ layout(1, respect=TRUE)
 penda::draw_penda()
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Introduction
 
 `penda` (**PE**rso**N**alized **D**ifferential **A**nalysis ) is an R package that detects gene deregulation in individual samples compared to a set of reference, control samples. To determine deregulation status, PenDa uses several parameters. This tutorial aims at providing to advanced users a systematic method to choose these different parameters according to their specific data.
