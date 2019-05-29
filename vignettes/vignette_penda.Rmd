@@ -120,7 +120,7 @@ hist(rowSums(L_H_list$H != 0), xlab = "nb of H genes", main = "Size of H list")
 
 ## Differential expression testing
 
-```{r, label="penda::penda_test"}
+```{r, label="penda::penda_test", results="hide"}
 threshold = 0.4
 iterations =  20 
 quant_test =  0.05
