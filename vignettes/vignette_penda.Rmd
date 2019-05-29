@@ -16,11 +16,10 @@ vignette: >
 ---
 
 ```{r echo=FALSE, eval=TRUE}
-knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=6, eval=TRUE, echo=FALSE, results="hide", dpi=75)
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=6, eval=TRUE, echo=TRUE, results="verbatim", dpi=75)
 layout(1, respect=TRUE)
 penda::draw_penda()
 ```
-
 
 # Introduction
 
@@ -28,28 +27,18 @@ penda::draw_penda()
 
 How to cite: Richard et al. (2019) PenDA, a rank-based method for Personalized Differential Analysis: application to lung cancer, in submission.
 
-# Dataset
+
+# Dataset and data filtering
+
+## Dataset
 
 The dataset used to illustrated the method corresponds to the transcriptomes of 3000 genes (RNAseq counts, normalized with DESeq2) for 40 normal, control samples and 40 tumorous samples taken from the TCGA study of lung adenocarcinoma [PMID:25079552].
 
 `data_ctrl` is a data matrix containing the normalized counts of each control sample. 
 The rownames of the matrix correspond to the gene_symbol, the colnames indicate the sample ID.
 
-```{r echo=TRUE}
+```{r}
 data_ctrl = penda::penda_data_ctrl
-```
-
-```{r results="verbatim"}
-if (exists("nb_genes")) {
-  set.seed(1)
-  idx_genes = sample(rownames(data_ctrl), nb_genes)
-} else {
-  idx_genes = rownames(data_ctrl)
-}
-# idx_ctrl = sample(colnames(data_ctrl), 20)
-idx_ctrl = colnames(data_ctrl)
-data_ctrl = data_ctrl[idx_genes,idx_ctrl]
-
 head(data_ctrl[,1:3])
 dim(data_ctrl)
 ```
@@ -57,17 +46,14 @@ dim(data_ctrl)
 `data_case` is a data matrix containing the normalized counts of each tumor sample. 
 The rownames of the matrix correspond to the gene_symbol, the colnames indicate the sample ID.
 
-```{r echo=TRUE}
+```{r}
 data_case = penda::penda_data_case
-```
-
-```{r results="verbatim"}
-#idx_case = sample(colnames(data_case), 30)
-# idx_case = colnames(data_case)
 data_case = data_case[rownames(data_ctrl),]
 head(data_case[,1:3])
 dim(data_case)
 ```
+
+**Note**: this vignette is an example that has been designed for a rapid test of the method. So we limit the number of genes and the number of samples for this purpose. For an optimal utilization of the method, users should however upload all their available data (genes, control and case samples).
 
 
 # Method
@@ -85,19 +71,23 @@ dim(data_case)
 
 ```{r label="penda::make_dataset"}
 threshold_dataset = 0.99
-if (!exists("Penda_dataset")) Penda_dataset = penda::make_dataset(data_ctrl, data_case, detectlowvalue = TRUE, detectNA = TRUE, threshold = threshold_dataset)
-data_ctrl_f = Penda_dataset$data_ctrl
-data_case_f = Penda_dataset$data_case
-
-dim(data_ctrl_f)
-dim(data_case_f)
+Penda_dataset = penda::make_dataset(data_ctrl, data_case, detectlowvalue = TRUE, detectNA = TRUE, threshold = threshold_dataset)
+data_ctrl = Penda_dataset$data_ctrl
+data_case = Penda_dataset$data_case
 ```
 
 The function `make_dataset` contains three steps to prepare the data for the analysis.  
 
-  - `detect_na_value` removes rows and columns (ie, genes and samples) of the data matrices that contain more than `r "threshold"`% (default value = `r threshold_dataset`) of NA (Not Available) value. <br/>
-  - `detect_zero_value` removes genes with very low expression in the majority of samples (controls and cases), ie. genes whose expression is lower than `r "val_min"` in `r "threshold"`% of all the samples. By default it uses the function `normalmixEM` to estimate the value of `r "val_min"` using all the log2-transformed count data but this parameter can also be tuned manually by the user.
-  - `rank_genes` sorts the genes based on the median of gene expression in controls. This step is essential for the proper functioning of `penda`.
+  - `detect_na_value` removes rows and columns (ie, genes and samples) of the data matrices that contain more than `r "threshold"` % (default value = `r threshold_dataset`) of NA (Not Available) value.
+  - `detect_zero_value` removes genes with very low expression in the majority of samples (controls and cases), *ie.* genes whose expression is lower than `val_min` in `threshold`% of all the samples. By default it uses the function `normalmixEM` to estimate the value of `val_min` using all the *log2*-transformed count data but this parameter can also be tuned manually by the user.
+  - `rank_genes` sorts the genes based on the median value of gene expression in controls. This step is essential for the proper functioning of `penda`.
+
+```{r}
+head(data_ctrl[,1:3])
+dim(data_ctrl)
+head(data_case[,1:3])
+dim(data_case)
+```
 
 
 ## Relative gene ordering
@@ -105,15 +95,20 @@ The function `make_dataset` contains three steps to prepare the data for the ana
 ```{r, label="penda::compute_lower_and_higher_lists"}
 threshold_LH = 0.99
 s_max = 30
-if (!exists("L_H_list")) L_H_list = penda::compute_lower_and_higher_lists(data_ctrl_f, threshold = threshold_LH, s_max = s_max)
+L_H_list = penda::compute_lower_and_higher_lists(data_ctrl, threshold=threshold_LH, s_max=s_max)
+L = L_H_list$L
+H = L_H_list$H
 ```
 
-The function `compute_lower_and_higher_lists` computes two matrices `L` and `H` based on the filtered control dataset (`data_ctrl_f`).  
+The `penda` method uses the relative gene ordering in normal tissue. 
+
+The function `compute_lower_and_higher_lists` computes two matrices `L` and `H` based on the filtered control dataset (`data_ctrl`).  
 
 Each row of the **L** matrix contains a list of at most `s_max` (default value = `r s_max`) genes (characterized by their ids) whose expressions are **lower** than that of the gene associated to the corresponding row, in at least `threshold_LH` (default value = `r threshold_LH*100` %) of the control samples.<br/>
+
 Each row of the **H** matrix contains a list of at most `s_max` (default value = `r s_max`) genes (characterized by their ids) whose expressions are **higher** than that of the gene associated to the corresponding row, in at least `threshold_LH` (default value = `r threshold_LH*100` %) of the control samples.<br/>
 
-Bellow are the histograms of the size of L and H lists for all the genes:
+Below, for some genes (FOXH1, KRTAP2-3, etc.), we show the id of 10 genes of the L and H lists. 
 
 
 ```{r, results="verbatim"}
@@ -171,41 +166,16 @@ generate_data_bypatient = function(D_list, U_list){
                     pc = round(pc,2)))
 }
 
-# generate_data_bypatient = function(D_list, U_list){
-#   down = colSums(D_list)
-#   up = colSums(U_list)
-#   total = down + up
-#   patient_names = colnames(D_list)
-#   patients = rep(factor(patient_names , levels = patient_names [order(total)]), 3)
-#   variable = c(rep("down", length(patient_names)),
-#                rep("up", length(patient_names)),
-#                rep("total", length(patient_names)))
-#   value = c(down, up, total)
-#   return(data.frame(patients = patients,
-#                     variable = variable,
-#                     value = value))
-# }
-
 data_bypatient = generate_data_bypatient(D_list = penda_res$down_genes,
                                          U_list = penda_res$up_genes)
 
 plot_figure = function(data_patients){
-library(ggplot2)
-mytheme <- theme(panel.background = element_blank(),
+  library(ggplot2)
+  mytheme <- theme(panel.background = element_blank(),
   panel.grid.major = element_line(colour="black", size = (0.1)),
                  panel.grid.minor = element_blank())
 
-# p1 = ggplot(data_patients, aes(x = patients, y = value)) + 
-#     geom_line(aes(group = variable), colour = "grey80") + # theme_minimal(base_size = 20) +
-#     mytheme + ylim(0, 10000) + ylab("Number of  genes") + xlab("Patients") +
-# theme(axis.text.x = element_blank()) + geom_point(aes(colour = variable), 
-#     size = 0.5) + ggtitle("Degree of deregulation per patient") +  
-# scale_y_continuous(breaks = seq(0, 10000, 2000)) + scale_x_discrete(breaks = NULL) +
-#    scale_colour_manual(name  ="Gene deregulation", 
-#                       values = c("green", "darkblue", "red"), 
-#                        labels=c("DOWN", "UP & DOWN", "UP")) 
-
- p1 <- ggplot(data_patients, aes(x = patients, y = pc)) +
+  p1 <- ggplot(data_patients, aes(x = patients, y = pc)) +
     geom_line(aes(group = variable), colour = "grey80") +
     mytheme +
     ylab("% of gene deregulation") + xlab("patients") +
@@ -218,8 +188,8 @@ mytheme <- theme(panel.background = element_blank(),
       labels = c("DOWN", "UP & DOWN", "UP")
     ) #+
   #  theme(legend.position = "none", axis.text.x = element_blank())
- 
- return(p1)
+
+  return(p1)
 }
 
 plot_figure(data_patients = data_bypatient)
