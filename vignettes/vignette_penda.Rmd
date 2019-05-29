@@ -111,7 +111,7 @@ Each row of the **H** matrix contains a list of at most `s_max` (default value =
 Below, for some genes (FOXH1, KRTAP2-3, etc.), we show the id of 10 genes of the L and H lists. 
 
 
-```{r, results="verbatim"}
+```{r echo=FALSE}
 layout(matrix(1:2, 1), respect=TRUE)
 hist(rowSums(L_H_list$L != 0), xlab = "nb of L genes", main = "Size of L list")
 hist(rowSums(L_H_list$H != 0), xlab = "nb of H genes", main = "Size of H list")
@@ -120,13 +120,13 @@ hist(rowSums(L_H_list$H != 0), xlab = "nb of H genes", main = "Size of H list")
 
 ## Differential expression testing
 
-```{r, label="penda::penda_test", echo = FALSE, results = "hide"}
+```{r, label="penda::penda_test"}
 threshold = 0.4
 iterations =  20 
 quant_test =  0.05
 factor_test = 1.2
 
-penda_res = penda::penda_test(samples = data_case, 
+penda_res=penda::penda_test(samples = data_case, 
                   controls = data_ctrl,
                    threshold = threshold, 
                    iterations =  iterations, 
@@ -145,7 +145,7 @@ Results are in the form of two matrices `$down_genes` and `$up_genes`. Each row 
 
 
 
-```{r, echo = FALSE, warning = FALSE}
+```{r, echo=FALSE}
 generate_data_bypatient = function(D_list, U_list){
   down = colSums(D_list)
   up = colSums(U_list)
@@ -168,11 +168,11 @@ data_bypatient = generate_data_bypatient(D_list = penda_res$down_genes,
 
 plot_figure = function(data_patients){
   library(ggplot2)
-  mytheme <- theme(panel.background = element_blank(),
+  mytheme = theme(panel.background = element_blank(),
   panel.grid.major = element_line(colour="black", size = (0.1)),
                  panel.grid.minor = element_blank())
 
-  p1 <- ggplot(data_patients, aes(x = patients, y = pc)) +
+  p1 = ggplot(data_patients, aes(x = patients, y = pc)) +
     geom_line(aes(group = variable), colour = "grey80") +
     mytheme +
     ylab("% of gene deregulation") + xlab("patients") +
@@ -193,7 +193,7 @@ plot_figure(data_patients = data_bypatient)
 
 ```
 
-```{r fig.width=9, fig.height=9, echo = FALSE, warning = FALSE}
+```{r fig.width=9, fig.height=9, echo=FALSE}
 
 plot_heatmap_hclust = function (data) {
   sum(apply(is.na(data), 1, any))
