@@ -104,9 +104,9 @@ The `penda` method uses the relative gene ordering in normal tissue.
 
 The function `compute_lower_and_higher_lists` computes two matrices `L` and `H` based on the filtered control dataset (`data_ctrl`).  
 
-Each row of the **L** matrix contains a list of at most `s_max` (default value = `r s_max`) genes (characterized by their ids) whose expressions are **lower** than that of the gene associated to the corresponding row, in at least `threshold_LH` (default value = `r threshold_LH*100` %) of the control samples.<br/>
+Each row of the **L** matrix contains a list of at most `s_max` (default value = `r s_max`) genes (characterized by their ids) whose expressions are **lower** than that of the gene associated to the corresponding row, in at least `threshold_LH` (default value = `r threshold_LH*100` %) of the control samples.
 
-Each row of the **H** matrix contains a list of at most `s_max` (default value = `r s_max`) genes (characterized by their ids) whose expressions are **higher** than that of the gene associated to the corresponding row, in at least `threshold_LH` (default value = `r threshold_LH*100` %) of the control samples.<br/>
+Each row of the **H** matrix contains a list of at most `s_max` (default value = `r s_max`) genes (characterized by their ids) whose expressions are **higher** than that of the gene associated to the corresponding row, in at least `threshold_LH` (default value = `r threshold_LH*100` %) of the control samples.
 
 Below, for some genes (FOXH1, KRTAP2-3, etc.), we show the id of 10 genes of the L and H lists. 
 
@@ -121,16 +121,13 @@ hist(rowSums(L_H_list$H != 0), xlab = "nb of H genes", main = "Size of H list")
 ## Differential expression testing
 
 ```{r, label="penda::penda_test", echo = FALSE, results = "hide"}
-controls =  data_ctrl_f
-samples = data_case_f
 threshold = 0.4
 iterations =  20 
-L_H_list =  L_H_list 
 quant_test =  0.05
 factor_test = 1.2
 
-penda_res = penda::penda_test(samples = samples, 
-                  controls = controls,
+penda_res = penda::penda_test(samples = data_case, 
+                  controls = data_ctrl,
                    threshold = threshold, 
                    iterations =  iterations, 
                    L_H_list =  L_H_list, 
@@ -245,7 +242,7 @@ The data set was pretreated as following:
 and `r floor(Penda_dataset$info["nb_genes_0"])` genes were removed because lowly expressed: 
 under the threshold `val_min` = `r Penda_dataset$info["val_min"]` in at least `r Penda_dataset$info["threshold"]*100` % of cases.
 
-`r ncol(controls)` controls were used to generate L and H lists using the following parameters: threshold LH = `r threshold_LH` and s_max = `r s_max`.
+`r ncol(data_ctrl)` controls were used to generate L and H lists using the following parameters: threshold LH = `r threshold_LH` and s_max = `r s_max`.
 
 The PenDA method was then applied on `r ncol(data_case)` cases, with the following set of parameters: quantile = `r quant_test`, factor = `r factor_test` and threshold = `r threshold`.
 
