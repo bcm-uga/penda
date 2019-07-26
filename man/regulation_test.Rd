@@ -4,7 +4,7 @@
 \alias{regulation_test}
 \title{Test gene expression variation for a given gene}
 \usage{
-regulation_test(gene, L_H_list, sample, threshold)
+regulation_test(gene, L_H_list, sample, threshold, n_min = 10)
 }
 \arguments{
 \item{gene}{The name of the gene to analyze.}
@@ -14,6 +14,8 @@ regulation_test(gene, L_H_list, sample, threshold)
 \item{sample}{The vector of genes expressions for one patient.}
 
 \item{threshold}{If Ll/Lh and Hh/Hl are under this threshold, the expression not change.}
+
+\item{n_min}{The number minimal of genes in the L H list to switch to the quantile method.}
 }
 \value{
 This function returns 0 if the gene expression has not changed,
@@ -22,7 +24,7 @@ This function returns 0 if the gene expression has not changed,
 \description{
 This function makes the test of expression dysregulation of one gene for a
 patient compared to control. It's an hybrid method, which use the rank method
-and the quantile method in addition when there is no lower or higher list.
+and the quantile method in addition when there is no significant lower or higher list.
 }
 \examples{
 # First, load and define the data

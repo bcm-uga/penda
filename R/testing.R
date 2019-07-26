@@ -7,12 +7,13 @@
 #'
 #' This function makes the test of expression dysregulation of one gene for a
 #' patient compared to control. It's an hybrid method, which use the rank method
-#' and the quantile method in addition when there is no lower or higher list.
+#' and the quantile method in addition when there is no significant lower or higher list.
 #'
 #'@param gene The name of the gene to analyze.
 #'@param L_H_list The list of lower and higher expressed genes matrices in the control.
 #'@param sample The vector of genes expressions for one patient.
 #'@param threshold If Ll/Lh and Hh/Hl are under this threshold, the expression not change.
+#'@param n_min The number minimal of genes in the L H list to switch to the quantile method.
 #'
 #'@return This function returns 0 if the gene expression has not changed,
 #' 1 if the gene is up-regulated and -1 if the gene is down-regulated.
@@ -21,7 +22,7 @@
 #'
 #'@export
 
-regulation_test = function(gene, L_H_list, sample, threshold){
+regulation_test = function(gene, L_H_list, sample, threshold,  n_min = 10){
 
   #If the gene is NA in the sample, we can't compute the dysregulation.
   if (is.na(sample[gene])){
@@ -42,35 +43,41 @@ regulation_test = function(gene, L_H_list, sample, threshold){
     Hh = length(H) - Hl
 
     #If exists both lower and higher expressed lists,
-    if (length(L) != 0 & length(H) != 0){
-      if ((Hl / length(H) < threshold) & ((Lh / length(L) < threshold))){
-        changement = 0
-      } else if ((Ll + Hl) < length(L)){
-        changement = -1
+    if (length(L) >= n_min & length(H) >= n_min){
+      if (xor((Hl / length(H) >= threshold), ((Lh / length(L) >= threshold)))){
+        if (Lh / length(L) >= threshold){
+          changement = -1
+        } else {
+          changement = 1
+        }
       } else {
-        changement = 1
+        changement = 0
       }
       return(changement)
     }
     #If exists only the higher expressed list,
-    else if (length(L) == 0 & length(H) != 0){
-      if ((Hl / length(H) < threshold) & (sample[gene] >= quantile_gene[1])){
-        changement = 0
-      } else if (Hl / length(H) >= threshold){
-        changement = 1
+    else if (length(L) < n_min & length(H) >= n_min){
+      if (xor((Hl / length(H) >= threshold), (sample[gene] < quantile_gene[1]))){
+        if (Hl / length(H) >= threshold){
+          changement = 1
+        } else {
+          changement = -1
+        }
       } else {
-        changement = -1
+        changement = 0
       }
       return(changement)
     }
     #If exists only the lower expressed list,
-    else if (length(L) != 0 & length(H) == 0){
-      if ((Lh / length(L) < threshold) & (sample[gene] < quantile_gene[2])){
-        changement = 0
-      } else if (Lh / length(L) >= threshold){
-        changement = -1
+    else if (length(L) >= n_min & length(H) < n_min){
+      if (xor((Lh / length(L) >= threshold), (sample[gene] > quantile_gene[2]))){
+        if (Lh / length(L) >= threshold){
+          changement = -1
+        } else {
+          changement = 1
+        }
       } else {
-        changement = 1
+        changement = 0
       }
       return(changement)
     }
@@ -147,8 +154,9 @@ sample_test = function (sample, iterations, threshold){
       l1n1 = l1
     }
   }
-  U_genes = (l1 == 1 | l1n1 == 1)
-  D_genes = (l1 == -1 | l1n1 == -1)
+  lf = l1 + l1n1
+  U_genes = lf > 0
+  D_genes = lf < 0
   return(list(D = D_genes, U = U_genes))
   gc()
 }
