@@ -137,7 +137,7 @@ make_dataset = function(controls, cancer_data, detectlowvalue = TRUE, detectNA =
     naprobes = penda::detect_na_value(controls, cancer_data, threshold, probes = TRUE)
     napatient = penda::detect_na_value(controls,  cancer_data, threshold, probes = FALSE)
     controls = controls[!naprobes, !napatient[1:ncol(controls)]]
-    cancer_data = cancer_data[!naprobes, !napatient[(ncol(controls)+1):length(napatient)]]
+    cancer_data = cancer_data[!naprobes, !napatient[(resume[2] + 1):length(napatient)]]
     resume["nb_patients_NA"] = sum(napatient)
     resume["nb_genes_NA"] = sum(naprobes)
   }
