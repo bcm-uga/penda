@@ -7,21 +7,21 @@
 compute_lower_and_higher_lists(controls, threshold, s_max = 50)
 }
 \arguments{
-\item{controls}{A matrix with the gene expressions for each patient.}
+\item{controls}{A data matrix with the expressions of control samples.}
 
 \item{threshold}{The proportion of expression that must be in the conditions.}
 
 \item{s_max}{The maximum number of L and H genes for each gene.}
 }
 \value{
-This function returns a list of two logical matrices :
-- the L matrix, with TRUE if the row gene has a lower expression than the column gene,
-- the H Matrix with TRUE if the row gene has a higher expression than the column gene.
+This function returns a list of two numeric matrices :
+- the L matrix, with for each row gene the id of the L genes in columns,
+- the H Matrix, with for each row gene the id of the H genes in columns.
 }
 \description{
 For each gene, this function computes two lists.
-The L list, with genes with a Lower expression in threshold% of controls,
-and the H list with genes with an Higher expression in threshold% of controls.
+The L list, with genes with a Lower expression in `threshold*100` \% of controls,
+and the H list with genes with an Higher expression in `threshold*100` \% of controls.
 These lists can be used in Penda test to compare the gene rank in samples.
 }
 \examples{

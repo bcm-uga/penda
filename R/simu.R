@@ -2,50 +2,51 @@
 # clementine.decamps@univ-grenoble-alpes.fr
 #
 #---------------------------------------------
-#'Simplified simulation of data dysregulation.
+#'Simplified simulation of data deregulation.
 #'
-#' This function simulates the dysregulation (up and down) of datas.
+#'This function simulates the deregulation of expression (up and down) in the data.
 #'
 #'@param data The vector or matrix of original data to edit.
-#'@param fraction The fraction of data to modify.
-#'@param threshold The expression value under which data modification is +- modifier
-#'Above the threshold, dysregulation is expression * or / factor.
-#'@param modifier Under the threshold, the up-regulation is to add at the expression this number,
-#'and the down-regulation to substract this number.
-#'@param factor Below the threshold, the up-regulation is to multiply expression by this number,
-#'and the down-regulation to divide.
+#'@param proportion The proportion of data to modify.
+#'@param threshold The expression value under which data modification is +- modifier. Above the threshold, dysregulation is expression * or / factor.
+#'@param modifier Under the threshold, the deregulation is to add or remove this number.
+#'@param factor Below the threshold, the deregulation is to multiply or divide by this number.
 #'
 #'@return This function returns a list of three vectors or matrices :
-#'initial_data, datas before the modification
-#'simulated_data, datas with up and down modifications
-#'changes_idx, index of datas with modifications
+#'initial_data, data before the modification
+#'simulated_data, data with simulated deregulation
+#'changes_idx, index of modifications
 #'
 #'@example examples/ex_simplified_simulation.R
 #'
 #'@export
 
-simplified_simulation = function(data, fraction, threshold = 60, modifier = 30, factor = 4){
+simplified_simulation = function(data, proportion, threshold = 60, modifier = 30, factor = 4){
 
   simu_data = data
-  perturb = sample(length(simu_data), fraction*length(simu_data))
-  for(i in 1:length(perturb)){
+  #Sampling of deregulated genes
+  perturb = sample(length(simu_data), proportion*length(simu_data))
+  #For each deregulated gene,
+  for(g in perturb){
+    #Random deregulation (up or down)
     if (rnorm(1) < 0) {
-      if (simu_data[perturb[i]] < threshold) {
-        simu_data[perturb[i]] = simu_data[perturb[i]] - modifier
-        if (simu_data[perturb[i]] <= 0){
-          simu_data[perturb[i]] = 0
+      if (simu_data[g] < threshold) {
+        simu_data[g] = simu_data[g] - modifier
+        if (simu_data[g] <= 0){
+          simu_data[g] = 0
         }
       } else {
-        simu_data[perturb[i]] = simu_data[perturb[i]] / factor
+        simu_data[g] = simu_data[g] / factor
       }
-    } else if (simu_data[perturb[i]] < threshold) {
-      simu_data[perturb[i]] = simu_data[perturb[i]] + modifier
+    } else if (simu_data[g] < threshold) {
+      simu_data[g] = simu_data[g] + modifier
     } else {
-      simu_data[perturb[i]] = simu_data[perturb[i]] * factor
+      simu_data[g] = simu_data[g] * factor
     }
   }
-  return(list(initial_data = data, simulated_data = simu_data, changes_idx = perturb))
+  return(list(initial_data = data, simulated_data = simu_data, changes_idx = sort(perturb)))
 }
+
 
 # Authors: Clémentine Decamps, UGA
 # clementine.decamps@univ-grenoble-alpes.fr
@@ -53,13 +54,13 @@ simplified_simulation = function(data, fraction, threshold = 60, modifier = 30, 
 #---------------------------------------------
 #' Group genes with similar expression
 #'
-#' This function makes group of genes with similar expression. For each group, the function computes the
-#' proportion of dysregulated genes in cancer and the difference delta.
+#' This function makes group of genes with similar expression. For each group,
+#' the proportion of dysregulated genes in cancer and the extent of variation are computed.
 #'
-#'@param controls A matrix with genes expressions in controls for all the patients.
-#'@param cancer_data A matrix with dysregulated genes expressions for all the patients.
-#'@param size_grp The size of each group of genes.
-#'@param quant The quantile of gene expression in control. Cancer genes outside this limit are considerd dysregulated.
+#'@param controls The matrix of gene expression in controls.
+#'@param cancer_data The matrix of gene expression in cases (ex: cancer).
+#'@param size_grp The size of the groups of genes.
+#'@param quant The quantile of gene expression in control. Cancer genes outside this limit are considered dysregulated.
 #'
 #'@return This function returns a matrix of four columns :
 #'Limit min, the first value of the group,
@@ -85,25 +86,26 @@ group_genes = function(controls, cancer_data, size_grp = 100, quant = 0.05){
       limits = c(1 + (grp - 1) * size_grp, length(all_ctrl))
     }
 
-    genes_grp = all_ctrl[limits[1] : limits[2]]
+    genes_grp = all_ctrl[limits[1]:limits[2]]
     delta_gen = c()
     delta_cancer = c()
     #For all genes of the group,
-    for (g in 1:length(genes_grp)){
-      gene_name = names(genes_grp)[g]
+    for (n in 1:length(genes_grp)){
+      g = genes_grp[n]
+      gene_name = names(g)
       #Computing differences between the gene expression in control and this gene.
-      delta = controls[gene_name, ] - rep(genes_grp[g], times = ncol(controls))
-      delta = delta[-which(delta==0)[1]]
+      delta = controls[gene_name, ] - g
+      delta = delta[-which(delta == 0)[1]]
       delta_gen = rbind(delta_gen, delta)
       #Computing differences between the gene expression in cancer and this gene.
-      delta = cancer_data[gene_name, ] - rep(genes_grp[g], times = ncol(cancer_data))
+      delta = cancer_data[gene_name, ] - g
       delta_cancer = rbind(delta_cancer, delta)
     }
 
     #Computing the proportion of genes outside of limits.
-    q = quantile(delta_gen, c(quant,(1-quant)), na.rm = TRUE)
-    prop = length(which(delta_cancer < q[1] | delta_cancer > q[2])) / length(delta_cancer)
-    delta_deregul = delta_cancer[which(delta_cancer < q[1] | delta_cancer > q[2])]
+    q = quantile(delta_gen, c(quant,(1 - quant)), na.rm = TRUE)
+    prop = sum(delta_cancer < q[1] | delta_cancer > q[2]) / length(delta_cancer)
+    delta_deregul = delta_cancer[delta_cancer < q[1] | delta_cancer > q[2]]
     results = rbind(results, c(all_ctrl[limits[1]], all_ctrl[limits[2]], prop, list(delta_deregul)))
   }
   colnames(results) = c("Limit min", "Limit max", "Proportion of dysregul", "Deltas dysregul")

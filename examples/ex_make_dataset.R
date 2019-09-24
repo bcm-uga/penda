@@ -6,6 +6,7 @@ dataset = penda::make_dataset(controls = data_ctrl,
                               detectlowvalue = TRUE,
                               detectNA = TRUE,
                               threshold = 0.99,
-                              val_min = NA)
+                              val_min = NA,
+                              bimod = TRUE)
 data_ctrl = dataset$data_ctrl
 data_case = dataset$data_case
