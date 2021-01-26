@@ -4,8 +4,15 @@
 \alias{choose_threshold}
 \title{Test gene expression variations for multiple thresholds in a serie of samples}
 \usage{
-choose_threshold(controls, L_H_list, iterations, simulation,
-  threshold_values, quant_test = 0, factor_test = 1)
+choose_threshold(
+  controls,
+  L_H_list,
+  iterations,
+  simulation,
+  threshold_values,
+  quant_test = 0,
+  factor_test = 1
+)
 }
 \arguments{
 \item{controls}{A matrix with genes expressions in controls for all the patients.}
@@ -38,7 +45,7 @@ median_gene = sort(median_gene)
 controls = controls[names(median_gene), ]
 simu_data = controls[,11:13]
 controls = controls[,-(11:13)]
-simulation = penda::simplified_simulation(simu_data, fraction = 0.3, threshold = 60)
+simulation = penda::simplified_simulation(simu_data, proportion = 0.3, threshold = 60)
 # Second, lower and higher lists are computed
 L_H_list = penda::compute_lower_and_higher_lists(controls, threshold = 0.99, s_max = 50)
 # Third, choose the vector of threshold to test

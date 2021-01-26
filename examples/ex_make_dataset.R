@@ -1,8 +1,8 @@
-# Example for detect_zero_value function
+# Example for make_dataset function
 data_ctrl = penda::penda_data_ctrl
 data_case = penda::penda_data_case
 dataset = penda::make_dataset(controls = data_ctrl,
-                              cancer_data = data_case,
+                              data_case = data_case,
                               detectlowvalue = TRUE,
                               detectNA = TRUE,
                               threshold = 0.99,

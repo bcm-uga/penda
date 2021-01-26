@@ -4,8 +4,7 @@
 \alias{complex_simulation}
 \title{Simulation of dysregulation that takes in account real datas}
 \usage{
-complex_simulation(controls, cancer_data, data, size_grp = 100,
-  quant = 0.05)
+complex_simulation(controls, cancer_data, data, size_grp = 100, quant = 0.05)
 }
 \arguments{
 \item{controls}{A matrix with genes expressions in controls for all the patients.}

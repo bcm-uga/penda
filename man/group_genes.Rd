@@ -7,13 +7,13 @@
 group_genes(controls, cancer_data, size_grp = 100, quant = 0.05)
 }
 \arguments{
-\item{controls}{A matrix with genes expressions in controls for all the patients.}
+\item{controls}{The matrix of gene expression in controls.}
 
-\item{cancer_data}{A matrix with dysregulated genes expressions for all the patients.}
+\item{cancer_data}{The matrix of gene expression in cases (ex: cancer).}
 
-\item{size_grp}{The size of each group of genes.}
+\item{size_grp}{The size of the groups of genes.}
 
-\item{quant}{The quantile of gene expression in control. Cancer genes outside this limit are considerd dysregulated.}
+\item{quant}{The quantile of gene expression in control. Cancer genes outside this limit are considered dysregulated.}
 }
 \value{
 This function returns a matrix of four columns :
@@ -23,6 +23,6 @@ Proportion of dysregulation, the proportion of cancer genes outside the quantile
 Deltas dysregul, a list with all the value of cancer genes - control genes.
 }
 \description{
-This function makes group of genes with similar expression. For each group, the function computes the
-proportion of dysregulated genes in cancer and the difference delta.
+This function makes group of genes with similar expression. For each group,
+the proportion of dysregulated genes in cancer and the extent of variation are computed.
 }

@@ -2,33 +2,35 @@
 % Please edit documentation in R/simu.R
 \name{simplified_simulation}
 \alias{simplified_simulation}
-\title{Simplified simulation of data dysregulation.}
+\title{Simplified simulation of data deregulation.}
 \usage{
-simplified_simulation(data, fraction, threshold = 60, modifier = 30,
-  factor = 4)
+simplified_simulation(
+  data,
+  proportion,
+  threshold = 60,
+  modifier = 30,
+  factor = 4
+)
 }
 \arguments{
 \item{data}{The vector or matrix of original data to edit.}
 
-\item{fraction}{The fraction of data to modify.}
+\item{proportion}{The proportion of data to modify.}
 
-\item{threshold}{The expression value under which data modification is +- modifier
-Above the threshold, dysregulation is expression * or / factor.}
+\item{threshold}{The expression value under which data modification is +- modifier. Above the threshold, dysregulation is expression * or / factor.}
 
-\item{modifier}{Under the threshold, the up-regulation is to add at the expression this number,
-and the down-regulation to substract this number.}
+\item{modifier}{Under the threshold, the deregulation is to add or remove this number.}
 
-\item{factor}{Below the threshold, the up-regulation is to multiply expression by this number,
-and the down-regulation to divide.}
+\item{factor}{Below the threshold, the deregulation is to multiply or divide by this number.}
 }
 \value{
 This function returns a list of three vectors or matrices :
-initial_data, datas before the modification
-simulated_data, datas with up and down modifications
-changes_idx, index of datas with modifications
+initial_data, data before the modification
+simulated_data, data with simulated deregulation
+changes_idx, index of modifications
 }
 \description{
-This function simulates the dysregulation (up and down) of datas.
+This function simulates the deregulation of expression (up and down) in the data.
 }
 \examples{
 # First, load data
@@ -36,7 +38,7 @@ data = penda::penda_data_ctrl[1:10, 1:10]
 
 # Second, simulated the dysregulation
 simulation = penda::simplified_simulation(data,
-                                          fraction = 0.3,
+                                          proportion = 0.3,
                                           threshold = 60,
                                           modifier = 30,
                                           factor = 4)

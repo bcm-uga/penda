@@ -4,7 +4,9 @@
 \name{penda_data_ctrl}
 \alias{penda_data_ctrl}
 \title{Expression matrix of controls}
-\format{A matrix with 3000 rows and 44 columns}
+\format{
+A matrix with 3000 rows and 44 columns
+}
 \source{
 \url{https://portal.gdc.cancer.gov}
 }

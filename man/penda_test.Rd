@@ -4,8 +4,15 @@
 \alias{penda_test}
 \title{Test gene expression variations in a serie of samples}
 \usage{
-penda_test(samples, controls, iterations, L_H_list, threshold,
-  quant_test = 0, factor_test = 1)
+penda_test(
+  samples,
+  controls,
+  iterations,
+  L_H_list,
+  threshold,
+  quant_test = 0,
+  factor_test = 1
+)
 }
 \arguments{
 \item{samples}{A vector or a matrix with all the genes expressions for each sample.}

@@ -4,8 +4,15 @@
 \alias{make_dataset}
 \title{Making the Penda Dataset}
 \usage{
-make_dataset(controls, data_case, detectlowvalue = TRUE,
-  detectNA = TRUE, threshold = 0.99, val_min = NA, bimod = TRUE)
+make_dataset(
+  controls,
+  data_case,
+  detectlowvalue = TRUE,
+  detectNA = TRUE,
+  threshold = 0.99,
+  val_min = NA,
+  bimod = TRUE
+)
 }
 \arguments{
 \item{controls}{The first matrix with datas to analyze (ex: controls samples).}
@@ -31,11 +38,11 @@ This function makes the Penda dataset with controls and cases pre-filtred and
 sorted by median in controls.
 }
 \examples{
-# Example for detect_zero_value function
+# Example for make_dataset function
 data_ctrl = penda::penda_data_ctrl
 data_case = penda::penda_data_case
 dataset = penda::make_dataset(controls = data_ctrl,
-                              cancer_data = data_case,
+                              data_case = data_case,
                               detectlowvalue = TRUE,
                               detectNA = TRUE,
                               threshold = 0.99,
