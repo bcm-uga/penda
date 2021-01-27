@@ -11,6 +11,7 @@ output:
     toc_depth: 3
     number_sections: true
 vignette: >
+  %\VignetteIndexEntry{penda}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---

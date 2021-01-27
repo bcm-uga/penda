@@ -47,7 +47,7 @@ The rownames of the matrix correspond to the gene_symbol, the colnames indicate 
 
 ```{r}
 data_case = penda::penda_data_case
-data_case = data_case[rownames(data_ctrl),]
+data_case = data_case[names(data_ctrl),]
 head(data_case[,1:3])
 dim(data_case)
 ```
