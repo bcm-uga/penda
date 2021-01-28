@@ -23,9 +23,9 @@ penda::draw_penda()
 
 # Introduction
 
-`penda` (**PE**rso**N**alized **D**ifferential **A**nalysis ) is an open-access R package that detects gene deregulation in individual samples compared to a set of reference, control samples. This tutorial aims at providing to non-expert users basic informations and illustrations on how to run the package.
+`penda` (**PE**rso**N**alized **D**ifferential **A**nalysis ) is an open-access R package that detects gene deregulation in individual samples compared to a set of reference, control samples. This tutorial aims at providing to advanced users tools to optimized the method parameters using simulations.
 
-How to cite: Richard et al. (2019) PenDA, a rank-based method for Personalized Differential Analysis: application to lung cancer, in submission.
+How to cite: Richard, M. et al. PenDA, a rank-based method for personalized differential analysis: Application to lung cancer. PLOS Computational Biology 16, e1007869 (2020).
 
 
 # Dataset and data filtering
@@ -69,7 +69,7 @@ dim(data_simu)
 dim(data_ctrl)
 ```
 
-**Note**: this vignette is an example that has been designed for a rapid test of the method. For a more complete analysis and a better parameter estimation, we recommend users to simulate more cases (10 for example instead of 3).
+**Note**: this vignette is an example that has been designed for a rapid test of the method. For a more complete analysis and a better parameter estimation, we recommend users to simulate more cases (10 for example instead of 3). If you don't have much control, you can remove them one by one and apply the vignette several times.
 
 ## Data filtering
 
@@ -225,7 +225,7 @@ The second step of the parameter choice is therefore to determine the optimal va
 The function `select_threshold_param` then choose the threshold value that maximize the TPR for a user-specified maximal value of the FDR (defined by the variable `FDR_max`, default value = 0.05). 
 
 ```{r label="penda::choose_threshold", results="hide"}
-threshold_values = c(0, 0.05, 0.1, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
+threshold_values = c(0.01, 0.05, 0.1, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
 best_quant = best_quantile$quantile
 best_fact = best_quantile$factor
 which_threshold = penda::choose_threshold(data_ctrl, L_H_list, 30, simulation, threshold_values, quant_test = best_quant, factor_test = best_fact)
