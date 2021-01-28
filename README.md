@@ -27,6 +27,10 @@ devtools::load_all(); devtools::document(); devtools::install()
 setwd("vignettes")
 rmarkdown::render("vignette_simulation.Rmd")
 # source(knitr::purl(("vignette_simulation.Rmd")))
+
+#Depends of your number of controls:
 rmarkdown::render("vignette_penda.Rmd")
+rmarkdown::render("vignette_penda_1ctrl.Rmd")
+
 ```
 
