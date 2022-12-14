@@ -28,5 +28,19 @@
             "givenName": "Clementine",
             "familyName": "Decamps"
         }
+    ],
+    "author": [
+        {
+            "@type": "Person",
+            "givenName": "Daniel",
+            "familyName": "Jost"
+        }
+    ],
+    "author": [
+        {
+            "@type": "Person",
+            "givenName": "Florent",
+            "familyName": "Chuffart"
+        }
     ]
 }
