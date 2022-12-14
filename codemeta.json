@@ -1,0 +1,41 @@
+{
+    "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+    "@type": "SoftwareSourceCode",
+    "license": "https://spdx.org/licenses/CECILL-2.0",
+    "codeRepository": "https://github.com/bcm-uga/penda",
+    "dateCreated": "2021-08-31",
+    "name": "penda",
+    "description": "The `penda` package provides different method to perform personalized differential analysis.",
+    "applicationCategory": "Cellular Biology",
+    "programmingLanguage": [
+        "R"
+    ],
+    "author": [
+        {
+            "@type": "Person",
+            "givenName": "Malgali",
+            "familyName": "Richard",
+        }
+    ],
+    "author": [
+        {
+            "@type": "Person",
+            "givenName": "Florent",
+            "familyName": "Chuffart",
+        }
+    ],
+    "author": [
+        {
+            "@type": "Person",
+            "givenName": "Daniel",
+            "familyName": "Jost",
+        }
+    ],
+    "author": [
+        {
+            "@type": "Person",
+            "givenName": "Clementine",
+            "familyName": "Decamps"
+        }
+    ]
+}
