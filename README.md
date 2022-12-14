@@ -3,6 +3,12 @@
 An R package that performs personalized differential analysis of omics data.
 The __penda__ package provide different methods to perform differential analysis.
 
+*PenDA, a rank-based method for personalized differential analysis: Application to lung cancer*
+Magali Richard,Clémentine Decamps, Florent Chuffart, Elisabeth Brambilla, Sophie Rousseaux, Saadi Khochbin, Daniel Jost.
+**PLoS Comput Biol**, 2020 May 11;16(5):e1007869. 
+https://doi.org/10.1371/journal.pcbi.1007869.
+
+
 ## Installation
 
 To get the current development version from github:
