@@ -4,7 +4,7 @@
     "license": "https://spdx.org/licenses/GPL-3.0",
     "codeRepository": "https://github.com/bcm-uga/penda",
     "dateCreated": "2020-06-30",
-    "name": "ptlmapper",
+    "name": "penda",
     "description": "The `penda` package provides different method to perform personalized differential analysis.",
     "applicationCategory": "Cellular Biology",
     "programmingLanguage": [
