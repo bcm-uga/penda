@@ -1,10 +1,10 @@
 {
     "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
     "@type": "SoftwareSourceCode",
-    "license": "https://spdx.org/licenses/CECILL-2.0",
-    "codeRepository": "https://github.com/bcm-uga/penda",
-    "dateCreated": "2021-08-31",
-    "name": "penda",
+    "license": "https://spdx.org/licenses/GPL-3.0",
+    "codeRepository": "https://github.com/fchuffar/ptlmapper",
+    "dateCreated": "2017-12-31",
+    "name": "ptlmapper",
     "description": "The `penda` package provides different method to perform personalized differential analysis.",
     "applicationCategory": "Cellular Biology",
     "programmingLanguage": [
@@ -15,20 +15,11 @@
             "@type": "Person",
             "givenName": "Malgali",
             "familyName": "Richard",
-        }
-    ],
-    "author": [
-        {
-            "@type": "Person",
-            "givenName": "Florent",
-            "familyName": "Chuffart",
-        }
-    ],
-    "author": [
-        {
-            "@type": "Person",
-            "givenName": "Daniel",
-            "familyName": "Jost",
+            "email": "magali.richard@univ-grenoble-alpes.fr",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "CNRS"
+            }
         }
     ],
     "author": [
