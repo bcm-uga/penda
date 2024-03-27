@@ -1,32 +1,182 @@
 {
-    "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
-    "@type": "SoftwareSourceCode",
-    "license": "https://spdx.org/licenses/GPL-3.0",
-    "codeRepository": "https://github.com/fchuffar/ptlmapper",
-    "dateCreated": "2017-12-31",
-    "name": "ptlmapper",
-    "description": "The `penda` package provides different method to perform personalized differential analysis.",
-    "applicationCategory": "Cellular Biology",
-    "programmingLanguage": [
-        "R"
-    ],
-    "author": [
+  "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+  "@type": "SoftwareSourceCode",
+  "identifier": "penda",
+  "description": "The `penda` package provides different method to perform personalized differential analysis.",
+  "name": "penda: A R package that performs personalized differential analysis of comics data",
+  "license": "CeCILL",
+  "version": "0.1.0",
+  "programmingLanguage": {
+    "@type": "ComputerLanguage",
+    "name": "R",
+    "url": "https://r-project.org"
+  },
+  "runtimePlatform": "R version 4.2.0 (2022-04-22)",
+  "author": [
+    {
+      "@type": "Organization",
+      "name": "c)"
+    },
+    {
+      "@type": "Organization",
+      "name": "person"
+    },
+    {
+      "@type": "Organization",
+      "name": "person"
+    },
+    {
+      "@type": "Person",
+      "givenName": "person",
+      "familyName": ")"
+    }
+  ],
+  "maintainer": [
+    {
+      "@type": "Person",
+      "givenName": "Magali",
+      "familyName": "Richard",
+      "email": "magali.richard@univ-grenoble-alpes.fr"
+    }
+  ],
+  "softwareSuggestions": [
+    {
+      "@type": "SoftwareApplication",
+      "identifier": "gplots",
+      "name": "gplots",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=gplots"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "identifier": "knitr",
+      "name": "knitr",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=knitr"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "identifier": "rmarkdown",
+      "name": "rmarkdown",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=rmarkdown"
+    }
+  ],
+  "softwareRequirements": {
+    "1": {
+      "@type": "SoftwareApplication",
+      "identifier": "R",
+      "name": "R",
+      "version": ">= 2.10.0"
+    },
+    "2": {
+      "@type": "SoftwareApplication",
+      "identifier": "ggplot2",
+      "name": "ggplot2",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=ggplot2"
+    },
+    "3": {
+      "@type": "SoftwareApplication",
+      "identifier": "Rcpp",
+      "name": "Rcpp",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=Rcpp"
+    },
+    "4": {
+      "@type": "SoftwareApplication",
+      "identifier": "mixtools",
+      "name": "mixtools",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=mixtools"
+    },
+    "SystemRequirements": null
+  },
+  "fileSize": "161478.094KB",
+  "citation": [
+    {
+      "@type": "ScholarlyArticle",
+      "datePublished": "2016",
+      "author": [
         {
-            "@type": "Person",
-            "givenName": "Malgali",
-            "familyName": "Richard",
-            "email": "magali.richard@univ-grenoble-alpes.fr",
-            "affiliation": {
-                "@type": "Organization",
-                "name": "CNRS"
-            }
-        }
-    ],
-    "author": [
+          "@type": "Person",
+          "givenName": "Florent",
+          "familyName": "Chuffart"
+        },
         {
-            "@type": "Person",
-            "givenName": "Clementine",
-            "familyName": "Decamps"
+          "@type": "Person",
+          "givenName": "Magali",
+          "familyName": "Richard"
+        },
+        {
+          "@type": "Person",
+          "givenName": "Daniel",
+          "familyName": "Jost"
+        },
+        {
+          "@type": "Person",
+          "givenName": "Claire",
+          "familyName": "Burny"
+        },
+        {
+          "@type": "Person",
+          "givenName": "Helene",
+          "familyName": "Duplus-Bottin"
+        },
+        {
+          "@type": "Person",
+          "givenName": "Yoshikazu",
+          "familyName": "Ohya"
+        },
+        {
+          "@type": "Person",
+          "givenName": "Gael",
+          "familyName": "Yvert"
         }
-    ]
+      ],
+      "name": "Exploiting single-cell quantitative data to map genetic variants having probabilistic effects",
+      "pagination": "accepted",
+      "isPartOf": {
+        "@type": "PublicationIssue",
+        "datePublished": "2016",
+        "isPartOf": {
+          "@type": ["PublicationVolume", "Periodical"],
+          "name": "PloS Genetics"
+        }
+      }
+    }
+  ],
+  "codeRepository": "https://github.com/bcm-uga/penda",
+  "readme": "https://github.com/bcm-uga/penda/blob/penda_v1.0/README.md",
+  "keywords": ["differential-analysis", "genomics", "bioinformatics", "bioinformatics-tool", "rnaseq"]
 }

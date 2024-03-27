@@ -7,3 +7,4 @@ misc
 ^.*\.Rproj$
 ^\.Rproj\.user$
 
+^codemeta\.json$
