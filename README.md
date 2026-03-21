@@ -40,3 +40,8 @@ rmarkdown::render("vignette_penda_1ctrl.Rmd")
 
 ```
 
+# Citing
+
+*PenDA, a rank-based method for personalized differential analysis: Application to lung cancer.*
+Richard M, Decamps C, Chuffart F, Brambilla E, Rousseaux S, Khochbin S, Jost D. 
+**PLoS Comput Biol**. 2020 May 11;16(5):e1007869. doi: 10.1371/journal.pcbi.1007869. PMID: 32392248; PMCID: PMC7274464.
